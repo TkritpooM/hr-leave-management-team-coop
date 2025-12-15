@@ -25,7 +25,7 @@ export default function LoginPage() {
 
       // 1. ยิง API ไปที่ Backend (Port 8000)
       // เช็ค Route ให้ชัวร์นะครับ ปกติจะเป็น /auth/login
-      const response = await axios.post('http://localhost:8000/auth/login', {
+      const response = await axios.post('http://localhost:8000/api/auth/login', {
         email: form.email,
         password: form.password
       });
