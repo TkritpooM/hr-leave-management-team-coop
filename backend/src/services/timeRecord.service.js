@@ -10,14 +10,15 @@ const { getCurrentTimeInTimezone, isLateCheckIn, formatDateOnly } = require('../
  */
 const checkIn = async (employeeId) => {
     const now = getCurrentTimeInTimezone().toDate();
-    const todayDateOnly = formatDateOnly(now);
+    const todayDateOnly = formatDateOnly(now); // ได้ค่าเป็น String เช่น "2025-12-16"
 
     // 1. ตรวจสอบว่ามีการ Check-in ไปแล้วหรือยัง
     const existingRecord = await prisma.timeRecord.findUnique({
         where: {
             employeeId_workDate: {
                 employeeId: employeeId,
-                workDate: todayDateOnly,
+                // 🔥 แก้ตรงนี้: แปลง String กลับเป็น Date Object
+                workDate: new Date(todayDateOnly), 
             },
         },
     });
@@ -33,7 +34,8 @@ const checkIn = async (employeeId) => {
     const newRecord = await prisma.timeRecord.create({
         data: {
             employeeId: employeeId,
-            workDate: todayDateOnly,
+            // 🔥 แก้ตรงนี้: ต้องส่งเป็น Date Object เช่นกัน
+            workDate: new Date(todayDateOnly), 
             checkInTime: now,
             isLate: lateStatus,
         },
@@ -54,7 +56,8 @@ const checkOut = async (employeeId) => {
         where: {
             employeeId_workDate: {
                 employeeId: employeeId,
-                workDate: todayDateOnly,
+                // 🔥 แก้ตรงนี้: แปลง String กลับเป็น Date Object
+                workDate: new Date(todayDateOnly),
             },
         },
     });

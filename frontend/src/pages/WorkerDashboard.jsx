@@ -1,35 +1,17 @@
-// src/pages/WorkerDashboard.jsx
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "./WorkerDashboard.css";
-
-const MOCK_HISTORY = [
-  {
-    date: "12 Dec 2025",
-    checkIn: "10:50",
-    checkOut: "18:10",
-    status: "Late",
-    note: "-",
-  },
-  {
-    date: "11 Dec 2025",
-    checkIn: "09:00",
-    checkOut: "18:00",
-    status: "On Time",
-    note: "-",
-  },
-  {
-    date: "10 Dec 2025",
-    checkIn: "-",
-    checkOut: "-",
-    status: "Leave (Annual)",
-    note: "Family",
-  },
-];
 
 export default function WorkerDashboard() {
   const [now, setNow] = useState(new Date());
+  
+  // State สำหรับเก็บสถานะการเช็คชื่อของ "วันนี้"
   const [checkedInAt, setCheckedInAt] = useState(null);
   const [checkedOutAt, setCheckedOutAt] = useState(null);
+  
+  // State สำหรับเก็บประวัติ
+  const [history, setHistory] = useState([]);
+  
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [leaveForm, setLeaveForm] = useState({
     type: "Annual",
@@ -38,8 +20,7 @@ export default function WorkerDashboard() {
     detail: "",
   });
 
-  // mock data
-  const lateCountThisMonth = 3;
+  const lateCountThisMonth = 0; 
   const lateLimit = 5;
   const leaveBalance = {
     annual: { used: 5, total: 12 },
@@ -47,38 +28,95 @@ export default function WorkerDashboard() {
     personal: { used: 2, total: 3 },
   };
 
+  const getAuthHeader = () => {
+    const token = localStorage.getItem("token");
+    return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
+  // --- 🔥 Fetch Data (แก้ไขแล้ว) ---
+  const fetchAttendanceData = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader());
+      
+      // ✅ แก้จุดที่ 1: ดึง array ออกมาจาก key "records" ตามที่เห็นใน Network Tab
+      const records = response.data.records || [];
+      
+      setHistory(records);
+
+      // เช็คว่า "วันนี้" มีรายการหรือยัง?
+      const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      // ใช้ workDate ให้ตรงกับ API
+      const todayRecord = records.find(r => r.workDate && r.workDate.startsWith(todayStr));
+
+      if (todayRecord) {
+        if (todayRecord.checkInTime) {
+            setCheckedInAt(new Date(todayRecord.checkInTime));
+        }
+        if (todayRecord.checkOutTime) {
+            setCheckedOutAt(new Date(todayRecord.checkOutTime));
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch attendance:", err);
+    }
+  };
+
   useEffect(() => {
+    fetchAttendanceData();
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date) =>
-    date
-      ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : "--:--";
+  const formatTime = (dateInput) => {
+    if (!dateInput) return "--:--";
+    const date = new Date(dateInput);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   const formatDateTime = (date) =>
     date.toLocaleString("en-GB", {
-      weekday: "long",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+      weekday: "long", day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
     });
 
-  const handleCheckIn = () => {
-    if (checkedInAt) return;
-    setCheckedInAt(new Date());
-    setCheckedOutAt(null);
+  const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   };
 
-  const handleCheckOut = () => {
+  const handleCheckIn = async () => {
+    if (checkedInAt) return; 
+
+    try {
+      await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
+      
+      alert("✅ Check In สำเร็จ!");
+      setCheckedInAt(new Date()); 
+      fetchAttendanceData(); // โหลดตารางใหม่
+    } catch (err) {
+      console.error(err);
+      alert("❌ Check In ไม่สำเร็จ: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  const handleCheckOut = async () => {
     if (!checkedInAt || checkedOutAt) return;
-    setCheckedOutAt(new Date());
+
+    try {
+      await axios.post("http://localhost:8000/api/timerecord/checkout", {}, getAuthHeader());
+      
+      alert("✅ Check Out สำเร็จ!");
+      setCheckedOutAt(new Date());
+      fetchAttendanceData();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Check Out ไม่สำเร็จ: " + (err.response?.data?.message || err.message));
+    }
   };
 
+  // Mock Leave Handlers
   const handleLeaveChange = (e) => {
     const { name, value } = e.target;
     setLeaveForm((prev) => ({ ...prev, [name]: value }));
@@ -86,129 +124,65 @@ export default function WorkerDashboard() {
 
   const handleSubmitLeave = (e) => {
     e.preventDefault();
-    console.log("Leave request:", leaveForm);
-    alert("Leave request submitted (mock)");
     setIsLeaveModalOpen(false);
-    setLeaveForm({
-      type: "Annual",
-      startDate: "",
-      endDate: "",
-      detail: "",
-    });
   };
 
   const isLateExceeded = lateCountThisMonth > lateLimit;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   return (
     <div className="page-card">
-      {/* ===== Header ===== */}
       <header className="worker-header">
         <div>
-          <h1 className="worker-title">Jokec, Worker</h1>
+          <h1 className="worker-title">Hello, {user.firstName || 'Worker'}</h1>
           <p className="worker-datetime">{formatDateTime(now)}</p>
         </div>
         <div className="worker-header-right">
           <div className="clock-box">{formatTime(now)}</div>
-          <button className="icon-button" aria-label="Notifications">
-            🔔
-          </button>
+          <button className="icon-button">🔔</button>
         </div>
       </header>
 
-      {/* ===== Late warning ===== */}
       <div className="late-warning">
-        <span>
-          Late this month: {lateCountThisMonth} / {lateLimit}
-        </span>
-        {isLateExceeded && (
-          <span className="late-warning-danger">
-            You have exceeded the late limit. HR will be notified.
-          </span>
-        )}
+        <span>Late this month: {lateCountThisMonth} / {lateLimit}</span>
+        {isLateExceeded && <span className="late-warning-danger">Limit Exceeded</span>}
       </div>
 
-      {/* ===== Action cards ===== */}
       <section className="action-row">
-        {/* Check In */}
         <div className="action-card">
           <h3>Check In</h3>
           <p className="action-time">{formatTime(checkedInAt)}</p>
-          <button
-            className="primary-btn"
-            onClick={handleCheckIn}
-            disabled={!!checkedInAt}
-          >
+          <button className="primary-btn" onClick={handleCheckIn} disabled={!!checkedInAt}>
             {checkedInAt ? "Checked In" : "Check In Now"}
           </button>
         </div>
 
-        {/* Check Out */}
         <div className="action-card">
           <h3>Check Out</h3>
           <p className="action-time">{formatTime(checkedOutAt)}</p>
-          <button
-            className="secondary-btn"
-            onClick={handleCheckOut}
-            disabled={!checkedInAt || !!checkedOutAt}
-          >
-            {!checkedInAt
-              ? "Check In First"
-              : checkedOutAt
-              ? "Checked Out"
-              : "Check Out"}
+          <button className="secondary-btn" onClick={handleCheckOut} disabled={!checkedInAt || !!checkedOutAt}>
+            {!checkedInAt ? "Check In First" : checkedOutAt ? "Checked Out" : "Check Out"}
           </button>
         </div>
 
-        {/* Leave */}
         <div className="action-card">
           <h3>Leave</h3>
           <p className="action-time">Request a leave</p>
-          <button
-            className="secondary-btn"
-            onClick={() => setIsLeaveModalOpen(true)}
-          >
-            Request Leave
-          </button>
+          <button className="secondary-btn" onClick={() => setIsLeaveModalOpen(true)}>Request Leave</button>
         </div>
       </section>
 
-      {/* ===== Leave balance ===== */}
       <section className="summary-row">
-        <div className="summary-card">
-          <h4>Annual Leave</h4>
-          <p>
-            Used {leaveBalance.annual.used} / {leaveBalance.annual.total} days
-          </p>
-        </div>
-        <div className="summary-card">
-          <h4>Sick Leave</h4>
-          <p>
-            Used {leaveBalance.sick.used} / {leaveBalance.sick.total} days
-          </p>
-        </div>
-        <div className="summary-card">
-          <h4>Personal Leave</h4>
-          <p>
-            Used {leaveBalance.personal.used} / {leaveBalance.personal.total} days
-          </p>
-        </div>
+         <div className="summary-card"><h4>Annual</h4><p>Used {leaveBalance.annual.used}</p></div>
+         <div className="summary-card"><h4>Sick</h4><p>Used {leaveBalance.sick.used}</p></div>
+         <div className="summary-card"><h4>Personal</h4><p>Used {leaveBalance.personal.used}</p></div>
       </section>
 
-      {/* ===== History ===== */}
+      {/* ===== 🔥 History Section (Verified) ===== */}
       <section className="history-section">
         <h2>Your Personal Time History</h2>
-
         <div className="history-filters">
-          <select>
-            <option>This Month</option>
-            <option>Last Month</option>
-          </select>
-          <select>
-            <option>All</option>
-            <option>Attendance Only</option>
-            <option>Leave Only</option>
-            <option>Late Only</option>
-          </select>
+          <select><option>This Month</option></select>
           <button className="outline-btn">Export CSV</button>
         </div>
 
@@ -220,92 +194,47 @@ export default function WorkerDashboard() {
                 <th>Check-in</th>
                 <th>Check-out</th>
                 <th>Status</th>
-                <th>Note</th>
               </tr>
             </thead>
             <tbody>
-              {MOCK_HISTORY.map((row) => (
-                <tr key={row.date}>
-                  <td>{row.date}</td>
-                  <td>{row.checkIn}</td>
-                  <td>{row.checkOut}</td>
-                  <td>{row.status}</td>
-                  <td>{row.note}</td>
+              {history.length > 0 ? (
+                history.map((row) => (
+                  <tr key={row.recordId}>
+                    {/* ใช้ชื่อตัวแปรตาม API: workDate */}
+                    <td>{formatDateOnly(row.workDate)}</td>
+                    
+                    {/* ใช้ชื่อตัวแปรตาม API: checkInTime */}
+                    <td>{formatTime(row.checkInTime)}</td>
+                    
+                    {/* ใช้ชื่อตัวแปรตาม API: checkOutTime */}
+                    <td>{formatTime(row.checkOutTime)}</td>
+                    
+                    <td>
+                        <span className={`status-badge ${row.isLate ? 'status-late' : 'status-ok'}`}>
+                            {row.isLate ? 'Late' : 'On Time'}
+                        </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                    <td colSpan="5" style={{textAlign: 'center', padding: '20px'}}>
+                        No history found.
+                    </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </section>
 
-      {/* ===== Leave modal ===== */}
       {isLeaveModalOpen && (
-        <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Request Leave</h3>
-            <form onSubmit={handleSubmitLeave} className="leave-form">
-              <label>
-                Leave Type
-                <select
-                  name="type"
-                  value={leaveForm.type}
-                  onChange={handleLeaveChange}
-                >
-                  <option value="Annual">Annual Leave</option>
-                  <option value="Sick">Sick Leave</option>
-                  <option value="Personal">Personal Leave</option>
-                </select>
-              </label>
-
-              <div className="date-row">
-                <label>
-                  Start Date
-                  <input
-                    type="date"
-                    name="startDate"
-                    value={leaveForm.startDate}
-                    onChange={handleLeaveChange}
-                    required
-                  />
-                </label>
-                <label>
-                  End Date
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={leaveForm.endDate}
-                    onChange={handleLeaveChange}
-                    required
-                  />
-                </label>
-              </div>
-
-              <label>
-                Detail
-                <textarea
-                  name="detail"
-                  rows="3"
-                  value={leaveForm.detail}
-                  onChange={handleLeaveChange}
-                  placeholder="Reason for leave..."
-                />
-              </label>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="outline-btn"
-                  onClick={() => setIsLeaveModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
-                  Submit
-                </button>
-              </div>
-            </form>
+          <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
+            <div className="modal">
+                <h3>Request Leave (Mock)</h3>
+                <button onClick={() => setIsLeaveModalOpen(false)}>Close</button>
+            </div>
           </div>
-        </div>
       )}
     </div>
   );
