@@ -2,6 +2,7 @@
 
 const timeRecordService = require('../services/timeRecord.service');
 const prisma = require('../models/prisma');
+const moment = require('moment-timezone');
 
 const handleCheckIn = async (req, res, next) => {
     try {
@@ -62,28 +63,29 @@ const getAllTimeRecords = async (req, res, next) => {
 const getMonthlyLateSummary = async (req, res, next) => {
     try {
         const employeeId = req.user.employeeId;
-        const startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
-        const endOfMonth = moment().endOf('month').format('YYYY-MM-DD');
+        const startOfMonth = moment().startOf('month').toDate();
+        const endOfMonth = moment().endOf('month').toDate();
         
-        const lateRecords = await prisma.timeRecord.findMany({
+        const lateCount = await prisma.timeRecord.count({
             where: {
-                employeeId,
+                employeeId: employeeId,
                 isLate: true,
                 workDate: {
-                    gte: new Date(startOfMonth),
-                    lte: new Date(endOfMonth),
+                    gte: startOfMonth,
+                    lte: endOfMonth,
                 }
-            },
-            select: { recordId: true } // ดึงแค่ ID เพื่อลด Payload
+            }
         });
 
-        const lateCount = lateRecords.length;
-        
-        // HR อาจกำหนด Limit การมาสาย (Mocking Limit ที่ 5)
-        const lateLimit = 5; 
-
-        res.status(200).json({ success: true, lateCount, lateLimit, isExceeded: lateCount > lateLimit });
-    } catch (error) { next(error); }
+        res.status(200).json({ 
+            success: true, 
+            lateCount, 
+            lateLimit: 5, 
+            isExceeded: lateCount > 5 
+        });
+    } catch (error) { 
+        next(error); 
+    }
 };
 
 module.exports = { handleCheckIn, handleCheckOut, getMyTimeRecords, getAllTimeRecords,getMonthlyLateSummary };

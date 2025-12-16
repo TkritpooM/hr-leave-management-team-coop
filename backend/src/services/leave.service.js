@@ -103,8 +103,49 @@ const calculateTotalDays = async (startDateStr, endDateStr, startDuration, endDu
     return parseFloat(totalDays.toFixed(2));
 };
 
+const checkQuotaAvailability = async (employeeId, leaveTypeId, requestedDays, year) => {
+    // 1. ตรวจสอบประเภทการลา (ถ้าลาไม่รับเงินไม่ต้องเช็คโควต้า)
+    const leaveType = await prisma.leaveType.findUnique({ where: { leaveTypeId } });
+    if (!leaveType?.isPaid) return true;
+
+    // 2. ดึงโควต้าของพนักงานปีนั้นๆ
+    const quota = await prisma.leaveQuota.findUnique({
+        where: { 
+            employeeId_leaveTypeId_year: { 
+                employeeId, 
+                leaveTypeId, 
+                year 
+            } 
+        }
+    });
+
+    if (!quota) throw CustomError.badRequest("ยังไม่มีการตั้งค่าโควต้าการลาสำหรับพนักงานคนนี้ในปีปัจจุบัน");
+
+    const available = parseFloat((quota.totalDays - quota.usedDays).toFixed(2));
+    if (requestedDays > available) {
+        throw CustomError.conflict(`โควต้าไม่พอ (คงเหลือ: ${available} วัน, ต้องการใช้: ${requestedDays} วัน)`);
+    }
+    return quota;
+};
+
+/**
+ * อัปเดตยอดการใช้โควต้า (สำหรับใช้ใน Transaction ตอนอนุมัติ)
+ */
+const updateUsedQuota = async (employeeId, leaveTypeId, requestedDays, year, tx) => {
+    const quota = await tx.leaveQuota.findUnique({
+        where: { employeeId_leaveTypeId_year: { employeeId, leaveTypeId, year } }
+    });
+    if (!quota) return;
+    await tx.leaveQuota.update({
+        where: { quotaId: quota.quotaId },
+        data: { usedDays: { increment: requestedDays } }
+    });
+};
+
 module.exports = {
     // ... (ฟังก์ชันเดิมอื่นๆ)
     calculateTotalDays, 
+    checkQuotaAvailability,
+    updateUsedQuota
     // export getValidWorkDays/getHolidays ถ้าต้องการใช้ที่อื่น แต่ในที่นี้ export แค่ calculateTotalDays พอ
 };

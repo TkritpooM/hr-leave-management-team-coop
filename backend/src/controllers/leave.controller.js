@@ -12,19 +12,29 @@ const requestLeave = async (req, res, next) => {
         const employeeId = req.user.employeeId;
         const { leaveTypeId, startDate, endDate, startDuration, endDuration, reason } = req.body;
 
-        const totalDaysRequested = leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
-        const requestYear = moment(startDate).year();
+        // 1. คำนวณจำนวนวันที่ลา (ต้องมี await หน้าฟังก์ชัน async)
+        const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
+        
+        // 2. ประกาศตัวแปร requestYear โดยดึงมาจาก startDate
+        const requestYear = moment(startDate).year(); 
 
+        // 3. ตรวจสอบโควต้า (ส่งค่า requestYear ที่ประกาศไว้ด้านบน)
         await leaveService.checkQuotaAvailability(employeeId, leaveTypeId, totalDaysRequested, requestYear);
 
+        // 4. บันทึกข้อมูลผ่าน Model (ตรวจสอบว่าฟังก์ชันใน model ตรงกับที่ส่งไป)
         const newRequest = await leaveModel.createLeaveRequest({
-            employeeId, leaveTypeId,
-            startDate: new Date(startDate), endDate: new Date(endDate),
-            totalDaysRequested, startDuration, endDuration,
-            reason: reason || null, status: 'Pending',
+            employeeId, 
+            leaveTypeId,
+            startDate: new Date(startDate), 
+            endDate: new Date(endDate),
+            totalDaysRequested, 
+            startDuration: startDuration || 'Full', 
+            endDuration: endDuration || 'Full',
+            reason: reason || null, 
+            status: 'Pending',
         });
 
-        // Notification: แจ้ง HR ว่ามีคำขอใหม่
+        // 5. ส่ง Notification ให้ HR (ถ้ามีระบบ socket หรือ notification service)
         const hrEmployees = await prisma.employee.findMany({ where: { role: 'HR' } });
         hrEmployees.forEach(hr => {
             notificationService.sendNotification(hr.employeeId, {
@@ -35,7 +45,11 @@ const requestLeave = async (req, res, next) => {
         });
 
         res.status(201).json({ success: true, message: 'Leave request submitted successfully.', request: newRequest });
-    } catch (error) { next(error); }
+    } catch (error) { 
+        // พิมพ์ error ออกมาดูที่ Terminal ของ Backend เพื่อหาสาเหตุที่แท้จริง
+        console.error("DEBUG - Leave Request Error:", error); 
+        next(error); 
+    }
 };
 
 const getMyRequests = async (req, res, next) => {
@@ -246,6 +260,7 @@ module.exports = {
   getRequestDetail, 
   handleApproval,
   getMyQuotas,
+  getAllLeaveRequests,
   getAllRequests,
   createLeaveRequest,
   getLeaveById,
