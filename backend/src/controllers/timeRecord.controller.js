@@ -59,4 +59,31 @@ const getAllTimeRecords = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { handleCheckIn, handleCheckOut, getMyTimeRecords, getAllTimeRecords };
+const getMonthlyLateSummary = async (req, res, next) => {
+    try {
+        const employeeId = req.user.employeeId;
+        const startOfMonth = moment().startOf('month').format('YYYY-MM-DD');
+        const endOfMonth = moment().endOf('month').format('YYYY-MM-DD');
+        
+        const lateRecords = await prisma.timeRecord.findMany({
+            where: {
+                employeeId,
+                isLate: true,
+                workDate: {
+                    gte: new Date(startOfMonth),
+                    lte: new Date(endOfMonth),
+                }
+            },
+            select: { recordId: true } // ดึงแค่ ID เพื่อลด Payload
+        });
+
+        const lateCount = lateRecords.length;
+        
+        // HR อาจกำหนด Limit การมาสาย (Mocking Limit ที่ 5)
+        const lateLimit = 5; 
+
+        res.status(200).json({ success: true, lateCount, lateLimit, isExceeded: lateCount > lateLimit });
+    } catch (error) { next(error); }
+};
+
+module.exports = { handleCheckIn, handleCheckOut, getMyTimeRecords, getAllTimeRecords,getMonthlyLateSummary };

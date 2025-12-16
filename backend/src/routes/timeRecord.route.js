@@ -16,6 +16,9 @@ router.post('/checkin', authorizeRole(['Worker', 'HR']), timeRecordController.ha
 // POST /api/timerecord/checkout
 router.post('/checkout', authorizeRole(['Worker', 'HR']), timeRecordController.handleCheckOut);
 
+// GET /api/timerecord/late/summary (Worker/HR sees late status for the month)
+router.get('/late/summary', authorizeRole(['Worker', 'HR']), timeRecordController.getMonthlyLateSummary);
+
 // GET /api/timerecord/my - ดูประวัติลงเวลาของตัวเอง
 router.get(
     '/my',

@@ -138,4 +138,117 @@ const handleApproval = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
-module.exports = { requestLeave, getMyRequests, getAllPendingRequests, getRequestDetail, handleApproval };
+const getMyQuotas = async (req, res, next) => {
+    try {
+        const employeeId = req.user.employeeId;
+        const currentYear = moment().year();
+
+        const quotas = await prisma.leaveQuota.findMany({
+            where: {
+                employeeId,
+                year: currentYear
+            },
+            include: { leaveType: true },
+            orderBy: { leaveTypeId: 'asc' }
+        });
+        
+        // คำนวณ Available Days ที่ Frontend ต้องการ
+        const formattedQuotas = quotas.map(q => ({
+            ...q,
+            totalDays: parseFloat(q.totalDays.toFixed(2)),
+            usedDays: parseFloat(q.usedDays.toFixed(2)),
+            availableDays: parseFloat((q.totalDays - q.usedDays).toFixed(2)),
+        }));
+
+        res.status(200).json({ success: true, quotas: formattedQuotas });
+    } catch (error) { next(error); }
+};
+
+const getAllLeaveRequests = async (req, res, next) => {
+    try {
+        const { startDate, endDate } = req.query;
+
+        const requests = await prisma.leaveRequest.findMany({
+            where: {
+                // Filter ตามช่วงวันที่ถ้าร้องขอ (ใช้สำหรับ Calendar View)
+                ...(startDate && { startDate: { gte: new Date(startDate) } }),
+                ...(endDate && { endDate: { lte: new Date(endDate) } }),
+            },
+            include: { 
+                employee: { select: { employeeId: true, firstName: true, lastName: true } }, 
+                leaveType: true 
+            },
+            orderBy: { requestedAt: 'desc' },
+        });
+
+        res.status(200).json({ success: true, requests });
+    } catch (error) { next(error); }
+};
+
+// ตัวอย่าง handlers ที่ route ต้องการ (stub/ตัวอย่าง)
+const getAllRequests = async (req, res, next) => {
+  try {
+    // ถ้ามี model ให้เรียกใช้งานจริง เช่น:
+    // const list = await leaveModel.getAll();
+    // return res.status(200).json({ success: true, data: list });
+
+    // ถ้าไม่ได้เชื่อม model ยังใช้งานได้ (ชั่วคราว)
+    return res.status(200).json({ success: true, data: [] });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const createLeaveRequest = async (req, res, next) => {
+  try {
+    // ตัวอย่าง: const created = await leaveModel.create(req.body);
+    return res.status(201).json({ success: true, data: null });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getLeaveById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // const item = await leaveModel.findById(id);
+    return res.status(200).json({ success: true, data: null });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateLeaveRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // const updated = await leaveModel.update(id, req.body);
+    return res.status(200).json({ success: true, data: null });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteLeaveRequest = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    // await leaveModel.delete(id);
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ต้อง export ฟังก์ชันที่ route เรียกใช้
+module.exports = {
+  requestLeave, 
+  getMyRequests, 
+  getAllPendingRequests, 
+  getRequestDetail, 
+  handleApproval,
+  getMyQuotas,
+  getAllRequests,
+  createLeaveRequest,
+  getLeaveById,
+  updateLeaveRequest,
+  deleteLeaveRequest,
+};
