@@ -1,46 +1,40 @@
 // backend/src/server.js
 
 const dotenv = require('dotenv');
-// โหลด environment variables จาก .env
 dotenv.config({ path: './.env' }); 
 
-const cors = require('cors');
 const http = require('http');
-const createApp = require('./config/server');
+const prisma = require('./models/prisma'); 
 const notificationService = require('./services/notification.service'); 
-const prisma = require('./models/prisma'); // เพื่อให้มั่นใจว่า connection ถูกสร้าง
 
-const app = createApp(); // <-- สร้าง app ก่อนใช้
+// 🔥 แก้ตรงนี้: ให้ชี้ไปที่ไฟล์ config/server.js
+const createApp = require('./config/server'); 
 
-app.use(cors({
-    origin: 'http://localhost:5173', // อนุญาตให้ Frontend (React) เข้ามา
-    credentials: true // เผื่ออนาคตต้องส่ง cookie
-}));
+const app = createApp();
 
 const PORT = process.env.PORT || 8000;
 const server = http.createServer(app);
 
-// Initialize Web Socket Server
+// Initialize Web Socket
 notificationService.initializeWebSocket(server);
 
-// Start Listening
+// Start Server
 server.listen(PORT, async () => {
     try {
-        // ตรวจสอบการเชื่อมต่อ DB
         await prisma.$connect();
         console.log('✅ Database connected successfully.');
-        console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+        console.log(`🚀 Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+        console.log(`📡 API Ready at: http://localhost:${PORT}/api/leave`);
     } catch (error) {
         console.error('❌ Failed to connect to database or start server:', error.message);
         process.exit(1);
     }
 });
 
-// จัดการ Unhandled Rejection (ป้องกัน Process Crash)
 process.on('unhandledRejection', (err) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-    console.error(err.name, err.message);
+    console.error(err);
     server.close(() => {
-        process.exit(1); // ออกจาก Process
+        process.exit(1);
     });
 });

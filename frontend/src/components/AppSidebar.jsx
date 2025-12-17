@@ -14,7 +14,7 @@ const MENU = [
 
   // HR
   { label: "HR Dashboard", to: "/hr/dashboard", roles: ["HR"] },
-  { label: "HR Calendar", to: "/hr/calendar", roles: ["HR"] },
+  //**{ label: "HR Calendar", to: "/hr/calendar", roles: ["HR"] },
   { label: "Leave Approvals", to: "/hr/leave-approvals", roles: ["HR"] },
   { label: "Employees", to: "/hr/employees", roles: ["HR"] },
 
