@@ -12,6 +12,8 @@ import Placeholder from "./pages/Placeholder";
 import LoginPage from "./pages/LoginPage";
 
 import HRAttendancePage from "./pages/HRAttendancePage";
+import WorkerCalendar from "./pages/WorkerCalendar";
+import WorkerNotifications from "./pages/WorkerNotifications";
 
 export default function App() {
   return (
@@ -24,10 +26,10 @@ export default function App() {
         <Route path="worker/dashboard" element={<WorkerDashboard />} />
         <Route path="worker/attendance" element={<Placeholder title="My Attendance" />} />
         <Route path="worker/leave" element={<WorkerLeave />} />
-        <Route path="worker/calendar" element={<Placeholder title="Calendar View" />} />
         <Route path="worker/balance" element={<Placeholder title="Leave Balance" />} />
-        <Route path="worker/notifications" element={<Placeholder title="Notifications" />} />
         <Route path="worker/profile" element={<Placeholder title="Profile" />} />
+        <Route path="worker/calendar" element={<WorkerCalendar />} />
+        <Route path="worker/notifications" element={<WorkerNotifications />} />
 
         {/* HR */}
         <Route path="/hr/attendance" element={<HRAttendancePage />} />
@@ -38,6 +40,7 @@ export default function App() {
 
         {/* default */}
         <Route index element={<Navigate to="/login" replace />} />
+        
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

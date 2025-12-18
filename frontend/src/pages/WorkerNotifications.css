@@ -1,0 +1,20 @@
+/* src/pages/WorkerNotifications.css */
+.wn-head{ display:flex; justify-content:space-between; align-items:flex-end; gap: 14px; margin-bottom: 12px; }
+.wn-title{ margin:0; font-size: 26px; font-weight: 950; }
+.wn-sub{ margin:6px 0 0; color: var(--muted); font-size: 13px; }
+.wn-actions{ display:flex; gap: 10px; align-items:center; }
+.wn-list{ display:flex; flex-direction:column; gap: 10px; }
+.wn-item{
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+}
+.wn-item.ok{ border-color: rgba(16,185,129,.30); background: rgba(16,185,129,.10); }
+.wn-item.danger{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.12); }
+.wn-item.info{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); }
+
+.wn-item-title{ font-weight: 950; }
+.wn-item-msg{ margin-top: 4px; color: rgba(255,255,255,.82); }
+.wn-item-time{ margin-top: 6px; color: var(--muted); font-size: 12px; }
+.wn-empty{ text-align:center; color: var(--muted); padding: 18px 0; }

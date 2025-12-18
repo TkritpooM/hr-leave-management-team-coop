@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import moment from "moment";
 import "./WorkerLeave.css";
+import Pagination from "../components/Pagination";
 
 const normStatus = (s) => String(s || "").trim().toLowerCase();
 
@@ -16,6 +17,10 @@ export default function WorkerLeave() {
   const [status, setStatus] = useState("all"); // all | pending | approved | rejected | cancelled
   const [type, setType] = useState("all"); // all | <typeName>
   const [sort, setSort] = useState("newest"); // newest | oldest | start_asc | start_desc
+
+  // ✅ Pagination (เพิ่มเฉพาะส่วนนี้)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -77,9 +82,7 @@ export default function WorkerLeave() {
         moment(r.startDate).format("YYYY-MM-DD").includes(query) ||
         moment(r.endDate).format("YYYY-MM-DD").includes(query);
 
-      const matchStatus =
-        status === "all" ? true : st.includes(status); // pending/approved/rejected/cancelled
-
+      const matchStatus = status === "all" ? true : st.includes(status);
       const matchType = type === "all" ? true : (r.leaveType?.typeName || "Unknown") === type;
 
       return matchQuery && matchStatus && matchType;
@@ -113,6 +116,16 @@ export default function WorkerLeave() {
     setType("all");
     setSort("newest");
   };
+
+  // ✅ Pagination apply AFTER filtering (เพิ่มเฉพาะส่วนนี้)
+  const totalFiltered = filtered.length;
+  const startIdx = (page - 1) * pageSize;
+  const paged = useMemo(() => filtered.slice(startIdx, startIdx + pageSize), [filtered, startIdx, pageSize]);
+
+  // ✅ Reset page เมื่อ filter/sort เปลี่ยน (กัน page หลุด) — ไม่กระทบ logic เดิม
+  useEffect(() => {
+    setPage(1);
+  }, [q, status, type, sort]);
 
   return (
     <div className="wl-page">
@@ -197,39 +210,19 @@ export default function WorkerLeave() {
 
         {/* ✅ Status chips (click to filter) */}
         <div className="wl-chips">
-          <button
-            type="button"
-            className={`wl-chip-mini ${status === "all" ? "active" : ""}`}
-            onClick={() => setStatus("all")}
-          >
+          <button type="button" className={`wl-chip-mini ${status === "all" ? "active" : ""}`} onClick={() => setStatus("all")}>
             All <span>{counters.all}</span>
           </button>
-          <button
-            type="button"
-            className={`wl-chip-mini ${status === "pending" ? "active" : ""}`}
-            onClick={() => setStatus("pending")}
-          >
+          <button type="button" className={`wl-chip-mini ${status === "pending" ? "active" : ""}`} onClick={() => setStatus("pending")}>
             Pending <span>{counters.pending}</span>
           </button>
-          <button
-            type="button"
-            className={`wl-chip-mini ${status === "approved" ? "active" : ""}`}
-            onClick={() => setStatus("approved")}
-          >
+          <button type="button" className={`wl-chip-mini ${status === "approved" ? "active" : ""}`} onClick={() => setStatus("approved")}>
             Approved <span>{counters.approved}</span>
           </button>
-          <button
-            type="button"
-            className={`wl-chip-mini ${status === "rejected" ? "active" : ""}`}
-            onClick={() => setStatus("rejected")}
-          >
+          <button type="button" className={`wl-chip-mini ${status === "rejected" ? "active" : ""}`} onClick={() => setStatus("rejected")}>
             Rejected <span>{counters.rejected}</span>
           </button>
-          <button
-            type="button"
-            className={`wl-chip-mini ${status === "cancelled" ? "active" : ""}`}
-            onClick={() => setStatus("cancelled")}
-          >
+          <button type="button" className={`wl-chip-mini ${status === "cancelled" ? "active" : ""}`} onClick={() => setStatus("cancelled")}>
             Cancelled <span>{counters.cancelled}</span>
           </button>
         </div>
@@ -255,18 +248,15 @@ export default function WorkerLeave() {
                     </td>
                   </tr>
                 ) : (
-                  filtered.map((req) => (
+                  paged.map((req) => (
                     <tr key={req.requestId}>
                       <td className="wl-strong">{req.leaveType?.typeName}</td>
                       <td className="wl-small">
-                        {moment(req.startDate).format("DD MMM")} -{" "}
-                        {moment(req.endDate).format("DD MMM YYYY")}
+                        {moment(req.startDate).format("DD MMM")} - {moment(req.endDate).format("DD MMM YYYY")}
                       </td>
                       <td>{req.totalDaysRequested}</td>
                       <td>
-                        <span className={`wl-badge wl-badge-${normStatus(req.status)}`}>
-                          {req.status}
-                        </span>
+                        <span className={`wl-badge wl-badge-${normStatus(req.status)}`}>{req.status}</span>
                       </td>
                     </tr>
                   ))
@@ -275,6 +265,15 @@ export default function WorkerLeave() {
             </table>
           )}
         </div>
+
+        {/* ✅ Pagination (เพิ่มเฉพาะส่วนนี้) */}
+        <Pagination
+          total={totalFiltered}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </section>
     </div>
   );

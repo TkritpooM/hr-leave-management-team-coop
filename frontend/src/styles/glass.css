@@ -109,3 +109,24 @@ body{
   background: rgba(255,255,255,.10);
   border-color: rgba(255,255,255,.12);
 }
+
+/* ===== Pagination ===== */
+.pager{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 12px;
+  padding: 12px 6px 0;
+  flex-wrap: wrap;
+}
+.pager-label{ color: var(--muted); font-size: 12px; font-weight: 800; }
+.pager-right{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+.pager-select{
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(255,255,255,.92);
+  padding: 9px 12px;
+  outline: none;
+}
+.pager-page{ color: rgba(255,255,255,.82); font-weight: 900; font-size: 13px; }

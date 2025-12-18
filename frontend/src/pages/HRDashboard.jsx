@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import axios from "axios";
 import moment from "moment";
 import "./HRDashboard.css";
+import Pagination from "../components/Pagination";
 
 /* ===== Helpers ===== */
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -53,6 +54,10 @@ export default function HRDashboard() {
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [leaveModalDate, setLeaveModalDate] = useState(toISODate(new Date()));
   const [leaveModalItems, setLeaveModalItems] = useState([]); // [{name,typeName}]
+
+  // ✅ Pagination (เพิ่มเฉพาะส่วนนี้)
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -130,6 +135,11 @@ export default function HRDashboard() {
     fetchDailyRecords();
   }, [selectedDate]);
 
+  // ✅ reset page เมื่อเปลี่ยนวัน (pagination เท่านั้น)
+  useEffect(() => {
+    setPage(1);
+  }, [selectedDate]);
+
   // dayRecords single array
   const dayRecords = useMemo(() => {
     const att = attendanceRecords.map((r) => ({
@@ -188,6 +198,11 @@ export default function HRDashboard() {
 
   const todayStr = toISODate(new Date());
   const todayLeavesCount = (monthLeaveMap[todayStr] || []).length;
+
+  // ✅ Pagination apply on dayRecords (เพิ่มเฉพาะส่วนนี้)
+  const totalDay = dayRecords.length;
+  const startIdx = (page - 1) * pageSize;
+  const pagedDayRecords = useMemo(() => dayRecords.slice(startIdx, startIdx + pageSize), [dayRecords, startIdx, pageSize]);
 
   return (
     <div className="page-card">
@@ -318,7 +333,7 @@ export default function HRDashboard() {
                     </td>
                   </tr>
                 ) : (
-                  dayRecords.map((r) => (
+                  pagedDayRecords.map((r) => (
                     <tr key={r.id}>
                       <td>{r.name}</td>
                       <td>{r.role}</td>
@@ -344,6 +359,15 @@ export default function HRDashboard() {
             </table>
           )}
         </div>
+
+        {/* ✅ Pagination (เพิ่มเฉพาะส่วนนี้) */}
+        <Pagination
+          total={totalDay}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </section>
 
       {/* ✅ Leave List Modal */}

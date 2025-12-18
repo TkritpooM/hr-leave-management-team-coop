@@ -1,0 +1,32 @@
+/* src/pages/WorkerCalendar.css */
+.wc .wc-head{
+  display:flex;
+  justify-content:space-between;
+  gap: 14px;
+  align-items:flex-end;
+  margin-bottom: 12px;
+}
+
+.wc-title{ margin:0; font-size: 26px; font-weight: 950; }
+.wc-sub{ margin:6px 0 0; color: var(--muted); font-size: 13px; }
+
+.wc-top-actions{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+
+.wc-tags{ display:flex; flex-direction:column; gap: 6px; margin-top: 6px; }
+.wc-tag{
+  display:inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+}
+.wc-tag.ok{ border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.10); color:#bbf7d0; }
+.wc-tag.late{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.12); color:#fecaca; }
+.wc-tag.leave{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); color:#bfdbfe; }
+
+.wc-detail{ margin-top: 14px; }
+.wc-detail-head{ display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+.wc-loading{ color: var(--muted); font-size: 12px; }
