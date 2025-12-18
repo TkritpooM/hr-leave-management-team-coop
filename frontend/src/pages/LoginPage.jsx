@@ -120,6 +120,29 @@ export default function LoginPage() {
           </button>
 
         </form>
+        {/* ===== Divider ===== */}
+        <div className="divider" />
+
+        {/* ===== Test Accounts ===== */}
+        <div className="test-account">
+          <div className="test-title">บัญชีทดสอบ:</div>
+
+          <div className="test-row">
+            <span className="test-role">HR :</span>
+            <code className="test-value">hr.manager@company.com</code>
+          </div>
+
+          <div className="test-row">
+            <span className="test-role">Worker :</span>
+            <code className="test-value">worker.a@company.com</code>
+          </div>
+
+          <div className="test-row">
+            <span className="test-role">Pass :</span>
+            <code className="test-value">Password123</code>
+          </div>
+        </div>
+
       </div>
     </div>
   );

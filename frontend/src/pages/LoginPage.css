@@ -194,6 +194,39 @@
 .footer-link:hover{
   text-decoration: underline;
 }
+/* ===== Test Account Box ===== */
+.test-account{
+  margin-top: 14px;
+  padding-top: 6px;
+  text-align: center;
+  font-size: 13px;
+  color: #374151;
+}
+
+.test-title{
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.test-row{
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.test-role{
+  font-weight: 600;
+}
+
+.test-value{
+  background: #eef2ff;
+  color: #1d4ed8;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
 
 /* ===== Responsive ===== */
 @media (max-width: 480px){
