@@ -54,6 +54,30 @@ const getValidWorkDays = async (startDateStr, endDateStr) => {
 };
 
 /**
+ * ตรวจสอบการลาทับซ้อน (Overlap)
+ */
+const checkLeaveOverlap = async (employeeId, startDate, endDate) => {
+    const overlappingRequest = await prisma.leaveRequest.findFirst({
+        where: {
+            employeeId: employeeId,
+            status: { in: ['Pending', 'Approved'] }, // ตรวจสอบเฉพาะรายการที่รออนุมัติหรืออนุมัติแล้ว
+            AND: [
+                {
+                    startDate: { lte: new Date(endDate) }
+                },
+                {
+                    endDate: { gte: new Date(startDate) }
+                }
+            ]
+        }
+    });
+
+    if (overlappingRequest) {
+        throw CustomError.conflict("คุณมีรายการลาในช่วงเวลาดังกล่าวอยู่แล้ว (Pending หรือ Approved)");
+    }
+};
+
+/**
  * Calculates the number of leave days requested.
  */
 const calculateTotalDays = async (startDateStr, endDateStr, startDuration, endDuration) => {
@@ -144,6 +168,7 @@ const updateUsedQuota = async (employeeId, leaveTypeId, requestedDays, year, tx)
 
 module.exports = {
     // ... (ฟังก์ชันเดิมอื่นๆ)
+    checkLeaveOverlap,
     calculateTotalDays, 
     checkQuotaAvailability,
     updateUsedQuota

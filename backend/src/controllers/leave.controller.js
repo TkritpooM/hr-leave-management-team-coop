@@ -9,59 +9,72 @@ const moment = require('moment-timezone');
 
 const requestLeave = async (req, res, next) => {
     try {
-        const employeeId = req.user.employeeId;
-        const { leaveTypeId, startDate, endDate, startDuration, endDuration, reason } = req.body;
+        const employeeId = parseInt(req.user.employeeId);
+        const { startDate, endDate, leaveTypeId, startDuration, endDuration, reason } = req.body;
 
-        // 1. คำนวณจำนวนวันที่ลา (ต้องมี await หน้าฟังก์ชัน async)
+        // 🔥 เพิ่มการตรวจสอบ Overlap ที่นี่
+        await leaveService.checkLeaveOverlap(employeeId, startDate, endDate);
+
+        // --- Logic เดิมหลังจากนี้ ---
         const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
-        
-        // 2. ประกาศตัวแปร requestYear โดยดึงมาจาก startDate
         const requestYear = moment(startDate).year(); 
+        
+        await leaveService.checkQuotaAvailability(employeeId, parseInt(leaveTypeId), totalDaysRequested, requestYear);
 
-        // 3. ตรวจสอบโควต้า (ส่งค่า requestYear ที่ประกาศไว้ด้านบน)
-        await leaveService.checkQuotaAvailability(employeeId, leaveTypeId, totalDaysRequested, requestYear);
-
-        // 4. บันทึกข้อมูลผ่าน Model (ตรวจสอบว่าฟังก์ชันใน model ตรงกับที่ส่งไป)
         const newRequest = await leaveModel.createLeaveRequest({
-            employeeId, 
-            leaveTypeId,
-            startDate: new Date(startDate), 
+            employeeId,
+            leaveTypeId: parseInt(leaveTypeId),
+            startDate: new Date(startDate),
             endDate: new Date(endDate),
-            totalDaysRequested, 
-            startDuration: startDuration || 'Full', 
+            totalDaysRequested,
+            startDuration: startDuration || 'Full',
             endDuration: endDuration || 'Full',
-            reason: reason || null, 
+            reason: reason || null,
             status: 'Pending',
         });
 
-        // 5. ส่ง Notification ให้ HR (ถ้ามีระบบ socket หรือ notification service)
-        const hrEmployees = await prisma.employee.findMany({ where: { role: 'HR' } });
-        hrEmployees.forEach(hr => {
-            notificationService.sendNotification(hr.employeeId, {
-                type: 'NewLeaveRequest',
-                message: `New pending leave request from Employee #${employeeId}.`,
-                requestId: newRequest.requestId
-            });
-        });
-
-        res.status(201).json({ success: true, message: 'Leave request submitted successfully.', request: newRequest });
-    } catch (error) { 
-        // พิมพ์ error ออกมาดูที่ Terminal ของ Backend เพื่อหาสาเหตุที่แท้จริง
-        console.error("DEBUG - Leave Request Error:", error); 
-        next(error); 
+        res.status(201).json({ success: true, message: 'ส่งคำขอลาสำเร็จ', request: newRequest });
+    } catch (error) {
+        if (error.statusCode === 409) {
+            return res.status(200).json({ success: false, message: error.message });
+        }
+        next(error);
     }
 };
 
 const getMyRequests = async (req, res, next) => {
     try {
-        const employeeId = req.user.employeeId;
+        // 1. ตรวจสอบว่า req.user ถูกส่งมาจาก Middleware จริงไหม
+        if (!req.user || !req.user.employeeId) {
+            return res.status(401).json({ success: false, message: "Unauthorized: No employee ID found in token" });
+        }
+
+        const employeeId = parseInt(req.user.employeeId);
+
+        // 2. ดึงข้อมูลจากฐานข้อมูล
         const requests = await prisma.leaveRequest.findMany({
-            where: { employeeId },
-            orderBy: { requestedAt: 'desc' },
-            include: { leaveType: true }
+            where: { 
+                employeeId: employeeId 
+            },
+            include: { 
+                leaveType: true // ดึงชื่อประเภทการลามาด้วย
+            },
+            orderBy: { 
+                requestedAt: 'desc' 
+            }
         });
-        res.status(200).json({ success: true, requests });
-    } catch (error) { next(error); }
+
+        // 3. ส่ง Response กลับ
+        res.status(200).json({ 
+            success: true, 
+            requests: requests 
+        });
+
+    } catch (error) {
+        // 🔥 สำคัญมาก: พิมพ์ Error ออกมาดูที่หน้าจอ Terminal ของ Backend
+        console.error("DEBUG - getMyRequests Error Detailed:", error);
+        next(error); 
+    }
 };
 
 const getAllPendingRequests = async (req, res, next) => {

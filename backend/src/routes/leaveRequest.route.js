@@ -3,13 +3,8 @@
 const express = require('express');
 const router = express.Router();
 const leaveController = require('../controllers/leave.controller');
-
-// --- 1. ต้อง Import Middleware เหล่านี้เข้ามาใช้งาน ---
 const authenticateToken = require('../middlewares/auth.middleware');
 const { authorizeRole } = require('../middlewares/role.middleware');
-
-// Debug: แสดง key ที่ controller ส่งออกมา
-console.log('leaveController keys:', Object.keys(leaveController || {}));
 
 // Helper function สำหรับตรวจสอบว่า Handler เป็น function หรือไม่
 function ensureHandler(fn, name) {
@@ -19,29 +14,30 @@ function ensureHandler(fn, name) {
     return fn;
 }
 
-// --- 2. ต้องผ่านการตรวจ Token ก่อน (Middleware ลำดับแรก) ---
+// ต้องผ่านการตรวจ Token ก่อน
 router.use(authenticateToken);
 
-// --- 3. การกำหนด Routes ---
+// --- 🔓 1. Routes สำหรับทุกคน (Worker & HR) - ย้ายพวก "คำเฉพาะ" มาไว้บนสุด ---
 
-// ดึงโควต้าของตัวเอง (ต้องอยู่บนสุดเพื่อไม่ให้ติดปัญหาเรื่องลำดับ Route)
+// ดึงโควต้าของตัวเอง
 router.get('/quota/my', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.getMyQuotas, 'getMyQuotas'));
 
-// จัดการคำขอลาทั่วไป (สำหรับ HR หรือตามสิทธิ์)
-router.get('/', authorizeRole(['HR']), ensureHandler(leaveController.getAllRequests, 'getAllRequests'));
+// 🔥 เพิ่ม Route นี้: ดึงประวัติการลาของตัวเอง (ต้องอยู่ก่อน /:requestId)
+router.get('/my', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.getMyRequests, 'getMyRequests'));
+
+// ส่งคำขอลา
 router.post('/request', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.requestLeave, 'requestLeave'));
 
-// รายการคำขอที่รอการอนุมัติ (สำหรับ HR)
+// --- 🔒 2. Routes สำหรับ HR เท่านั้น ---
 router.get('/admin/pending', authorizeRole(['HR']), ensureHandler(leaveController.getAllPendingRequests, 'getAllPendingRequests'));
 router.get('/admin/all', authorizeRole(['HR']), ensureHandler(leaveController.getAllLeaveRequests, 'getAllLeaveRequests'));
-
-// จัดการสถานะการลารายรายการ
-router.get('/:requestId', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.getRequestDetail, 'getRequestDetail'));
 router.put('/admin/approval/:requestId', authorizeRole(['HR']), ensureHandler(leaveController.handleApproval, 'handleApproval'));
 
-// (Optional) Routes อื่นๆ ถ้ายังจำเป็นต้องใช้
+// --- 🆔 3. Routes ที่มี Parameter (:requestId) - ต้องอยู่ล่างสุด ---
+router.get('/:requestId', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.getRequestDetail, 'getRequestDetail'));
+
+// (Optional) Shared/Other
+router.get('/', authorizeRole(['HR']), ensureHandler(leaveController.getAllRequests, 'getAllRequests'));
 router.get('/detail/:id', ensureHandler(leaveController.getLeaveById, 'getLeaveById'));
-router.put('/:id', ensureHandler(leaveController.updateLeaveRequest, 'updateLeaveRequest'));
-router.delete('/:id', ensureHandler(leaveController.deleteLeaveRequest, 'deleteLeaveRequest'));
 
 module.exports = router;

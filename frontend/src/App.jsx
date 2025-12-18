@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 
 import WorkerDashboard from "./pages/WorkerDashboard";
+import WorkerLeave from "./pages/WorkerLeave";
 import HRDashboard from "./pages/HRDashboard";
 import HRLeaveApprovals from "./pages/HRLeaveApprovals";
 
@@ -22,7 +23,7 @@ export default function App() {
         {/* Worker */}
         <Route path="worker/dashboard" element={<WorkerDashboard />} />
         <Route path="worker/attendance" element={<Placeholder title="My Attendance" />} />
-        <Route path="worker/leave" element={<Placeholder title="My Leave" />} />
+        <Route path="worker/leave" element={<WorkerLeave />} />
         <Route path="worker/calendar" element={<Placeholder title="Calendar View" />} />
         <Route path="worker/balance" element={<Placeholder title="Leave Balance" />} />
         <Route path="worker/notifications" element={<Placeholder title="Notifications" />} />
