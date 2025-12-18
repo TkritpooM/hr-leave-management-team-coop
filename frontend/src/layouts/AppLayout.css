@@ -2,64 +2,56 @@
   display:flex;
   min-height: 100vh;
   width:100%;
-  background:#c6d8f5;
+  background: transparent;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  color:#111827;
+  color: var(--text);
 }
 
 .app-sidebar{
-  width: 240px;
-  padding: 16px 8px;
+  width: 260px;
+  padding: 16px 10px;
 }
 
 .sidebar-inner{
-  background:#f5f7fb;
-  border-radius:24px;
-  padding: 12px 8px;
+  background: rgba(18, 22, 37, .78);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  border-radius: 22px;
+  padding: 14px 10px;
   height: 100%;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+}
+
+.sidebar-topbox{
+  background: rgba(21, 26, 45, .85);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 12px 12px 14px;
   display:flex;
   flex-direction:column;
   gap: 10px;
 }
 
-.sidebar-topbox{
-  background:#e2ebff;
-  border-radius: 18px;
-  padding: 12px;
-  display:flex;
-  flex-direction:column;
-  gap: 8px;
-}
-
 .brand-title{
   font-weight: 900;
-  color:#2f5fd8;
-  font-size: 16px;
+  letter-spacing: .08em;
+  color: var(--text);
+  font-size: 14px;
 }
 
 .role-pill{
-  background:#ffffff;
-  border: 1px solid #cbd5f0;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 7px 10px;
   font-size: 12px;
   font-weight: 800;
   width: fit-content;
+  color: var(--text);
 }
-
-.role-switch{ display:flex; gap: 8px; }
-.role-btn{
-  flex:1;
-  border:none;
-  border-radius: 999px;
-  padding: 8px 10px;
-  background:#c7d9ff;
-  color:#123;
-  font-weight: 800;
-  cursor:pointer;
-  font-size: 12px;
-}
-.role-btn.active{ background:#2f5fd8; color:#fff; }
 
 .nav-list{
   display:flex;
@@ -68,16 +60,26 @@
 }
 
 .sidebar-item{
-  border: none;
+  border: 1px solid transparent;
   border-radius: 999px;
-  padding: 10px 16px;
-  background: #89a9e8;
-  color: #fff;
-  font-weight: 600;
+  padding: 10px 14px;
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-weight: 700;
   cursor: pointer;
+  transition: transform .10s ease, background .15s ease, border-color .15s ease;
 }
-.sidebar-item.active{ background:#2f5fd8; }
-.sidebar-item:hover{ filter: brightness(0.95); }
+
+.sidebar-item:hover{
+  background: rgba(255,255,255,.10);
+  border-color: var(--border);
+}
+
+.sidebar-item.active{
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  border-color: rgba(239, 68, 68, .55);
+  box-shadow: 0 12px 22px rgba(239,68,68,.20);
+}
 
 .app-main{
   flex:1;
@@ -85,15 +87,37 @@
   display:flex;
 }
 
-/* กล่องหน้าหลักของแต่ละหน้า */
+/* container card for each page */
 .page-card{
   width:100%;
   max-width: 1250px;
   margin: 0 auto;
-  background:#f4f4f6;
-  border-radius:24px;
-  padding: 24px 28px 28px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.04);
+  background: rgba(18, 22, 37, .78);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  border-radius:22px;
+  padding: 22px 24px 26px;
+  box-shadow: var(--shadow);
   display:flex;
   flex-direction:column;
 }
+
+/* buttons shared (optional utility) */
+.btn{
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.btn.primary{
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: #fff;
+  box-shadow: 0 12px 22px rgba(239,68,68,.22);
+}
+.btn.outline{
+  background: transparent;
+  border: 1px solid rgba(239,68,68,.55);
+  color: var(--text);
+}
+.btn.small{ padding: 8px 12px; font-size: 13px; }
