@@ -1,50 +1,36 @@
 // src/pages/WorkerLeave.jsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import moment from "moment";
-import "./HRDashboard.css"; // ใช้ CSS ตัวหลักที่คุณมี เพื่อความสม่ำเสมอของ UI
+import "./WorkerLeave.css";
+
+const normStatus = (s) => String(s || "").trim().toLowerCase();
 
 export default function WorkerLeave() {
   const [quotas, setQuotas] = useState([]);
   const [history, setHistory] = useState([]);
-  const [leaveTypes, setLeaveTypes] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  // State สำหรับฟอร์มขอลา
-  const [form, setForm] = useState({
-    leaveTypeId: "",
-    startDate: "",
-    endDate: "",
-    startDuration: "Full",
-    endDuration: "Full",
-    reason: "",
-  });
+
+  // ✅ UI controls
+  const [q, setQ] = useState("");
+  const [status, setStatus] = useState("all"); // all | pending | approved | rejected | cancelled
+  const [type, setType] = useState("all"); // all | <typeName>
+  const [sort, setSort] = useState("newest"); // newest | oldest | start_asc | start_desc
 
   const getAuthHeader = () => ({
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
 
-  // --- 📅 ดึงข้อมูลโควต้า ประวัติ และประเภทการลา ---
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [quotaRes, historyRes, typeRes] = await Promise.all([
+      const [quotaRes, historyRes] = await Promise.all([
         axios.get("http://localhost:8000/api/leave/quota/my", getAuthHeader()),
         axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
-        axios.get("http://localhost:8000/api/admin/leavetype", getAuthHeader()),
       ]);
 
       setQuotas(quotaRes.data.quotas || []);
       setHistory(historyRes.data.requests || []);
-      setLeaveTypes(typeRes.data.types || []);
-
-      // กำหนดค่าเริ่มต้นให้กับ Dropdown ถ้ายังไม่มีการเลือก
-      if (typeRes.data.types?.length > 0 && !form.leaveTypeId) {
-        setForm(prev => ({ 
-          ...prev, 
-          leaveTypeId: typeRes.data.types[0].leaveTypeId.toString() 
-        }));
-      }
     } catch (err) {
       console.error("Fetch Leave Data Error:", err);
     } finally {
@@ -56,188 +42,240 @@ export default function WorkerLeave() {
     fetchData();
   }, []);
 
-    // --- 📤 ส่งฟอร์มขอลา (เวอร์ชัน Console สะอาด) ---
-    const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // 1. ตรวจสอบวันที่เบื้องต้นทางฝั่ง Client
-    if (moment(form.startDate).isAfter(form.endDate)) {
-        alert("วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด");
-        return;
-    }
+  // ✅ Build type options from history
+  const typeOptions = useMemo(() => {
+    const set = new Set();
+    history.forEach((r) => set.add(r.leaveType?.typeName || "Unknown"));
+    return ["all", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, [history]);
 
-    try {
-        // 2. เตรียมข้อมูล (แปลง ID เป็นตัวเลข)
-        const payload = {
-        ...form,
-        leaveTypeId: parseInt(form.leaveTypeId),
-        };
+  // ✅ Counters (chips)
+  const counters = useMemo(() => {
+    const c = { all: history.length, pending: 0, approved: 0, rejected: 0, cancelled: 0 };
+    history.forEach((r) => {
+      const s = normStatus(r.status);
+      if (s.includes("pending")) c.pending++;
+      else if (s.includes("approved")) c.approved++;
+      else if (s.includes("reject")) c.rejected++;
+      else if (s.includes("cancel")) c.cancelled++;
+    });
+    return c;
+  }, [history]);
 
-        /** * 3. ส่งข้อมูลไปยัง Backend 
-         * หมายเหตุ: Backend ต้องปรับให้ส่ง Status 200 พร้อม success: false ในกรณีลาซ้ำ
-         */
-        const res = await axios.post("http://localhost:8000/api/leave/request", payload, getAuthHeader());
-        
-        // 4. ตรวจสอบค่า success ที่ส่งกลับมาจาก Body (ไม่ใช่เช็คจาก HTTP Status)
-        if (res.data.success) {
-        // กรณีสำเร็จจริง
-        alert("ส่งคำขอลาสำเร็จ! ✅");
-        
-        // ล้างข้อมูลในฟอร์ม
-        setForm(prev => ({ 
-            ...prev, 
-            startDate: "", 
-            endDate: "", 
-            reason: "" 
-        }));
-        
-        // อัปเดตข้อมูลในหน้าจอ
-        fetchData(); 
-        } else {
-        // กรณีไม่สำเร็จ (เช่น ลาซ้ำซ้อน) - จะไม่ขึ้นสีแดงใน Console เพราะ Status เป็น 200
-        alert(`⚠️ ไม่สามารถส่งคำขอได้: ${res.data.message}`);
-        }
+  // ✅ Filter + sort
+  const filtered = useMemo(() => {
+    const query = q.trim().toLowerCase();
 
-    } catch (err) {
-        /**
-         * 5. ส่วนนี้จะดักจับเฉพาะ Error ที่เป็นของระบบจริงๆ (เช่น Server ล่ม 500 หรือเน็ตหลุด)
-         * ซึ่งในกรณีเหล่านี้การขึ้นสีแดงใน Console ถือว่าเป็นเรื่องปกติเพื่อให้ตรวจสอบได้
-         */
-        const errMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
-        alert("❌ Error: " + errMsg);
-        console.error("Submit Error:", err);
-    }
-    };
+    let rows = history.filter((r) => {
+      const typeName = (r.leaveType?.typeName || "Unknown").toLowerCase();
+      const st = normStatus(r.status);
+
+      const matchQuery =
+        !query ||
+        typeName.includes(query) ||
+        String(r.reason || "").toLowerCase().includes(query) ||
+        moment(r.startDate).format("YYYY-MM-DD").includes(query) ||
+        moment(r.endDate).format("YYYY-MM-DD").includes(query);
+
+      const matchStatus =
+        status === "all" ? true : st.includes(status); // pending/approved/rejected/cancelled
+
+      const matchType = type === "all" ? true : (r.leaveType?.typeName || "Unknown") === type;
+
+      return matchQuery && matchStatus && matchType;
+    });
+
+    rows.sort((a, b) => {
+      const aStart = new Date(a.startDate).getTime();
+      const bStart = new Date(b.startDate).getTime();
+      const aEnd = new Date(a.endDate).getTime();
+      const bEnd = new Date(b.endDate).getTime();
+
+      switch (sort) {
+        case "oldest":
+          return aStart - bStart;
+        case "start_asc":
+          return aStart - bStart || aEnd - bEnd;
+        case "start_desc":
+          return bStart - aStart || bEnd - aEnd;
+        case "newest":
+        default:
+          return bStart - aStart;
+      }
+    });
+
+    return rows;
+  }, [history, q, status, type, sort]);
+
+  const clearFilters = () => {
+    setQ("");
+    setStatus("all");
+    setType("all");
+    setSort("newest");
+  };
 
   return (
-    <div className="hr-card">
-      <header className="hr-header">
+    <div className="wl-page">
+      <header className="wl-header">
         <div>
-          <h1 className="hr-title">My Leave</h1>
-          <p className="hr-subtitle">Manage your leave requests and check balances</p>
+          <h1 className="wl-title">My Leave</h1>
+          <p className="wl-subtitle">View your leave balances and request history</p>
         </div>
       </header>
 
-      {/* 1. Leave Balance Section */}
-      <section className="summary-row">
+      {/* Leave Balance */}
+      <section className="wl-quota-row">
         {quotas.length === 0 ? (
-          <div className="summary-card"><h4>No Quota Found</h4></div>
+          <div className="wl-card">
+            <h4 className="wl-card-title">No Quota Found</h4>
+            <div className="wl-muted">Ask HR to assign leave quota.</div>
+          </div>
         ) : (
-          quotas.map(q => (
-            <div className="summary-card" key={q.quotaId}>
-              <h4>{q.leaveType?.typeName}</h4>
-              <p className="big">{q.availableDays}</p>
-              <span className="mutetext">Remaining from {q.totalDays} days</span>
+          quotas.map((q) => (
+            <div className="wl-card" key={q.quotaId}>
+              <h4 className="wl-card-title">{q.leaveType?.typeName}</h4>
+              <div className="wl-big">{q.availableDays}</div>
+              <div className="wl-muted">Remaining from {q.totalDays} days</div>
             </div>
           ))
         )}
       </section>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "24px", marginTop: "20px" }}>
-        
-        {/* 2. Request Form (Left Column) */}
-        <div className="form-container" style={{ background: "#f9fafb", padding: "20px", borderRadius: "16px", border: "1px solid #f1f5f9" }}>
-          <h3 style={{ marginBottom: "16px", fontSize: "16px" }}>New Request</h3>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            
-            <div className="field">
-              <label className="hint">Type of Leave</label>
-              <select 
-                className="pill" 
-                style={{ width: "100%", marginTop: "4px" }}
-                value={form.leaveTypeId} 
-                onChange={e => setForm({...form, leaveTypeId: e.target.value})}
-                required
-              >
-                {leaveTypes.map(t => (
-                  <option key={t.leaveTypeId} value={t.leaveTypeId}>{t.typeName}</option>
-                ))}
-              </select>
-            </div>
+      {/* Leave History (เด่น ๆ) */}
+      <section className="wl-panel wl-panel-history">
+        <div className="wl-panel-head wl-panel-head-row wl-panel-head-strong">
+          <div>
+            <h3 className="wl-panel-title wl-panel-title-strong">Leave History</h3>
+            <div className="wl-panel-sub">Search, filter and sort your requests</div>
+          </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div className="field">
-                <label className="hint">Start Date</label>
-                <input 
-                  type="date" 
-                  className="pill" 
-                  style={{ width: "100%", marginTop: "4px" }}
-                  value={form.startDate} 
-                  onChange={e => setForm({...form, startDate: e.target.value})} 
-                  required 
-                />
-              </div>
-              <div className="field">
-                <label className="hint">End Date</label>
-                <input 
-                  type="date" 
-                  className="pill" 
-                  style={{ width: "100%", marginTop: "4px" }}
-                  value={form.endDate} 
-                  onChange={e => setForm({...form, endDate: e.target.value})} 
-                  required 
-                />
-              </div>
-            </div>
-
-            <div className="field">
-              <label className="hint">Reason</label>
-              <textarea 
-                className="pill" 
-                style={{ width: "100%", marginTop: "4px", borderRadius: "12px", minHeight: "80px" }}
-                value={form.reason} 
-                onChange={e => setForm({...form, reason: e.target.value})} 
-                placeholder="Why are you taking leave?"
-              />
-            </div>
-
-            <button type="submit" className="sidebar-item active" style={{ width: "100%", marginTop: "8px", border: "none" }}>
-              Submit Request
-            </button>
-          </form>
-        </div>
-
-        {/* 3. Leave History Table (Right Column) */}
-        <div className="table-section">
-          <h3 style={{ marginBottom: "16px", fontSize: "16px" }}>Leave History</h3>
-          <div className="table-wrap">
-            {loading ? (
-              <div className="empty">Loading...</div>
-            ) : (
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Date Range</th>
-                    <th>Days</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.length === 0 ? (
-                    <tr><td colSpan="4" className="empty">No leave records yet.</td></tr>
-                  ) : (
-                    history.map(req => (
-                      <tr key={req.requestId}>
-                        <td style={{ fontWeight: "600" }}>{req.leaveType?.typeName}</td>
-                        <td style={{ fontSize: "12px" }}>
-                          {moment(req.startDate).format("DD MMM")} - {moment(req.endDate).format("DD MMM YYYY")}
-                        </td>
-                        <td>{req.totalDaysRequested}</td>
-                        <td>
-                          <span className={`badge badge-${req.status.toLowerCase()}`}>
-                            {req.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            )}
+          <div className="wl-chip wl-chip-strong">
+            Showing <strong>{filtered.length}</strong> / {history.length}
           </div>
         </div>
-      </div>
+
+        {/* ✅ Controls */}
+        <div className="wl-controls">
+          <div className="wl-search">
+            <input
+              className="wl-search-input"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search type / reason / date (YYYY-MM-DD)"
+            />
+          </div>
+
+          <div className="wl-filters">
+            <select className="wl-select" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="all">All status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+
+            <select className="wl-select" value={type} onChange={(e) => setType(e.target.value)}>
+              {typeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t === "all" ? "All types" : t}
+                </option>
+              ))}
+            </select>
+
+            <select className="wl-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="start_desc">Start date ↓</option>
+              <option value="start_asc">Start date ↑</option>
+            </select>
+
+            <button className="wl-btn wl-btn-ghost" type="button" onClick={clearFilters}>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        {/* ✅ Status chips (click to filter) */}
+        <div className="wl-chips">
+          <button
+            type="button"
+            className={`wl-chip-mini ${status === "all" ? "active" : ""}`}
+            onClick={() => setStatus("all")}
+          >
+            All <span>{counters.all}</span>
+          </button>
+          <button
+            type="button"
+            className={`wl-chip-mini ${status === "pending" ? "active" : ""}`}
+            onClick={() => setStatus("pending")}
+          >
+            Pending <span>{counters.pending}</span>
+          </button>
+          <button
+            type="button"
+            className={`wl-chip-mini ${status === "approved" ? "active" : ""}`}
+            onClick={() => setStatus("approved")}
+          >
+            Approved <span>{counters.approved}</span>
+          </button>
+          <button
+            type="button"
+            className={`wl-chip-mini ${status === "rejected" ? "active" : ""}`}
+            onClick={() => setStatus("rejected")}
+          >
+            Rejected <span>{counters.rejected}</span>
+          </button>
+          <button
+            type="button"
+            className={`wl-chip-mini ${status === "cancelled" ? "active" : ""}`}
+            onClick={() => setStatus("cancelled")}
+          >
+            Cancelled <span>{counters.cancelled}</span>
+          </button>
+        </div>
+
+        <div className="wl-table-wrap wl-table-wrap-strong">
+          {loading ? (
+            <div className="wl-empty">Loading...</div>
+          ) : (
+            <table className="wl-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Date Range</th>
+                  <th>Days</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="wl-empty">
+                      No results.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((req) => (
+                    <tr key={req.requestId}>
+                      <td className="wl-strong">{req.leaveType?.typeName}</td>
+                      <td className="wl-small">
+                        {moment(req.startDate).format("DD MMM")} -{" "}
+                        {moment(req.endDate).format("DD MMM YYYY")}
+                      </td>
+                      <td>{req.totalDaysRequested}</td>
+                      <td>
+                        <span className={`wl-badge wl-badge-${normStatus(req.status)}`}>
+                          {req.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

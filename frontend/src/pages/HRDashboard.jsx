@@ -44,13 +44,12 @@ export default function HRDashboard() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
 
-  // ✅ เก็บ leave แบบมี type ด้วย
-  // { "2025-12-18": [ {name, typeName}, ... ] }
+  // { "YYYY-MM-DD": [ {name, typeName}, ... ] }
   const [monthLeaveMap, setMonthLeaveMap] = useState({});
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ modal state
+  // modal state
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [leaveModalDate, setLeaveModalDate] = useState(toISODate(new Date()));
   const [leaveModalItems, setLeaveModalItems] = useState([]); // [{name,typeName}]
@@ -62,7 +61,7 @@ export default function HRDashboard() {
 
   const weeks = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
 
-  // --- 📅 1. ดึงข้อมูลการลาทั้งเดือน (เก็บชื่อ + ประเภท) ---
+  // 1) Month leaves
   const fetchMonthLeaves = async () => {
     try {
       const startOfMonth = toISODate(new Date(viewYear, viewMonth, 1));
@@ -99,7 +98,7 @@ export default function HRDashboard() {
     }
   };
 
-  // --- 🔥 2. ดึงรายละเอียดของวันที่เลือก ---
+  // 2) Daily records
   const fetchDailyRecords = async () => {
     setLoading(true);
     try {
@@ -131,7 +130,7 @@ export default function HRDashboard() {
     fetchDailyRecords();
   }, [selectedDate]);
 
-  // ✅ FIX: dayRecords ต้องเป็น array เดียว
+  // dayRecords single array
   const dayRecords = useMemo(() => {
     const att = attendanceRecords.map((r) => ({
       id: `att-${r.recordId}`,
@@ -140,7 +139,6 @@ export default function HRDashboard() {
       checkIn: r.checkInTime ? moment(r.checkInTime).format("HH:mm") : "-",
       checkOut: r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "-",
       status: r.isLate ? "Late" : "On Time",
-      note: "-",
     }));
 
     const leave = leaveRequests.map((l) => ({
@@ -150,7 +148,6 @@ export default function HRDashboard() {
       checkIn: "-",
       checkOut: "-",
       status: `Leave (${l.leaveType.typeName})`,
-      note: l.reason || "-",
     }));
 
     return [...att, ...leave];
@@ -182,7 +179,6 @@ export default function HRDashboard() {
 
   const monthName = new Date(viewYear, viewMonth, 1).toLocaleString("en-US", { month: "long" });
 
-  // ✅ open modal helper
   const openLeaveModal = (dateStr) => {
     const items = monthLeaveMap[dateStr] || [];
     setLeaveModalDate(dateStr);
@@ -205,16 +201,15 @@ export default function HRDashboard() {
         </div>
       </header>
 
-      {/* ✅ top bar เหมือนรูป: ปุ่ม prev/today/next + show all leaves today */}
       <div className="calendar-top">
         <div className="calendar-title">
-          <button className="nav-btn" onClick={goPrevMonth}>
+          <button className="nav-btn" onClick={goPrevMonth} type="button">
             ‹
           </button>
           <div className="month-label">
             {monthName} {viewYear}
           </div>
-          <button className="nav-btn" onClick={goNextMonth}>
+          <button className="nav-btn" onClick={goNextMonth} type="button">
             ›
           </button>
         </div>
@@ -261,13 +256,11 @@ export default function HRDashboard() {
                     className={`cal-cell ${!inMonth ? "muted" : ""} ${iso === selectedDate ? "selected" : ""}`}
                     onClick={() => {
                       setSelectedDate(iso);
-                      if (leaves.length > 0) openLeaveModal(iso); // ✅ คลิกแล้วเด้ง popup
+                      if (leaves.length > 0) openLeaveModal(iso);
                     }}
                   >
                     <div className="cal-date-row">
                       <div className="cal-date">{d.getDate()}</div>
-
-                      {/* ✅ badge +N */}
                       {hiddenCount > 0 && <div className="more-badge">+{hiddenCount}</div>}
                     </div>
 

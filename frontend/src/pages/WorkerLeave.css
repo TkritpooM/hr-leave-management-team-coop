@@ -1,0 +1,343 @@
+/* src/pages/WorkerLeave.css */
+/* Cleaned for: Leave Balance + Leave History (with search/filter/sort/chips) */
+/* Removed: request form / textarea / wl-grid / wl-form / wl-input / wl-textarea / wl-btn-primary ฯลฯ */
+
+.wl-page{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 18px 20px 28px;
+  color: var(--text);
+}
+
+/* ===== Header ===== */
+.wl-header{
+  border-radius: 18px;
+  padding: 18px 18px 14px;
+  background: linear-gradient(180deg, rgba(255,46,46,.12), rgba(255,46,46,0));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+.wl-title{
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+.wl-subtitle{
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ===== Quota cards ===== */
+.wl-quota-row{
+  display:flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.wl-card{
+  flex: 1;
+  min-width: 240px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 35px rgba(0,0,0,.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.wl-card-title{
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: rgba(245,246,247,.92);
+  font-weight: 800;
+}
+
+.wl-big{
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent, #ff2e2e);
+  margin: 2px 0 2px;
+}
+
+.wl-muted{
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ===== History Panel (Prominent) ===== */
+.wl-panel{
+  background: var(--glass2);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.wl-panel-history{
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,46,46,.24);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+
+.wl-panel-head{
+  padding: 4px 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  margin-bottom: 12px;
+}
+
+.wl-panel-head-row{
+  display:flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.wl-panel-head-strong{
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,46,46,.22);
+  margin-bottom: 14px;
+}
+
+.wl-panel-title{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.wl-panel-title-strong{
+  font-size: 20px;
+  letter-spacing: .2px;
+}
+
+.wl-panel-sub{
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.wl-chip{
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,46,46,.30);
+  background: rgba(255,46,46,.10);
+  color: rgba(245,246,247,.92);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.wl-chip-strong{
+  border-color: rgba(255,46,46,.45);
+  background: rgba(255,46,46,.12);
+}
+
+/* ===== Controls: Search / Filter / Sort ===== */
+.wl-controls{
+  display:flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 4px 6px 8px;
+}
+
+.wl-search{
+  flex: 1;
+  min-width: 260px;
+}
+
+.wl-search-input{
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(255,255,255,.92);
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.wl-search-input::placeholder{
+  color: rgba(255,255,255,.45);
+}
+
+.wl-search-input:focus{
+  border-color: rgba(255,46,46,.60);
+  box-shadow: 0 0 0 3px rgba(255,46,46,.18);
+}
+
+.wl-filters{
+  display:flex;
+  gap: 10px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+
+.wl-select{
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(255,255,255,.92);
+  padding: 10px 12px;
+  outline: none;
+}
+
+/* Buttons (only the one we use: ghost/reset) */
+.wl-btn{
+  border: none;
+  border-radius: 999px;
+  padding: 11px 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .08s ease, filter .15s ease, background .15s ease;
+}
+
+.wl-btn:active{ transform: translateY(1px); }
+
+.wl-btn-ghost{
+  background: transparent;
+  border: 1px solid rgba(255,46,46,.40);
+  color: rgba(255,255,255,.92);
+  box-shadow: none;
+  padding: 10px 14px;
+}
+
+.wl-btn-ghost:hover{
+  background: rgba(255,46,46,.12);
+}
+
+/* ===== Status chips ===== */
+.wl-chips{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 6px 10px;
+}
+
+.wl-chip-mini{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.86);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 900;
+  cursor:pointer;
+  display:flex;
+  gap: 8px;
+  align-items:center;
+}
+
+.wl-chip-mini span{
+  font-variant-numeric: tabular-nums;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.wl-chip-mini.active{
+  border-color: rgba(255,46,46,.45);
+  background: rgba(255,46,46,.12);
+}
+
+/* ===== Table ===== */
+.wl-table-wrap{
+  overflow:auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.20);
+}
+
+.wl-table-wrap-strong{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.22);
+}
+
+.wl-table{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.wl-table thead{
+  background: rgba(255,46,46,.08);
+}
+
+.wl-table th,
+.wl-table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  text-align: left;
+}
+
+.wl-table th{
+  color: rgba(255,255,255,.80);
+  font-weight: 900;
+}
+
+.wl-table tr:hover td{
+  background: rgba(255,255,255,.05);
+}
+
+.wl-strong{ font-weight: 900; }
+.wl-small{ font-size: 12px; color: var(--muted); }
+
+.wl-empty{
+  text-align:center;
+  color: var(--muted);
+  padding: 16px 0;
+}
+
+/* ===== Status badges ===== */
+.wl-badge{
+  display:inline-flex;
+  align-items:center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 12px;
+  border: 1px solid transparent;
+}
+
+.wl-badge-approved{
+  background: rgba(34,197,94,.14);
+  border-color: rgba(34,197,94,.35);
+  color: #b7f7cf;
+}
+
+.wl-badge-pending{
+  background: rgba(245,158,11,.14);
+  border-color: rgba(245,158,11,.35);
+  color: #ffe2b6;
+}
+
+.wl-badge-rejected{
+  background: rgba(255,46,46,.14);
+  border-color: rgba(255,46,46,.35);
+  color: #ffb6b6;
+}
+
+.wl-badge-cancelled,
+.wl-badge-canceled{
+  background: rgba(148,163,184,.14);
+  border-color: rgba(148,163,184,.35);
+  color: #d6dde8;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 980px){
+  .wl-controls{ align-items: stretch; }
+  .wl-filters{ width: 100%; }
+  .wl-select{ flex: 1; }
+}
