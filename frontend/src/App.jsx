@@ -28,8 +28,6 @@ export default function App() {
         <Route path="worker/dashboard" element={<WorkerDashboard />} />
         <Route path="worker/attendance" element={<Placeholder title="My Attendance" />} />
         <Route path="worker/leave" element={<WorkerLeave />} />
-        <Route path="worker/balance" element={<Placeholder title="Leave Balance" />} />
-        <Route path="worker/profile" element={<Placeholder title="Profile" />} />
         <Route path="worker/calendar" element={<WorkerCalendar />} />
         <Route path="worker/notifications" element={<WorkerNotifications />} />
 
