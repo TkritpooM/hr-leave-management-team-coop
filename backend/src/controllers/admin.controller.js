@@ -3,6 +3,74 @@
 const prisma = require('../models/prisma');
 const CustomError = require('../utils/customError');
 
+// --- 🆕 Employee Management (NEW) ---
+
+// ดึงรายชื่อพนักงานทั้งหมดสำหรับหน้า Employees
+const getAllEmployees = async (req, res, next) => {
+    try {
+        const employees = await prisma.employee.findMany({
+            select: {
+                employeeId: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+                isActive: true
+            },
+            orderBy: { employeeId: 'asc' }
+        });
+        res.status(200).json({ success: true, employees });
+    } catch (error) { next(error); }
+};
+
+// ดึง Quota เฉพาะของพนักงานคนนั้นๆ (ใช้ตอนเปิด Modal Set Quota)
+const getEmployeeQuota = async (req, res, next) => {
+    try {
+        const employeeId = parseInt(req.params.employeeId);
+        const year = new Date().getFullYear(); // หรือรับจาก query ก็ได้
+
+        const quotas = await prisma.leaveQuota.findMany({
+            where: { employeeId, year },
+            include: { leaveType: true }
+        });
+        res.status(200).json({ success: true, quotas });
+    } catch (error) { next(error); }
+};
+
+// อัปเดต Quota แบบหลายรายการพร้อมกัน (ใช้ตอนกด Save ใน Modal)
+const updateEmployeeQuotaBulk = async (req, res, next) => {
+    try {
+        const employeeId = parseInt(req.params.employeeId);
+        const { quotas } = req.body; // รับเป็น [{leaveTypeId: 1, totalDays: 10}, ...]
+        const year = new Date().getFullYear();
+
+        // ใช้ Transaction เพื่อให้มั่นใจว่าข้อมูลอัปเดตครบทุกแถว
+        await prisma.$transaction(
+            quotas.map((q) =>
+                prisma.leaveQuota.upsert({
+                    where: {
+                        employeeId_leaveTypeId_year: {
+                            employeeId,
+                            leaveTypeId: q.leaveTypeId,
+                            year
+                        }
+                    },
+                    update: { totalDays: parseFloat(q.totalDays) },
+                    create: {
+                        employeeId,
+                        leaveTypeId: q.leaveTypeId,
+                        year,
+                        totalDays: parseFloat(q.totalDays),
+                        usedDays: 0
+                    }
+                })
+            )
+        );
+
+        res.status(200).json({ success: true, message: "Quotas updated successfully" });
+    } catch (error) { next(error); }
+};
+
 // --- Leave Type Management (CRUD) ---
 const getLeaveTypes = async (req, res, next) => {
     try {
@@ -10,6 +78,7 @@ const getLeaveTypes = async (req, res, next) => {
         res.status(200).json({ success: true, types });
     } catch (error) { next(error); }
 };
+
 const createLeaveType = async (req, res, next) => {
     try {
         const { typeName, isPaid } = req.body;
@@ -17,6 +86,7 @@ const createLeaveType = async (req, res, next) => {
         res.status(201).json({ success: true, message: 'Leave type created.', type: newType });
     } catch (error) { next(error); }
 };
+
 const updateLeaveType = async (req, res, next) => {
     try {
         const leaveTypeId = parseInt(req.params.leaveTypeId);
@@ -28,6 +98,7 @@ const updateLeaveType = async (req, res, next) => {
         next(error);
     }
 };
+
 const deleteLeaveType = async (req, res, next) => {
     try {
         await prisma.leaveType.delete({ where: { leaveTypeId: parseInt(req.params.leaveTypeId) } });
@@ -38,7 +109,7 @@ const deleteLeaveType = async (req, res, next) => {
     }
 };
 
-// --- Leave Quota Management (CRUD) ---
+// --- Leave Quota Management (CRUD เดิม) ---
 const getQuotas = async (req, res, next) => {
     try {
         const quotas = await prisma.leaveQuota.findMany({
@@ -48,6 +119,7 @@ const getQuotas = async (req, res, next) => {
         res.status(200).json({ success: true, quotas });
     } catch (error) { next(error); }
 };
+
 const createQuota = async (req, res, next) => {
     try {
         const { employeeId, leaveTypeId, year, totalDays } = req.body;
@@ -57,6 +129,7 @@ const createQuota = async (req, res, next) => {
         res.status(201).json({ success: true, message: 'Quota assigned.', quota: newQuota });
     } catch (error) { next(error); }
 };
+
 const updateQuota = async (req, res, next) => {
     try {
         const updatedQuota = await prisma.leaveQuota.update({
@@ -77,6 +150,7 @@ const getHolidays = async (req, res, next) => {
         res.status(200).json({ success: true, holidays });
     } catch (error) { next(error); }
 };
+
 const createHoliday = async (req, res, next) => {
     try {
         const { holidayDate, holidayName } = req.body;
@@ -84,6 +158,7 @@ const createHoliday = async (req, res, next) => {
         res.status(201).json({ success: true, message: 'Holiday created.', holiday: newHoliday });
     } catch (error) { next(error); }
 };
+
 const deleteHoliday = async (req, res, next) => {
     try {
         await prisma.holiday.delete({ where: { holidayId: parseInt(req.params.holidayId) } });
@@ -94,4 +169,9 @@ const deleteHoliday = async (req, res, next) => {
     }
 };
 
-module.exports = { getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType, getQuotas, createQuota, updateQuota, getHolidays, createHoliday, deleteHoliday };
+module.exports = { 
+    getAllEmployees, getEmployeeQuota, updateEmployeeQuotaBulk, // 🆕 เพิ่ม 3 ตัวนี้
+    getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType, 
+    getQuotas, createQuota, updateQuota, 
+    getHolidays, createHoliday, deleteHoliday 
+};
