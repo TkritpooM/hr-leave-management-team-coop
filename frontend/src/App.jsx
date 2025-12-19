@@ -15,6 +15,8 @@ import HRAttendancePage from "./pages/HRAttendancePage";
 import WorkerCalendar from "./pages/WorkerCalendar";
 import WorkerNotifications from "./pages/WorkerNotifications";
 
+import Employees from "./pages/Employees";
+
 export default function App() {
   return (
     <Routes>
@@ -36,7 +38,7 @@ export default function App() {
         <Route path="hr/dashboard" element={<HRDashboard />} />
         <Route path="hr/calendar" element={<HRDashboard />} />
         <Route path="hr/leave-approvals" element={<HRLeaveApprovals />} />
-        <Route path="hr/employees" element={<Placeholder title="Employees" />} />
+        <Route path="hr/employees" element={<Employees />} />
 
         {/* default */}
         <Route index element={<Navigate to="/login" replace />} />
