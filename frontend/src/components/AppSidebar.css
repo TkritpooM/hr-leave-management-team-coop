@@ -515,3 +515,37 @@
     display: grid !important;
   }
 }
+/* ===== FIX: Collapsed profile not weird ===== */
+.sb:not(:hover) .sb-top{
+  padding: 12px 8px 10px;
+}
+
+.sb:not(:hover) .sb-profile{
+  /* เอากรอบ/พื้นหลังออก ให้เหลือแค่ avatar */
+  background: transparent !important;
+  border: 0 !important;
+
+  /* ลด padding ไม่ให้บีบ */
+  padding: 6px !important;
+
+  /* จัด layout ให้กลาง */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+
+  /* กันมุม/กรอบหลอก */
+  border-radius: 0 !important;
+}
+
+.sb:not(:hover) .sb-avatar{
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 20px !important;
+}
+
+/* ซ่อนส่วนอื่นใน profile ตอนย่อให้ชัวร์ */
+.sb:not(:hover) .sb-profile-info,
+.sb:not(:hover) .sb-bell{
+  display: none !important;
+}
+

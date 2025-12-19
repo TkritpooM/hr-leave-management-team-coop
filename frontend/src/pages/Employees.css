@@ -1,26 +1,29 @@
+/* ===== Employees (match other pages: centered max-width card) ===== */
+
 .emp-page{
-  min-height: 100vh;
-  padding: 26px 18px;
-  display:flex;
-  justify-content:center;
-  background:
-    radial-gradient(900px 700px at 10% 10%, rgba(239,68,68,.20), transparent 60%),
-    radial-gradient(900px 700px at 85% 25%, rgba(255,255,255,.06), transparent 60%),
-    linear-gradient(180deg, #05070d, #05070d);
+  width: 100%;
+  padding: 18px 18px 24px;
+  /* ❌ ตัด min-height:100vh และ flex center ออก เพื่อไม่ชน AppLayout */
 }
 
 .emp-card{
-  width: min(1200px, 96vw);
-  border-radius: 26px;
-  padding: 18px;
+  width: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
 
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 26px 90px rgba(0,0,0,.55);
+  border-radius: 22px;
+  padding: 22px 24px 26px;
+
+  background: rgba(18, 22, 37, .78);
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  box-shadow: var(--shadow, 0 26px 90px rgba(0,0,0,.55));
+  color: var(--text, rgba(255,255,255,.92));
 }
 
+/* Header */
 .emp-head{
   display:flex;
   justify-content:space-between;
@@ -32,15 +35,16 @@
 
 .emp-title{
   margin: 0;
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 950;
-  color: rgba(255,255,255,.92);
+  letter-spacing: -.01em;
+  color: var(--text, rgba(255,255,255,.92));
 }
 
 .emp-sub{
   margin: 6px 0 0;
   font-size: 13px;
-  color: rgba(255,255,255,.60);
+  color: var(--muted, rgba(255,255,255,.60));
 }
 
 .emp-tools{
@@ -54,17 +58,18 @@
   width: min(420px, 78vw);
   border-radius: 999px;
   padding: 11px 14px;
-  background: rgba(0,0,0,.25);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(255,255,255,.92);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border, rgba(255,255,255,.14));
+  color: var(--text, rgba(255,255,255,.92));
   outline: none;
 }
 .emp-input::placeholder{ color: rgba(255,255,255,.45); }
 .emp-input:focus{
-  border-color: rgba(239,68,68,.45);
-  box-shadow: 0 0 0 3px rgba(239,68,68,.18);
+  border-color: rgba(239,68,68,.55);
+  box-shadow: 0 0 0 3px var(--focus, rgba(239,68,68,.18));
 }
 
+/* Buttons */
 .emp-btn{
   border:none;
   outline:none;
@@ -79,23 +84,24 @@
 
 .emp-btn-primary{
   color: #fff;
-  background: linear-gradient(135deg, #ff2e2e, #b30000);
-  box-shadow: 0 14px 40px rgba(255,46,46,.22);
+  background: linear-gradient(135deg, var(--accent, #ff2e2e) 0%, var(--accent2, #b30000) 100%);
+  box-shadow: 0 12px 22px rgba(239,68,68,.22);
 }
 .emp-btn-primary:hover{ filter: brightness(1.05); }
 
 .emp-btn-outline{
-  background: rgba(0,0,0,.18);
+  background: rgba(255,255,255,.06);
   border: 1px solid rgba(239,68,68,.35);
-  color: rgba(255,255,255,.92);
+  color: var(--text, rgba(255,255,255,.92));
 }
 .emp-btn-outline:hover{ background: rgba(239,68,68,.10); }
 
+/* Table */
 .emp-table-wrap{
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.18);
+  border: 1px solid var(--border, rgba(255,255,255,.12));
+  background: rgba(255,255,255,.03);
 }
 
 .emp-table{
@@ -104,13 +110,13 @@
 }
 
 .emp-table thead{
-  background: rgba(239,68,68,.10);
+  background: rgba(255,255,255,.05);
 }
 
 .emp-table th,
 .emp-table td{
-  padding: 14px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
   text-align:left;
   color: rgba(255,255,255,.84);
   font-weight: 800;
@@ -120,30 +126,30 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: .6px;
-  color: rgba(255,255,255,.70);
+  color: var(--muted, rgba(255,255,255,.60));
   font-weight: 950;
 }
 
 .emp-table tbody tr:hover td{
-  background: rgba(255,255,255,.05);
+  background: rgba(255,255,255,.03);
 }
 
 .emp-empty{
   text-align:center;
-  padding: 24px 10px;
-  color: rgba(255,255,255,.65);
+  padding: 18px 10px;
+  color: var(--muted, rgba(255,255,255,.60));
   font-weight: 850;
 }
 
 .emp-mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
-.emp-muted{ color: rgba(255,255,255,.62); }
-.emp-strong{ font-weight: 950; color: rgba(255,255,255,.92); }
+.emp-muted{ color: var(--muted, rgba(255,255,255,.60)); }
+.emp-strong{ font-weight: 950; color: var(--text, rgba(255,255,255,.92)); }
 
 /* ===== Modal ===== */
 .emp-modal-backdrop{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.50);
+  background: rgba(0,0,0,.60);
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
   display:flex;
@@ -154,10 +160,10 @@
 
 .emp-modal{
   width: min(640px, 95vw);
-  border-radius: 22px;
-  background: rgba(15,18,30,.92);
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow: 0 28px 90px rgba(0,0,0,.60);
+  border-radius: 18px;
+  background: rgba(18, 22, 37, .96);
+  border: 1px solid var(--border, rgba(255,255,255,.14));
+  box-shadow: var(--shadow, 0 28px 90px rgba(0,0,0,.60));
   padding: 16px;
 }
 
@@ -173,13 +179,13 @@
 .emp-modal-title{
   font-size: 20px;
   font-weight: 950;
-  color: rgba(255,255,255,.92);
+  color: var(--text, rgba(255,255,255,.92));
 }
 
 .emp-modal-sub{
   margin-top: 6px;
   font-size: 13px;
-  color: rgba(255,255,255,.62);
+  color: var(--muted, rgba(255,255,255,.62));
 }
 
 .emp-x{
@@ -201,7 +207,11 @@
   gap: 10px;
   max-height: 55vh;
   overflow:auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.emp-modal-body::-webkit-scrollbar{ width:0; height:0; }
 
 .quota-row{
   display:flex;
@@ -217,13 +227,13 @@
 
 .quota-type{
   font-weight: 950;
-  color: rgba(255,255,255,.92);
+  color: var(--text, rgba(255,255,255,.92));
 }
 
 .quota-mini{
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(255,255,255,.55);
+  color: var(--muted, rgba(255,255,255,.55));
 }
 
 .quota-right{
@@ -236,18 +246,18 @@
   width: 110px;
   border-radius: 14px;
   padding: 10px 10px;
-  background: rgba(0,0,0,.25);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(255,255,255,.92);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border, rgba(255,255,255,.14));
+  color: var(--text, rgba(255,255,255,.92));
   outline:none;
 }
 .quota-input:focus{
-  border-color: rgba(239,68,68,.45);
-  box-shadow: 0 0 0 3px rgba(239,68,68,.18);
+  border-color: rgba(239,68,68,.55);
+  box-shadow: 0 0 0 3px var(--focus, rgba(239,68,68,.18));
 }
 .quota-unit{
   font-size: 12px;
-  color: rgba(255,255,255,.60);
+  color: var(--muted, rgba(255,255,255,.60));
   font-weight: 850;
 }
 
@@ -257,4 +267,8 @@
   gap: 10px;
   padding-top: 10px;
   border-top: 1px solid rgba(255,255,255,.10);
+}
+
+@media (max-width: 900px){
+  .emp-card{ padding: 18px; }
 }
