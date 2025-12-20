@@ -14,6 +14,7 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
+  FiSettings,
 } from "react-icons/fi";
 
 /* ===============================
@@ -49,6 +50,7 @@ const MENUS = {
       items: [
         { to: "/hr/leave-approvals", label: "อนุมัติการลา", icon: <FiCheckSquare /> },
         { to: "/hr/employees", label: "รายชื่อพนักงาน", icon: <FiUsers /> },
+        { to: "/hr/leave-settings", label: "ตั้งค่าโควต้าการลา", icon: <FiSettings /> },
       ],
     },
   ],

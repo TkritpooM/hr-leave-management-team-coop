@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus } from "react-icons/fi";
-import "./Employees.css";
+import "./HREmployees.css";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
 const authHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });

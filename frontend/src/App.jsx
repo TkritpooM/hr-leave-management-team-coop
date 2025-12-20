@@ -16,7 +16,8 @@ import WorkerCalendar from "./pages/WorkerCalendar";
 import WorkerNotifications from "./pages/WorkerNotifications";
 import WorkerProfile from "./pages/WorkerProfile";
 
-import Employees from "./pages/Employees";
+import Employees from "./pages/HREmployees";
+import LeaveSettings from "./pages/HRLeaveTypeSettings";
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="hr/calendar" element={<HRDashboard />} />
         <Route path="hr/leave-approvals" element={<HRLeaveApprovals />} />
         <Route path="hr/employees" element={<Employees />} />
+        <Route path="hr/leave-settings" element={<LeaveSettings />} />
 
         {/* default */}
         <Route index element={<Navigate to="/login" replace />} />
