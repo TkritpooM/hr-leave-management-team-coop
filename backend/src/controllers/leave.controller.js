@@ -133,10 +133,8 @@ const handleApproval = async (req, res, next) => {
             const employeeId = originalRequest.employeeId;
 
             let finalStatus = 'Rejected';
-            let quotaDelta = 0; 
-
+            
             if (action === 'approve') {
-                // 1. ตรวจสอบประเภทการลาว่าต้องเช็คโควต้าหรือไม่
                 const leaveType = await tx.leaveType.findUnique({ where: { leaveTypeId } });
 
                 if (leaveType?.isPaid) {
@@ -148,53 +146,61 @@ const handleApproval = async (req, res, next) => {
                         throw CustomError.badRequest("ไม่พบข้อมูลโควต้าสำหรับการลาประเภทนี้ในปีปัจจุบัน");
                     }
 
-                    // 2. ตรวจสอบโควต้าคงเหลืออีกครั้งเพื่อความปลอดภัย
                     const availableDays = parseFloat((quota.totalDays.toNumber() - quota.usedDays.toNumber()).toFixed(2));
                     if (requestedDays > availableDays) {
-                        // โยน Error เพื่อ Rollback Transaction ทันที
                         throw CustomError.conflict(`โควต้าไม่พออนุมัติ (คงเหลือ: ${availableDays}, ต้องการใช้: ${requestedDays})`);
                     }
 
-                    // 3. อัปเดตยอดวันลาที่ใช้ไป (usedDays)
                     await tx.leaveQuota.update({
                         where: { quotaId: quota.quotaId },
                         data: { usedDays: { increment: requestedDays } }
                     });
                 }
-
                 finalStatus = 'Approved';
             } 
             
-            // 4. อัปเดตสถานะของใบลา
+            // 1. อัปเดตสถานะของใบลา
             const updatedRequest = await tx.leaveRequest.update({
                 where: { requestId },
                 data: {
                     status: finalStatus,
                     approvedByHrId: hrId,
                     approvalDate: new Date(),
-                },
-                select: {
-                    requestId: true,
-                    employeeId: true,
-                    leaveTypeId: true,
-                    status: true,
                 }
             });
 
-            return updatedRequest;
+            // 🆕 2. สร้างการแจ้งเตือนลงฐานข้อมูล (Database)
+            // เพื่อให้ Worker สามารถกลับมาอ่านย้อนหลังในหน้า Notification ได้
+            const newNotification = await tx.notification.create({
+                data: {
+                    employeeId: employeeId,
+                    notificationType: finalStatus === 'Approved' ? 'Approval' : 'Rejection',
+                    message: `คำขอลาของคุณ (ID: ${requestId}) ได้ถูก ${finalStatus === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ'} แล้ว`,
+                    relatedRequestId: requestId,
+                    isRead: false
+                }
+            });
+
+            return { updatedRequest, newNotification };
         });
 
-        // 5. ส่ง Notification แจ้งพนักงาน
-        notificationService.sendNotification(result.employeeId, {
-            type: 'RequestStatusUpdate',
-            message: `คำขอลาของคุณ (ID: ${result.requestId}) ได้ถูก ${result.status === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ'} แล้ว`,
-            requestId: result.requestId,
-            status: result.status
+        // 🆕 3. ส่ง Notification แบบ Real-time ผ่าน WebSocket
+        // ถ้า Worker ออนไลน์อยู่ แจ้งเตือนจะเด้งขึ้นทันทีและเลข Badge ใน Sidebar จะอัปเดต
+        notificationService.sendNotification(result.updatedRequest.employeeId, {
+            type: 'NOTIFICATION', // ส่ง type ให้ตรงกับที่ Service/Frontend คาดหวัง
+            data: result.newNotification
         });
 
-        res.status(200).json({ success: true, message: `ดำเนินการ ${result.status.toLowerCase()} สำเร็จ`, request: result });
+        // 🆕 4. อัปเดตเลข Badge ใน Sidebar ของ Worker (ผ่าน WebSocket STATUS หรือการส่ง Noti ปกติ)
+        // เพื่อให้ Worker ทราบว่ามีข้อความใหม่ที่ยังไม่ได้อ่าน
+        
+        res.status(200).json({ 
+            success: true, 
+            message: `ดำเนินการ ${result.updatedRequest.status.toLowerCase()} สำเร็จ`, 
+            request: result.updatedRequest 
+        });
+
     } catch (error) { 
-        // จัดการ Error 409 (โควต้าไม่พอตอนอนุมัติ) ให้ส่งกลับแบบละมุน
         if (error.statusCode === 409 || error.statusCode === 400) {
             return res.status(200).json({ success: false, message: error.message });
         }

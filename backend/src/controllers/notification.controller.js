@@ -76,3 +76,27 @@ exports.clearAll = async (req, res, next) => {
         next(error);
     }
 };
+
+// 4. ลบแจ้งเตือนแบบเลือก
+exports.deleteNoti = async (req, res, next) => {
+    try {
+        const targetId = parseInt(req.params.id);
+        const myId = req.user.employeeId;
+
+        // ลบโดยเช็คเงื่อนไข employeeId เพื่อความปลอดภัย (ลบได้เฉพาะของตัวเอง)
+        const result = await prisma.notification.deleteMany({
+            where: {
+                notificationId: targetId,
+                employeeId: myId
+            }
+        });
+
+        if (result.count === 0) {
+            return res.status(404).json({ success: false, message: "ไม่พบการแจ้งเตือน หรือไม่มีสิทธิ์ลบ" });
+        }
+
+        res.json({ success: true, message: 'ลบการแจ้งเตือนสำเร็จ' });
+    } catch (error) {
+        next(error);
+    }
+};

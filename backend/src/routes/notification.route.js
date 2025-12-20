@@ -18,4 +18,13 @@ router.put('/:id/read', notificationController.markAsRead);
 // URL: http://localhost:8000/api/notifications/clear
 router.delete('/clear', notificationController.clearAll);
 
+// 2. PUT: กดอ่านแจ้งเตือน
+router.put('/:id/read', notificationController.markAsRead);
+
+// 3. DELETE: ลบแจ้งเตือนทั้งหมด (ใช้ /clear-all เพื่อให้สื่อความหมายชัดเจน)
+router.delete('/clear-all', notificationController.clearAll);
+
+// 🆕 4. DELETE: ลบแจ้งเตือนทีละอัน (เพิ่มเข้ามาใหม่เพื่อแก้ 404)
+router.delete('/:id', notificationController.deleteNoti);
+
 module.exports = router;

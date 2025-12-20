@@ -43,6 +43,7 @@ const MENUS = {
       items: [
         { to: "/hr/dashboard", label: "แดชบอร์ด", icon: <FiGrid /> },
         { to: "/hr/attendance", label: "การลงเวลาพนักงาน", icon: <FiCalendar /> },
+        { to: "/hr/notifications", label: "แจ้งเตือน", icon: <FiBell />, badgeKey: "hr_unread_notifications" },
       ],
     },
     {
@@ -162,12 +163,17 @@ export default function AppSidebar() {
             </div>
 
             {/* Bell with badge (mock) */}
-            {role === "Worker" && (
-              <button className="sb-bell" type="button" title="Notifications" onClick={() => navigate("/worker/notifications")}>
-                <FiBell />
-                {unread > 0 && <span className="sb-badge">{unread > 99 ? "99+" : unread}</span>}
-              </button>
-            )}
+            <button 
+              className="sb-bell" 
+              type="button" 
+              title="Notifications" 
+              // navigate ไปตาม role เช่น /worker/notifications หรือ /hr/notifications
+              onClick={() => navigate(`/${role.toLowerCase()}/notifications`)}
+            >
+              <FiBell />
+              {/* แสดง badge เมื่อ unread > 0 */}
+              {unread > 0 && <span className="sb-badge">{unread > 99 ? "99+" : unread}</span>}
+            </button>
           </div>
 
           {/* Optional: Continue last page */}
