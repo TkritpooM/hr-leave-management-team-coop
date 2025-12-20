@@ -147,17 +147,27 @@ export default function HRAttendancePage() {
         reason: leaveForm.detail,
       };
 
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:8000/api/leave/request",
         payload,
         getAuthHeader()
       );
 
-      alert("✅ ส่งคำขอลาสำเร็จ!");
-      setIsLeaveModalOpen(false);
-      fetchQuotaData();
+      // ✅ ตรวจสอบ success จากร่างกายของ JSON ที่ Backend ส่งมา
+      if (response.data.success) {
+        alert("✅ " + (response.data.message || "ส่งคำขอลาสำเร็จ!"));
+        setIsLeaveModalOpen(false);
+        fetchQuotaData(); // อัปเดตตัวเลขโควต้าหน้าจอ
+        // ล้างฟอร์ม (Optional)
+        setLeaveForm({ leaveTypeId: quotas[0]?.leaveTypeId.toString() || "", startDate: "", endDate: "", detail: "" });
+      } else {
+        // ❌ กรณีโควต้าไม่พอ หรือ Validation ไม่ผ่าน (แต่ Server ตอบ 200 มาให้)
+        alert("⚠️ " + (response.data.message || "ไม่สามารถส่งคำขอลาได้"));
+      }
     } catch (err) {
-      alert("❌ " + (err.response?.data?.message || "ส่งคำขอลาไม่สำเร็จ"));
+      // ❌ กรณี Server พัง หรือ Token หมดอายุ (Error Status 4xx, 5xx)
+      const errorMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
+      alert("❌ " + errorMsg);
     }
   };
 

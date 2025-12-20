@@ -12,23 +12,23 @@ const requestLeave = async (req, res, next) => {
         const employeeId = parseInt(req.user.employeeId);
         const { startDate, endDate, leaveTypeId, startDuration, endDuration, reason } = req.body;
 
-        // 1. ตรวจสอบการลาทับซ้อน (Overlap)
+        // 1. ตรวจสอบการลาทับซ้อน
         await leaveService.checkLeaveOverlap(employeeId, startDate, endDate);
 
-        // 2. คำนวณจำนวนวันที่ลา (หักวันหยุด/เสาร์-อาทิตย์)
+        // 2. คำนวณจำนวนวันที่ลา (หักวันหยุด)
         const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
         
-        // ตรวจสอบกรณีเลือกวันลาที่เป็นวันหยุดทั้งหมด
         if (totalDaysRequested <= 0) {
             return res.status(200).json({ success: false, message: "จำนวนวันลาต้องมากกว่า 0 (โปรดตรวจสอบว่าเป็นวันหยุดหรือไม่)" });
         }
 
         const requestYear = moment(startDate).year(); 
         
-        // 3. ตรวจสอบโควต้าคงเหลือ (จะโยน Error 409 ถ้าโควต้าไม่พอ)
+        // 3. ตรวจสอบโควต้าคงเหลือ (ถ้าไม่พอจะโยน Error 409)
+        // ✅ ระบบจะไปเช็คใน leave.service.js ว่ายอดคงเหลือ >= totalDaysRequested ไหม
         await leaveService.checkQuotaAvailability(employeeId, parseInt(leaveTypeId), totalDaysRequested, requestYear);
 
-        // 4. บันทึกข้อมูลลงฐานข้อมูล
+        // 4. บันทึกข้อมูล
         const newRequest = await leaveModel.createLeaveRequest({
             employeeId,
             leaveTypeId: parseInt(leaveTypeId),
@@ -43,10 +43,13 @@ const requestLeave = async (req, res, next) => {
 
         res.status(201).json({ success: true, message: 'ส่งคำขอลาสำเร็จ', request: newRequest });
     } catch (error) {
-        // 🔥 ดักจับ Error 409 (Conflict) เช่น ลาซ้ำ หรือ โควต้าไม่พอ 
-        // ให้ส่งกลับเป็น 200 success: false เพื่อไม่ให้ Console ขึ้นตัวแดง
+        // 🔥 จัดการ Error จาก Service (เช่น โควต้าไม่พอ หรือ ลาซ้ำ)
+        // statusCode 409 คือ Conflict (ลาซ้ำ/โควต้าไม่พอ), 400 คือ Bad Request
         if (error.statusCode === 409 || error.statusCode === 400) {
-            return res.status(200).json({ success: false, message: error.message });
+            return res.status(200).json({ 
+                success: false, 
+                message: error.message // ข้อความเช่น "โควต้าไม่พอ (คงเหลือ: 2 วัน, ต้องการใช้: 5 วัน)"
+            });
         }
         next(error);
     }

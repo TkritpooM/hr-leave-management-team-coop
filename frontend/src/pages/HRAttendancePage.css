@@ -26,6 +26,7 @@
   font-size: 26px;
   margin: 0;
   letter-spacing: -.01em;
+  color: white;
 }
 
 .worker-datetime{
@@ -43,10 +44,11 @@
 .clock-box{
   padding: 8px 12px;
   border-radius: 999px;
-  background: rgba(255,255,255,.06);
+  background: rgba(255, 254, 254, 0.06);
   border: 1px solid var(--border);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
+  color: white;
 }
 
 /* Late warning */
