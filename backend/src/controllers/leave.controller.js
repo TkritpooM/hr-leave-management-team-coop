@@ -19,37 +19,74 @@ const requestLeave = async (req, res, next) => {
         const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
         
         if (totalDaysRequested <= 0) {
-            return res.status(200).json({ success: false, message: "จำนวนวันลาต้องมากกว่า 0 (โปรดตรวจสอบว่าเป็นวันหยุดหรือไม่)" });
+            return res.status(200).json({ success: false, message: "จำนวนวันลาต้องมากกว่า 0" });
         }
 
         const requestYear = moment(startDate).year(); 
-        
-        // 3. ตรวจสอบโควต้าคงเหลือ (ถ้าไม่พอจะโยน Error 409)
-        // ✅ ระบบจะไปเช็คใน leave.service.js ว่ายอดคงเหลือ >= totalDaysRequested ไหม
         await leaveService.checkQuotaAvailability(employeeId, parseInt(leaveTypeId), totalDaysRequested, requestYear);
 
-        // 4. บันทึกข้อมูล
-        const newRequest = await leaveModel.createLeaveRequest({
-            employeeId,
-            leaveTypeId: parseInt(leaveTypeId),
-            startDate: new Date(startDate),
-            endDate: new Date(endDate),
-            totalDaysRequested,
-            startDuration: startDuration || 'Full',
-            endDuration: endDuration || 'Full',
-            reason: reason || null,
-            status: 'Pending',
+        // 3. บันทึกข้อมูลใบลา (Database Transaction)
+        const result = await prisma.$transaction(async (tx) => {
+            // บันทึกคำขอลา
+            const newRequest = await tx.leaveRequest.create({
+                data: {
+                    employeeId,
+                    leaveTypeId: parseInt(leaveTypeId),
+                    startDate: new Date(startDate),
+                    endDate: new Date(endDate),
+                    totalDaysRequested,
+                    startDuration: startDuration || 'Full',
+                    endDuration: endDuration || 'Full',
+                    reason: reason || null,
+                    status: 'Pending',
+                },
+                include: {
+                    employee: { select: { firstName: true, lastName: true } },
+                    leaveType: { select: { typeName: true } }
+                }
+            });
+
+            // 4. ค้นหา HR ทุกคนเพื่อส่งแจ้งเตือน
+            const allHR = await tx.employee.findMany({
+                where: { role: 'HR', isActive: true },
+                select: { employeeId: true }
+            });
+
+            // 5. สร้างการแจ้งเตือนลง Database ให้ HR ทุกคน (Persistent)
+            const notificationData = allHR.map(hr => ({
+                employeeId: hr.employeeId,
+                notificationType: 'NewRequest',
+                // ✅ แก้ไขตรงนี้: เช็คเงื่อนไขให้ถูกต้อง
+                message: `มีคำขอลาใหม่จากคุณ ${newRequest.employee ? `${newRequest.employee.firstName} ${newRequest.employee.lastName}` : 'พนักงาน'} (${newRequest.leaveType.typeName})`,
+                relatedRequestId: newRequest.requestId,
+                isRead: false
+            }));
+
+            if (notificationData.length > 0) {
+                await tx.notification.createMany({
+                    data: notificationData
+                });
+            }
+
+            return { newRequest, allHR };
         });
 
-        res.status(201).json({ success: true, message: 'ส่งคำขอลาสำเร็จ', request: newRequest });
-    } catch (error) {
-        // 🔥 จัดการ Error จาก Service (เช่น โควต้าไม่พอ หรือ ลาซ้ำ)
-        // statusCode 409 คือ Conflict (ลาซ้ำ/โควต้าไม่พอ), 400 คือ Bad Request
-        if (error.statusCode === 409 || error.statusCode === 400) {
-            return res.status(200).json({ 
-                success: false, 
-                message: error.message // ข้อความเช่น "โควต้าไม่พอ (คงเหลือ: 2 วัน, ต้องการใช้: 5 วัน)"
+        // 6. ส่ง Real-time WebSocket ให้ HR ทุกคนที่ออนไลน์
+        result.allHR.forEach(hr => {
+            notificationService.sendNotification(hr.employeeId, {
+                type: 'NOTIFICATION',
+                data: {
+                    type: 'NewRequest',
+                    message: `มีคำขอลาใหม่เข้ามา (ID: ${result.newRequest.requestId})`,
+                    requestId: result.newRequest.requestId
+                }
             });
+        });
+
+        res.status(201).json({ success: true, message: 'ส่งคำขอลาสำเร็จและแจ้งเตือน HR แล้ว', request: result.newRequest });
+    } catch (error) {
+        if (error.statusCode === 409 || error.statusCode === 400) {
+            return res.status(200).json({ success: false, message: error.message });
         }
         next(error);
     }

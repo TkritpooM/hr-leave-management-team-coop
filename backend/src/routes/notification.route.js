@@ -18,6 +18,10 @@ router.put('/:id/read', notificationController.markAsRead);
 // URL: http://localhost:8000/api/notifications/clear
 router.delete('/clear', notificationController.clearAll);
 
+// 5. PUT: กดอ่านทั้งหมด
+// URL: http://localhost:8000/api/notifications/mark-all-read
+router.put('/mark-all-read', notificationController.markAllAsRead);
+
 // 2. PUT: กดอ่านแจ้งเตือน
 router.put('/:id/read', notificationController.markAsRead);
 

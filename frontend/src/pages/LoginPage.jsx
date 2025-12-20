@@ -7,6 +7,20 @@ export default function LoginPage() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const syncNotifications = async (token, role) => {
+    try {
+        const res = await axios.get('http://localhost:8000/api/notifications/my', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const count = res.data.unreadCount || 0;
+        const key = role === "HR" ? "hr_unread_notifications" : "worker_unread_notifications";
+        localStorage.setItem(key, count.toString());
+        window.dispatchEvent(new Event("storage"));
+    } catch (err) {
+        console.error("Initial sync failed", err);
+    }
+  };
+
   const isValid = useMemo(() => {
     return form.email.trim() && form.password.trim();
   }, [form.email, form.password]);
@@ -36,6 +50,9 @@ export default function LoginPage() {
         // เก็บ Token และข้อมูล User
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+
+        // เรียกใช้การ Sync ก่อน Redirect
+        await syncNotifications(data.token, data.user.role);
 
         // Alert บอกผู้ใช้
         alert("Login สำเร็จ! ✅ ยินดีต้อนรับ " + (data.user?.firstName || "User"));
