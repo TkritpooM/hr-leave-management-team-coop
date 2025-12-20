@@ -22,8 +22,24 @@ router.use(authorizeRole(['HR']));
 
 // Employee Management (NEW)
 router.get('/employees', adminController.getAllEmployees); // สำหรับเรียกรายชื่อพนักงาน
+router.post('/employees', [
+    body('email').isEmail(),
+    body('password').isLength({ min: 6 }),
+    body('firstName').notEmpty(),
+    body('lastName').notEmpty(),
+    body('joiningDate').isISO8601(),
+    validate
+], adminController.createEmployee);
+router.put('/employees/:employeeId', [
+    param('employeeId').isInt(),
+    body('email').isEmail(),
+    body('firstName').notEmpty(),
+    body('lastName').notEmpty(),
+    validate
+], adminController.updateEmployeeByAdmin);
 
 // Quota Management per Employee (NEW - สำหรับ Modal ในหน้า Employees.js)
+router.post('/hr/sync-quotas', adminController.syncAllEmployeesQuota);
 router.get('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), validate ], adminController.getEmployeeQuota);
 router.put('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), body('quotas').isArray(), validate ], adminController.updateEmployeeQuotaBulk);
 

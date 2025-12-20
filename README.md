@@ -42,6 +42,10 @@ Worker B : worker.b@company.com	Password123
 To delete LeaveRequest table
 pnpm prisma:seedclear
 ```
+### Manage Schema DB
+```bash
+pnpx prisma@6 migrate dev --name add_default_days_to_leavetype
+```
 ### To Run Project
 ```bash
 both backend and frontend using

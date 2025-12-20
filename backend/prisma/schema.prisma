@@ -42,7 +42,7 @@ model LeaveType {
   leaveTypeId Int          @id @default(autoincrement()) @map("leave_type_id")
   typeName    String       @unique @map("type_name")
   isPaid      Boolean      @map("is_paid") @default(true)
-
+  defaultDays Decimal      @map("default_days") @default(0.00) @db.Decimal(5, 2)
   // Relations
   leaveQuotas   LeaveQuota[]
   leaveRequests LeaveRequest[]
