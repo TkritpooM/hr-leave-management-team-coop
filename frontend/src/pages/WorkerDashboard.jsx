@@ -112,7 +112,17 @@ export default function WorkerDashboard() {
 
   const handleLeaveChange = (e) => {
     const { name, value } = e.target;
-    setLeaveForm((prev) => ({ ...prev, [name]: value }));
+    
+    setLeaveForm((prev) => {
+      const newState = { ...prev, [name]: value };
+
+      // ✅ ถ้าสิ่งที่เปลี่ยนคือ startDate ให้เอาค่าไปใส่ใน endDate ด้วย
+      if (name === "startDate") {
+        newState.endDate = value;
+      }
+
+      return newState;
+    });
   };
 
   const handleSubmitLeave = async (e) => {
@@ -292,10 +302,10 @@ export default function WorkerDashboard() {
               </select>
               <div className="date-row">
                 <label>
-                  Start Date <input type="date" name="startDate" onChange={handleLeaveChange} required />
+                  Start Date <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveChange} required />
                 </label>
                 <label>
-                  End Date <input type="date" name="endDate" onChange={handleLeaveChange} required />
+                  End Date <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} required />
                 </label>
               </div>
               <label>
