@@ -66,63 +66,51 @@ const safeJSON = (v, fallback = {}) => {
   }
 };
 
-const isMobile = () => window.matchMedia?.("(max-width: 980px)")?.matches ?? false;
-
 export default function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ auth user from localStorage (same pattern as you used)
   const user = useMemo(() => safeJSON(localStorage.getItem("user") || "{}", {}), []);
-
   const role = user.role === "HR" ? "HR" : "Worker";
-  const fullName =
-    `${user.firstName || user.first_name || "User"} ${user.lastName || user.last_name || ""}`.trim();
+  
+  // ✅ แก้ไขที่ 1: กำหนด Key ของ Notifications ตาม Role ของ User ที่ Login อยู่
+  const notificationKey = role === "HR" ? "hr_unread_notifications" : "worker_unread_notifications";
+
+  const fullName = `${user.firstName || user.first_name || "User"} ${user.lastName || user.last_name || ""}`.trim();
   const initials = (fullName || "U").charAt(0).toUpperCase();
 
   const sections = MENUS[role];
-
-  // ===== Optional #1: Mobile toggle =====
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    // close sidebar when route changes (mobile)
     if (mobileOpen) setMobileOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  // ===== Optional #2: Notification badge (mock from localStorage) =====
+  // ✅ แก้ไขที่ 2: ปรับ useState ให้ดึงค่าเริ่มต้นตาม Role
   const [unread, setUnread] = useState(() => {
-    const key = "worker_unread_notifications";
-    const n = Number(localStorage.getItem(key) || "0");
+    const n = Number(localStorage.getItem(notificationKey) || "0");
     return Number.isFinite(n) ? n : 0;
   });
 
+  // ✅ แก้ไขที่ 3: ปรับ useEffect ให้ดักฟัง Key ที่ถูกต้องตาม Role
   useEffect(() => {
     const onStorage = () => {
-      const n = Number(localStorage.getItem("worker_unread_notifications") || "0");
+      const n = Number(localStorage.getItem(notificationKey) || "0");
       setUnread(Number.isFinite(n) ? n : 0);
     };
     window.addEventListener("storage", onStorage);
-
-    // (optional) polling กันกรณีอัปเดตใน tab เดียวกัน
-    const t = setInterval(onStorage, 1200);
+    const t = setInterval(onStorage, 1000); // Polling ทุก 1 วินาทีเพื่อให้เลข Update ทันที
     return () => {
       window.removeEventListener("storage", onStorage);
       clearInterval(t);
     };
-  }, []);
+  }, [notificationKey]);
 
-  // ===== Optional #3: Remember last menu =====
-  // เก็บ last route แยกตาม role
   const lastKey = role === "HR" ? "last_route_hr" : "last_route_worker";
-
   useEffect(() => {
-    // ทุกครั้งที่เข้าหน้าใหม่ ให้จำ route ล่าสุด
     localStorage.setItem(lastKey, location.pathname);
   }, [location.pathname, lastKey]);
 
-  // (optional) Quick continue button ถ้าอยากให้มี:
   const lastRoute = localStorage.getItem(lastKey) || "";
   const canContinue =
     lastRoute &&
@@ -137,46 +125,37 @@ export default function AppSidebar() {
 
   const openMobile = () => setMobileOpen(true);
   const closeMobile = () => setMobileOpen(false);
-
-  // class for sidebar wrapper
   const sidebarClass = `sb ${mobileOpen ? "sb-mobile-open" : ""}`;
 
   return (
     <>
-      {/* ===== Optional: mobile toggle button (top-left floating) ===== */}
       <button className="sb-mobile-toggle" type="button" onClick={mobileOpen ? closeMobile : openMobile}>
         {mobileOpen ? <FiX /> : <FiMenu />}
       </button>
 
-      {/* overlay for mobile */}
       {mobileOpen && <div className="sb-overlay" onClick={closeMobile} />}
 
       <aside className={sidebarClass} aria-label="App Sidebar">
-        {/* ===== Profile ===== */}
         <div className="sb-top">
           <div className="sb-profile">
             <div className="sb-avatar">{initials}</div>
-
             <div className="sb-profile-info">
               <div className="sb-name">{fullName}</div>
               <div className="sb-role">{role}</div>
             </div>
 
-            {/* Bell with badge (mock) */}
+            {/* ✅ กระดิ่งด้านบนจะแสดงเลขตาม Role แล้ว */}
             <button 
               className="sb-bell" 
               type="button" 
               title="Notifications" 
-              // navigate ไปตาม role เช่น /worker/notifications หรือ /hr/notifications
               onClick={() => navigate(`/${role.toLowerCase()}/notifications`)}
             >
               <FiBell />
-              {/* แสดง badge เมื่อ unread > 0 */}
               {unread > 0 && <span className="sb-badge">{unread > 99 ? "99+" : unread}</span>}
             </button>
           </div>
 
-          {/* Optional: Continue last page */}
           {canContinue && (
             <button className="sb-continue" type="button" onClick={() => navigate(lastRoute)}>
               กลับไปหน้าล่าสุด
@@ -184,17 +163,16 @@ export default function AppSidebar() {
           )}
         </div>
 
-        {/* ===== Navigation ===== */}
         <nav className="sb-nav">
           {sections.map((sec) => (
             <div className="sb-section" key={sec.section}>
               <div className="sb-section-label">{sec.section}</div>
 
               {sec.items.map((item) => {
-                const badge =
-                  role === "Worker" && item.badgeKey
-                    ? unread
-                    : 0;
+                // ✅ แก้ไขที่ 4: ปรับให้แสดง Badge ได้ทั้ง Worker และ HR 
+                // ถ้าเมนูไหนมี badgeKey ตรงกับสถานะปัจจุบัน ให้เอาค่า unread มาโชว์
+                const showBadge = item.badgeKey === notificationKey;
+                const badgeCount = showBadge ? unread : 0;
 
                 return (
                   <NavLink
@@ -204,7 +182,9 @@ export default function AppSidebar() {
                   >
                     <span className="sb-item-ico">
                       {item.icon}
-                      {badge > 0 && <span className="sb-item-badge">{badge > 99 ? "99+" : badge}</span>}
+                      {badgeCount > 0 && (
+                        <span className="sb-item-badge">{badgeCount > 99 ? "99+" : badgeCount}</span>
+                      )}
                     </span>
                     <span className="sb-item-text">{item.label}</span>
                   </NavLink>
@@ -214,7 +194,6 @@ export default function AppSidebar() {
           ))}
         </nav>
 
-        {/* ===== Logout ===== */}
         <div className="sb-bottom">
           <button className="sb-logout" onClick={logout} type="button">
             <FiLogOut className="sb-logout-ico" />

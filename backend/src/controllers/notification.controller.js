@@ -61,6 +61,28 @@ exports.markAsRead = async (req, res, next) => {
     }
 };
 
+// ฟังก์ชันสำหรับกดอ่านทั้งหมด
+exports.markAllAsRead = async (req, res, next) => {
+    try {
+        const myId = req.user.employeeId;
+
+        // อัปเดตการแจ้งเตือนทั้งหมดของ User นี้ที่ยังไม่ได้อ่าน ให้เป็นอ่านแล้ว
+        await prisma.notification.updateMany({
+            where: {
+                employeeId: myId,
+                isRead: false
+            },
+            data: {
+                isRead: true
+            }
+        });
+
+        res.json({ success: true, message: 'อ่านการแจ้งเตือนทั้งหมดแล้ว' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // 3. ลบแจ้งเตือนทั้งหมด (Clear All)
 exports.clearAll = async (req, res, next) => {
     try {

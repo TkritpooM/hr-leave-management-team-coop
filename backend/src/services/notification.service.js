@@ -15,7 +15,7 @@ const initializeWebSocket = (server) => {
     wss = new WebSocket.Server({ server, path: '/ws/notifications' });
 
     wss.on('connection', (ws) => {
-        console.log('A client connected via WebSocket.');
+        // console.log('A client connected via WebSocket.');
         
         ws.on('message', (message) => {
             try {
@@ -24,7 +24,7 @@ const initializeWebSocket = (server) => {
                 if (data.type === 'REGISTER' && data.employeeId) {
                     const employeeId = parseInt(data.employeeId);
                     clients.set(employeeId, ws);
-                    console.log(`Employee ${employeeId} registered for WS notifications.`);
+                    // console.log(`Employee ${employeeId} registered for WS notifications.`);
                     ws.send(JSON.stringify({ type: 'STATUS', message: 'Successfully registered for real-time notifications.', connected: true }));
                 }
             } catch (error) {
@@ -37,7 +37,7 @@ const initializeWebSocket = (server) => {
             clients.forEach((client, employeeId) => {
                 if (client === ws) {
                     clients.delete(employeeId);
-                    console.log(`Employee ${employeeId} disconnected.`);
+                    // console.log(`Employee ${employeeId} disconnected.`);
                 }
             });
         });
