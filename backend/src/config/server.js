@@ -23,7 +23,7 @@ const createApp = () => {
     // 🔥 แก้จุดสำคัญ: ต้องระบุ URL Frontend ให้ชัดเจน (ห้ามใช้ *)
     app.use(cors({
         origin: 'http://localhost:5173', // URL ของ React
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     }));

@@ -127,6 +127,73 @@ const getMyRequests = async (req, res, next) => {
     }
 };
 
+const cancelLeaveRequest = async (req, res, next) => {
+    try {
+        const employeeId = parseInt(req.user.employeeId);
+        const requestId = parseInt(req.params.requestId);
+
+        // 1. ค้นหาใบลาและตรวจสอบว่าเป็นเจ้าของจริงไหม
+        const leaveRequest = await prisma.leaveRequest.findUnique({
+            where: { requestId }
+        });
+
+        if (!leaveRequest) {
+            throw CustomError.notFound('ไม่พบคำขอลาที่ระบุ');
+        }
+
+        if (leaveRequest.employeeId !== employeeId) {
+            throw CustomError.forbidden('คุณไม่มีสิทธิ์ยกเลิกคำขอลาของผู้อื่น');
+        }
+
+        // 2. ตรวจสอบสถานะ (ต้องเป็น Pending เท่านั้นถึงจะยกเลิกได้)
+        if (leaveRequest.status !== 'Pending') {
+            return res.status(200).json({ 
+                success: false, 
+                message: `ไม่สามารถยกเลิกได้ เนื่องจากรายการนี้ถูก ${leaveRequest.status === 'Approved' ? 'อนุมัติ' : 'ปฏิเสธ'} ไปแล้ว` 
+            });
+        }
+
+        // 3. ใช้ Transaction อัปเดตสถานะ และลบ Notification "NewRequest" ของ HR ออกจาก DB
+        await prisma.$transaction(async (tx) => {
+            // อัปเดตสถานะเป็น Cancelled
+            await tx.leaveRequest.update({
+                where: { requestId },
+                data: { status: 'Cancelled' }
+            });
+
+            // ลบแจ้งเตือน "คำขอใหม่" เดิมออกจาก Database ของ HR ทุกคน
+            // ขั้นตอนนี้จะทำให้เมื่อ HR กด Refresh หน้าจอ เลข Badge จะลดลงตามจริง
+            await tx.notification.deleteMany({
+                where: {
+                    relatedRequestId: requestId,
+                    notificationType: 'NewRequest'
+                }
+            });
+        });
+
+        // 4. ส่งสัญญาณ WebSocket แบบพิเศษ (ไม่ใช่ NOTIFICATION) เพื่อให้หน้าจอ HR อัปเดตข้อมูล
+        const allHR = await prisma.employee.findMany({
+            where: { role: 'HR', isActive: true },
+            select: { employeeId: true }
+        });
+
+        allHR.forEach(hr => {
+            // ✅ เปลี่ยนจาก type: 'NOTIFICATION' เป็น 'UPDATE_SIGNAL'
+            // เพื่อให้ Frontend ของ HR รู้ว่าต้อง fetch ข้อมูลใหม่ แต่ไม่ต้องเพิ่มเลข Badge
+            notificationService.sendNotification(hr.employeeId, {
+                type: 'UPDATE_SIGNAL', 
+                action: 'REFRESH_LEAVE_LIST',
+                requestId: requestId
+            });
+        });
+
+        res.status(200).json({ success: true, message: 'ยกเลิกคำขอลาเรียบร้อยแล้ว' });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getAllPendingRequests = async (req, res, next) => {
     try {
         const pendingRequests = await prisma.leaveRequest.findMany({
@@ -353,6 +420,7 @@ const deleteLeaveRequest = async (req, res, next) => {
 module.exports = {
   requestLeave, 
   getMyRequests, 
+  cancelLeaveRequest,
   getAllPendingRequests, 
   getRequestDetail, 
   handleApproval,

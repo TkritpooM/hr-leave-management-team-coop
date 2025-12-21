@@ -14,11 +14,11 @@ export default function WorkerLeave() {
 
   // ✅ UI controls
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all"); // all | pending | approved | rejected | cancelled
-  const [type, setType] = useState("all"); // all | <typeName>
-  const [sort, setSort] = useState("newest"); // newest | oldest | start_asc | start_desc
+  const [status, setStatus] = useState("all"); 
+  const [type, setType] = useState("all"); 
+  const [sort, setSort] = useState("newest"); 
 
-  // ✅ Pagination (เพิ่มเฉพาะส่วนนี้)
+  // ✅ Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -33,7 +33,6 @@ export default function WorkerLeave() {
         axios.get("http://localhost:8000/api/leave/quota/my", getAuthHeader()),
         axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
       ]);
-
       setQuotas(quotaRes.data.quotas || []);
       setHistory(historyRes.data.requests || []);
     } catch (err) {
@@ -47,14 +46,33 @@ export default function WorkerLeave() {
     fetchData();
   }, []);
 
-  // ✅ Build type options from history
+  // 🔥 ฟังก์ชันยกเลิกใบลา
+  const handleCancelLeave = async (requestId) => {
+    if (!window.confirm("คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?")) return;
+    try {
+      const res = await axios.patch(
+        `http://localhost:8000/api/leave/${requestId}/cancel`,
+        {},
+        getAuthHeader()
+      );
+      if (res.data.success) {
+        alert("✅ ยกเลิกคำขอลาเรียบร้อยแล้ว");
+        fetchData(); 
+      } else {
+        alert("❌ ไม่สามารถยกเลิกได้: " + res.data.message);
+      }
+    } catch (err) {
+      console.error("Cancel Leave Error:", err);
+      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
+  };
+
   const typeOptions = useMemo(() => {
     const set = new Set();
     history.forEach((r) => set.add(r.leaveType?.typeName || "Unknown"));
     return ["all", ...Array.from(set).sort((a, b) => a.localeCompare(b))];
   }, [history]);
 
-  // ✅ Counters (chips)
   const counters = useMemo(() => {
     const c = { all: history.length, pending: 0, approved: 0, rejected: 0, cancelled: 0 };
     history.forEach((r) => {
@@ -67,65 +85,44 @@ export default function WorkerLeave() {
     return c;
   }, [history]);
 
-  // ✅ Filter + sort
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-
     let rows = history.filter((r) => {
       const typeName = (r.leaveType?.typeName || "Unknown").toLowerCase();
       const st = normStatus(r.status);
-
       const matchQuery =
         !query ||
         typeName.includes(query) ||
         String(r.reason || "").toLowerCase().includes(query) ||
         moment(r.startDate).format("YYYY-MM-DD").includes(query) ||
         moment(r.endDate).format("YYYY-MM-DD").includes(query);
-
       const matchStatus = status === "all" ? true : st.includes(status);
       const matchType = type === "all" ? true : (r.leaveType?.typeName || "Unknown") === type;
-
       return matchQuery && matchStatus && matchType;
     });
 
     rows.sort((a, b) => {
       const aStart = new Date(a.startDate).getTime();
       const bStart = new Date(b.startDate).getTime();
-      const aEnd = new Date(a.endDate).getTime();
-      const bEnd = new Date(b.endDate).getTime();
-
       switch (sort) {
-        case "oldest":
-          return aStart - bStart;
-        case "start_asc":
-          return aStart - bStart || aEnd - bEnd;
-        case "start_desc":
-          return bStart - aStart || bEnd - aEnd;
-        case "newest":
-        default:
-          return bStart - aStart;
+        case "oldest": return aStart - bStart;
+        case "start_asc": return aStart - bStart;
+        case "start_desc": return bStart - aStart;
+        default: return bStart - aStart;
       }
     });
-
     return rows;
   }, [history, q, status, type, sort]);
 
   const clearFilters = () => {
-    setQ("");
-    setStatus("all");
-    setType("all");
-    setSort("newest");
+    setQ(""); setStatus("all"); setType("all"); setSort("newest");
   };
 
-  // ✅ Pagination apply AFTER filtering (เพิ่มเฉพาะส่วนนี้)
   const totalFiltered = filtered.length;
   const startIdx = (page - 1) * pageSize;
   const paged = useMemo(() => filtered.slice(startIdx, startIdx + pageSize), [filtered, startIdx, pageSize]);
 
-  // ✅ Reset page เมื่อ filter/sort เปลี่ยน (กัน page หลุด) — ไม่กระทบ logic เดิม
-  useEffect(() => {
-    setPage(1);
-  }, [q, status, type, sort]);
+  useEffect(() => { setPage(1); }, [q, status, type, sort]);
 
   return (
     <div className="wl-page">
@@ -136,7 +133,6 @@ export default function WorkerLeave() {
         </div>
       </header>
 
-      {/* Leave Balance */}
       <section className="wl-quota-row">
         {quotas.length === 0 ? (
           <div className="wl-card">
@@ -144,30 +140,27 @@ export default function WorkerLeave() {
             <div className="wl-muted">Ask HR to assign leave quota.</div>
           </div>
         ) : (
-          quotas.map((q) => (
-            <div className="wl-card" key={q.quotaId}>
-              <h4 className="wl-card-title">{q.leaveType?.typeName}</h4>
-              <div className="wl-big">{q.availableDays}</div>
-              <div className="wl-muted">Remaining from {q.totalDays} days</div>
+          quotas.map((item) => (
+            <div className="wl-card" key={item.quotaId}>
+              <h4 className="wl-card-title">{item.leaveType?.typeName}</h4>
+              <div className="wl-big">{item.availableDays}</div>
+              <div className="wl-muted">Remaining from {item.totalDays} days</div>
             </div>
           ))
         )}
       </section>
 
-      {/* Leave History (เด่น ๆ) */}
       <section className="wl-panel wl-panel-history">
         <div className="wl-panel-head wl-panel-head-row wl-panel-head-strong">
           <div>
             <h3 className="wl-panel-title wl-panel-title-strong">Leave History</h3>
             <div className="wl-panel-sub">Search, filter and sort your requests</div>
           </div>
-
           <div className="wl-chip wl-chip-strong">
             Showing <strong>{filtered.length}</strong> / {history.length}
           </div>
         </div>
 
-        {/* ✅ Controls */}
         <div className="wl-controls">
           <div className="wl-search">
             <input
@@ -177,7 +170,6 @@ export default function WorkerLeave() {
               placeholder="Search type / reason / date (YYYY-MM-DD)"
             />
           </div>
-
           <div className="wl-filters">
             <select className="wl-select" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="all">All status</option>
@@ -186,45 +178,32 @@ export default function WorkerLeave() {
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
-
             <select className="wl-select" value={type} onChange={(e) => setType(e.target.value)}>
               {typeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t === "all" ? "All types" : t}
-                </option>
+                <option key={t} value={t}>{t === "all" ? "All types" : t}</option>
               ))}
             </select>
-
             <select className="wl-select" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
               <option value="start_desc">Start date ↓</option>
               <option value="start_asc">Start date ↑</option>
             </select>
-
-            <button className="wl-btn wl-btn-ghost" type="button" onClick={clearFilters}>
-              Reset
-            </button>
+            <button className="wl-btn wl-btn-ghost" type="button" onClick={clearFilters}>Reset</button>
           </div>
         </div>
 
-        {/* ✅ Status chips (click to filter) */}
         <div className="wl-chips">
-          <button type="button" className={`wl-chip-mini ${status === "all" ? "active" : ""}`} onClick={() => setStatus("all")}>
-            All <span>{counters.all}</span>
-          </button>
-          <button type="button" className={`wl-chip-mini ${status === "pending" ? "active" : ""}`} onClick={() => setStatus("pending")}>
-            Pending <span>{counters.pending}</span>
-          </button>
-          <button type="button" className={`wl-chip-mini ${status === "approved" ? "active" : ""}`} onClick={() => setStatus("approved")}>
-            Approved <span>{counters.approved}</span>
-          </button>
-          <button type="button" className={`wl-chip-mini ${status === "rejected" ? "active" : ""}`} onClick={() => setStatus("rejected")}>
-            Rejected <span>{counters.rejected}</span>
-          </button>
-          <button type="button" className={`wl-chip-mini ${status === "cancelled" ? "active" : ""}`} onClick={() => setStatus("cancelled")}>
-            Cancelled <span>{counters.cancelled}</span>
-          </button>
+          {['all', 'pending', 'approved', 'rejected', 'cancelled'].map((st) => (
+            <button 
+              key={st}
+              type="button" 
+              className={`wl-chip-mini ${status === st ? "active" : ""}`} 
+              onClick={() => setStatus(st)}
+            >
+              {st.charAt(0).toUpperCase() + st.slice(1)} <span>{counters[st]}</span>
+            </button>
+          ))}
         </div>
 
         <div className="wl-table-wrap wl-table-wrap-strong">
@@ -238,14 +217,13 @@ export default function WorkerLeave() {
                   <th>Date Range</th>
                   <th>Days</th>
                   <th>Status</th>
+                  <th style={{ textAlign: "center" }}>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
+                {paged.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="wl-empty">
-                      No results.
-                    </td>
+                    <td colSpan="5" className="wl-empty">No results.</td>
                   </tr>
                 ) : (
                   paged.map((req) => (
@@ -258,6 +236,16 @@ export default function WorkerLeave() {
                       <td>
                         <span className={`wl-badge wl-badge-${normStatus(req.status)}`}>{req.status}</span>
                       </td>
+                      <td style={{ textAlign: "center" }}>
+                        {normStatus(req.status) === "pending" && (
+                          <button
+                            className="wl-btn-cancel"
+                            onClick={() => handleCancelLeave(req.requestId)}
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))
                 )}
@@ -266,7 +254,6 @@ export default function WorkerLeave() {
           )}
         </div>
 
-        {/* ✅ Pagination (เพิ่มเฉพาะส่วนนี้) */}
         <Pagination
           total={totalFiltered}
           page={page}

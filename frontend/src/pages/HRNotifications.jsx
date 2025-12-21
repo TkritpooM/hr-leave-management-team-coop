@@ -100,6 +100,12 @@ export default function HRNotifications() {
     try {
         await api.delete(`/api/notifications/${id}`, getAuthHeader());
         setNotifications(notifications.filter(n => n.notificationId !== id));
+
+        const updatedNotis = notifications.filter(n => n.notificationId !== id);
+        const remainUnread = updatedNotis.filter(n => !n.isRead).length;
+        localStorage.setItem("hr_unread_notifications", remainUnread.toString());
+        window.dispatchEvent(new Event("storage"));
+
         // ถ้าลบจนหน้านั้นว่าง ให้ถอยกลับ 1 หน้า
         if (pagedNotifications.length === 1 && page > 1) setPage(page - 1);
     } catch (err) {
@@ -115,6 +121,8 @@ export default function HRNotifications() {
         if (res.data.success) {
           setNotifications([]);
           setPage(1);
+          localStorage.setItem("hr_unread_notifications", "0");
+          window.dispatchEvent(new Event("storage"));
           alert("ล้างการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว");
         }
     } catch (err) {

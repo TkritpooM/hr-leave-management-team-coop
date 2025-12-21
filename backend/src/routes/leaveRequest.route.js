@@ -27,6 +27,7 @@ router.get('/my', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController
 
 // ส่งคำขอลา
 router.post('/request', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.requestLeave, 'requestLeave'));
+router.patch('/:requestId/cancel', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.cancelLeaveRequest, 'cancelLeaveRequest'));
 
 // --- 🔒 2. Routes สำหรับ HR เท่านั้น ---
 router.get('/admin/pending', authorizeRole(['HR']), ensureHandler(leaveController.getAllPendingRequests, 'getAllPendingRequests'));

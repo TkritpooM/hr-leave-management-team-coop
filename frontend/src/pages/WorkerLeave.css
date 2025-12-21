@@ -335,6 +335,21 @@
   color: #d6dde8;
 }
 
+.wl-btn-cancel {
+  background: transparent;
+  border: 1px solid #ff4d4f;
+  color: #ff4d4f;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+.wl-btn-cancel:hover {
+  background: #ff4d4f;
+  color: #fff;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 980px){
   .wl-controls{ align-items: stretch; }

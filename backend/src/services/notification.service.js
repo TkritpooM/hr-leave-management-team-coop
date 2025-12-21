@@ -43,7 +43,7 @@ const initializeWebSocket = (server) => {
         });
     });
 
-    console.log('Notification WebSocket Server initialized.');
+    // console.log('Notification WebSocket Server initialized.');
 };
 
 /**
@@ -57,8 +57,8 @@ const sendNotification = (employeeId, notificationPayload) => {
     if (ws && ws.readyState === WebSocket.OPEN) {
         // Payload ต้องมีข้อมูลที่จำเป็นและตรงตาม format ที่ Frontend คาดหวัง
         const payload = JSON.stringify({ 
-            type: 'NOTIFICATION', 
-            data: notificationPayload,
+            type: notificationPayload.type || 'NOTIFICATION', 
+            data: notificationPayload.data || notificationPayload,
             timestamp: new Date().toISOString()
         });
         ws.send(payload);
