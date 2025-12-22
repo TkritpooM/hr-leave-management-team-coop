@@ -21,10 +21,10 @@
   font-size: 12px;
   font-weight: 900;
   border: 1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.06);
+  background: var(--tint);
 }
 .wc-tag.ok{ border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.10); color:#bbf7d0; }
-.wc-tag.late{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.12); color:#fecaca; }
+.wc-tag.late{ border-color: rgba(220,38,38,.22); background: rgba(220,38,38,.08); color: rgba(127,29,29,.92); }
 .wc-tag.leave{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); color:#bfdbfe; }
 
 .wc-detail{ margin-top: 14px; }

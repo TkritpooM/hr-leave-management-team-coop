@@ -1,4 +1,10 @@
-/* ===== AppSidebar (dark-red glass) ===== */
+/* =========================================================
+   AppSidebar (Corporate Green / Light)
+   - Keeps the same class names used by AppSidebar.jsx
+   - Default collapsed; expands on hover (desktop)
+   - Mobile drawer behavior preserved
+   ========================================================= */
+
 :root{
   --sb-expanded: 280px;
   --sb-collapsed: 78px;
@@ -10,52 +16,40 @@
   top: 0;
   height: 100vh;
 
-  /* ✅ default: collapsed */
+  /* default: collapsed */
   width: var(--sb-collapsed);
 
   display: flex;
   flex-direction: column;
   border-radius: var(--sb-radius);
-
-  /* ✅ กัน scrollbar แปลกๆ จากตัว aside */
   overflow: hidden;
 
   background:
-    radial-gradient(700px 420px at 20% 15%, rgba(239,68,68,.22), transparent 55%),
-    radial-gradient(520px 380px at 80% 30%, rgba(255,255,255,.08), transparent 60%),
-    linear-gradient(180deg, rgba(8,10,18,.92), rgba(5,7,13,.96));
+    radial-gradient(700px 420px at 15% 10%, rgba(22,163,74,.12), transparent 55%),
+    linear-gradient(180deg, rgba(255,255,255,.95), rgba(247,250,248,.92));
 
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 18px 70px rgba(0,0,0,.55);
-
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 60px rgba(2,6,23,.10);
 
   transition: width .18s ease;
   z-index: 20;
 }
 
-/* ✅ expand on hover (desktop) */
-.sb:hover{
-  width: var(--sb-expanded);
-}
+/* expand on hover (desktop) */
+.sb:hover{ width: var(--sb-expanded); }
 
 /* Top */
-.sb-top{
-  padding: 14px 12px 10px;
-}
+.sb-top{ padding: 14px 12px 10px; }
 
 .sb-profile{
   display: grid;
   grid-template-columns: 48px 1fr 40px;
   gap: 10px;
   align-items: center;
-
   padding: 12px;
   border-radius: 18px;
-
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.85);
+  border: 1px solid var(--border);
 }
 
 .sb-avatar{
@@ -64,28 +58,22 @@
   border-radius: 18px;
   display: grid;
   place-items: center;
-
   font-weight: 950;
   font-size: 18px;
-  color: rgba(255,255,255,.92);
-
-  background: radial-gradient(100% 100% at 30% 30%, rgba(255,46,46,.95), rgba(120,0,0,.95));
-  box-shadow: 0 16px 40px rgba(255,46,46,.18);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  box-shadow: 0 14px 26px rgba(22,163,74,.18);
 }
 
-.sb-profile-info{
-  min-width: 0;
-}
+.sb-profile-info{ min-width: 0; }
 
-/* ✅ ซ่อนข้อความตอน collapsed (ใช้ opacity เพื่อให้ transition เนียนตอน hover) */
+/* hide text in collapsed state (smooth reveal on hover) */
 .sb-name,
 .sb-role{
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity .12s ease, transform .12s ease;
 }
-
-/* ✅ โชว์ข้อความเมื่อ hover (expanded) */
 .sb:hover .sb-name,
 .sb:hover .sb-role{
   opacity: 1;
@@ -94,7 +82,7 @@
 
 .sb-name{
   font-weight: 950;
-  color: rgba(255,255,255,.92);
+  color: var(--text);
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
@@ -106,15 +94,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-
   font-weight: 900;
   font-size: 12px;
   padding: 5px 10px;
   border-radius: 999px;
-
-  color: rgba(255,255,255,.82);
-  background: rgba(0,0,0,.25);
-  border: 1px solid rgba(255,255,255,.10);
+  color: var(--muted);
+  background: var(--tint);
+  border: 1px solid var(--border);
   width: fit-content;
 }
 
@@ -125,19 +111,16 @@
   border-radius: 14px;
   display: grid;
   place-items: center;
-
   position: relative;
-
-  background: rgba(0,0,0,.20);
-  border: 1px solid rgba(255,255,255,.10);
-  color: rgba(255,255,255,.80);
+  background: #fff;
+  border: 1px solid var(--border);
+  color: rgba(15,23,42,.80);
   cursor: pointer;
-
   transition: transform .08s ease, background .15s ease, border-color .15s ease;
 }
 .sb-bell:hover{
-  background: rgba(255,255,255,.08);
-  border-color: rgba(239,68,68,.28);
+  background: var(--surface2);
+  border-color: rgba(22,163,74,.35);
 }
 .sb-bell:active{ transform: translateY(1px); }
 
@@ -145,23 +128,19 @@
   position: absolute;
   top: -6px;
   right: -6px;
-
   min-width: 18px;
   height: 18px;
   padding: 0 6px;
   border-radius: 999px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   font-size: 11px;
   font-weight: 950;
   color: #fff;
-
-  background: linear-gradient(135deg, #ff2e2e, #b30000);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 10px 28px rgba(255,46,46,.25);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow: 0 10px 22px rgba(22,163,74,.18);
 }
 
 /* continue button (optional) */
@@ -169,14 +148,14 @@
   margin-top: 10px;
   width: 100%;
   border-radius: 999px;
-  border: 1px solid rgba(239,68,68,.28);
-  background: rgba(239,68,68,.10);
-  color: rgba(255,255,255,.88);
+  border: 1px solid rgba(22,163,74,.35);
+  background: rgba(22,163,74,.10);
+  color: rgba(15,23,42,.90);
   font-weight: 950;
   padding: 10px 12px;
   cursor: pointer;
 
-  /* ✅ ซ่อนตอน collapsed */
+  /* hidden when collapsed */
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px);
@@ -187,9 +166,7 @@
   pointer-events: auto;
   transform: translateY(0);
 }
-.sb-continue:hover{
-  background: rgba(239,68,68,.16);
-}
+.sb-continue:hover{ background: rgba(22,163,74,.14); }
 
 /* Nav */
 .sb-nav{
@@ -197,28 +174,18 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  /* ✅ สำคัญ: ไม่ให้เกิด scrollbar โผล่ */
   overflow: hidden;
-
-  /* ✅ ซ่อน scrollbar แบบเนียน (ไว้เผื่ออนาคตเปิด overflow) */
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.sb-nav::-webkit-scrollbar{
-  width: 0;
-  height: 0;
-}
+.sb-nav::-webkit-scrollbar{ width: 0; height: 0; }
 
-/* section label */
 .sb-section-label{
   padding: 10px 10px 8px;
   font-size: 12px;
   letter-spacing: .22em;
   font-weight: 950;
-  color: rgba(255,255,255,.40);
-
-  /* ✅ ซ่อนตอน collapsed */
+  color: rgba(71,85,105,.80);
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity .12s ease, transform .12s ease;
@@ -228,28 +195,23 @@
   transform: translateX(0);
 }
 
-/* item */
 .sb-item{
   display: flex;
   align-items: center;
   gap: 12px;
-
   padding: 12px 10px;
   margin: 6px 6px;
   border-radius: 16px;
-
-  color: rgba(255,255,255,.72);
+  color: rgba(15,23,42,.78);
   text-decoration: none;
   font-weight: 900;
-
   border: 1px solid transparent;
-  background: rgba(255,255,255,.04);
-
+  background: rgba(255,255,255,.75);
   transition: transform .08s ease, background .15s ease, border-color .15s ease;
 }
 .sb-item:hover{
-  background: rgba(255,255,255,.08);
-  border-color: rgba(255,255,255,.10);
+  background: var(--surface2);
+  border-color: var(--border);
 }
 .sb-item:active{ transform: translateY(1px); }
 
@@ -259,42 +221,34 @@
   border-radius: 16px;
   display: grid;
   place-items: center;
-
   position: relative;
-
-  background: rgba(0,0,0,.20);
-  border: 1px solid rgba(255,255,255,.10);
-  color: rgba(255,255,255,.86);
+  background: var(--tint);
+  border: 1px solid var(--border);
+  color: rgba(15,23,42,.86);
 }
 
 .sb-item-badge{
   position: absolute;
   top: -6px;
   right: -6px;
-
   min-width: 18px;
   height: 18px;
   padding: 0 6px;
   border-radius: 999px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   font-size: 11px;
   font-weight: 950;
   color: #fff;
-
-  background: linear-gradient(135deg, #ff2e2e, #b30000);
-  border: 1px solid rgba(255,255,255,.18);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: 1px solid rgba(255,255,255,.65);
 }
 
 .sb-item-text{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  /* ✅ ซ่อนตอน collapsed */
   opacity: 0;
   transform: translateX(-6px);
   transition: opacity .12s ease, transform .12s ease;
@@ -304,53 +258,43 @@
   transform: translateX(0);
 }
 
-/* active */
+/* Active */
 .sb-item.active{
-  color: rgba(255,255,255,.95);
-  background: linear-gradient(135deg, rgba(255,46,46,.95), rgba(130,0,0,.92));
-  border-color: rgba(255,46,46,.25);
-  box-shadow: 0 16px 40px rgba(255,46,46,.16);
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-color: rgba(22,163,74,.25);
+  box-shadow: 0 16px 34px rgba(22,163,74,.16);
 }
 .sb-item.active .sb-item-ico{
-  background: rgba(255,255,255,.14);
-  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.18);
+  border-color: rgba(255,255,255,.35);
+  color: #fff;
 }
 
 /* Bottom */
-.sb-bottom{
-  margin-top: auto;
-  padding: 14px 12px 16px;
-}
+.sb-bottom{ margin-top: auto; padding: 14px 12px 16px; }
 
 .sb-logout{
   width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
-
   padding: 12px 14px;
   border-radius: 18px;
-
-  background: rgba(0,0,0,.18);
-  border: 1px solid rgba(255,255,255,.10);
-  color: rgba(255,80,80,.95);
-
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--danger);
   font-weight: 950;
   cursor: pointer;
-
   transition: transform .08s ease, background .15s ease, border-color .15s ease;
 }
 .sb-logout:hover{
-  background: rgba(239,68,68,.10);
-  border-color: rgba(239,68,68,.25);
+  background: rgba(220,38,38,.06);
+  border-color: rgba(220,38,38,.22);
 }
 .sb-logout:active{ transform: translateY(1px); }
+.sb-logout-ico{ font-size: 18px; }
 
-.sb-logout-ico{
-  font-size: 18px;
-}
-
-/* ✅ ซ่อนคำว่า "ออกจากระบบ" ตอน collapsed */
 .sb-logout-text{
   opacity: 0;
   transform: translateX(-6px);
@@ -362,32 +306,20 @@
 }
 
 /* =========================================================
-   ✅ FIX: Collapsed state (not hover) to avoid "squeezed" look
+   Collapsed state tweaks (avoid squeezed look)
    ========================================================= */
-.sb:not(:hover) .sb-top{
-  padding: 14px 10px 10px;
-}
-
-/* โปรไฟล์ตอนย่อ: เหลือ avatar อยู่กลาง (ไม่บีบ) */
+.sb:not(:hover) .sb-top{ padding: 12px 8px 10px; }
 .sb:not(:hover) .sb-profile{
   grid-template-columns: 1fr;
   justify-items: center;
   padding: 12px 10px;
 }
-
-/* ซ่อน bell ตอนย่อ (ช่วยกันบีบ/แปลก) */
-.sb:not(:hover) .sb-bell{
-  display: none;
-}
-
-/* avatar ใหญ่ขึ้นนิดตอนย่อ */
+.sb:not(:hover) .sb-bell{ display: none; }
 .sb:not(:hover) .sb-avatar{
   width: 52px;
   height: 52px;
   border-radius: 20px;
 }
-
-/* ข้อความ/หัวข้อ/ปุ่ม continue ซ่อนแบบชัวร์ตอนย่อ */
 .sb:not(:hover) .sb-name,
 .sb:not(:hover) .sb-role,
 .sb:not(:hover) .sb-section-label,
@@ -396,34 +328,11 @@
 .sb:not(:hover) .sb-continue{
   display: none !important;
 }
-
-/* เมนูตอนย่อ: จัดไอคอนกลาง ลด padding/margin */
-.sb:not(:hover) .sb-nav{
-  padding: 8px 8px 10px;
-  overflow: hidden; /* ✅ ไม่ให้มี scrollbar ตอนย่อ */
-}
-
-.sb:not(:hover) .sb-item{
-  justify-content: center;
-  padding: 10px 8px;
-  margin: 8px 6px;
-}
-
-.sb:not(:hover) .sb-item-ico{
-  width: 48px;
-  height: 48px;
-  border-radius: 18px;
-}
-
-/* logout ตอนย่อ: เหลือไอคอนกลาง */
-.sb:not(:hover) .sb-bottom{
-  padding: 12px 10px 14px;
-}
-
-.sb:not(:hover) .sb-logout{
-  justify-content: center;
-  padding: 12px 10px;
-}
+.sb:not(:hover) .sb-nav{ padding: 8px 8px 10px; overflow: hidden; }
+.sb:not(:hover) .sb-item{ justify-content: center; padding: 10px 8px; margin: 8px 6px; }
+.sb:not(:hover) .sb-item-ico{ width: 48px; height: 48px; border-radius: 18px; }
+.sb:not(:hover) .sb-bottom{ padding: 12px 10px 14px; }
+.sb:not(:hover) .sb-logout{ justify-content: center; padding: 12px 10px; }
 
 /* ===== Mobile toggle + overlay ===== */
 .sb-mobile-toggle{
@@ -432,18 +341,13 @@
   top: 14px;
   left: 14px;
   z-index: 1001;
-
   width: 44px;
   height: 44px;
   border-radius: 16px;
-
-  background: rgba(10,12,20,.70);
-  border: 1px solid rgba(255,255,255,.14);
-  color: rgba(255,255,255,.88);
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
+  background: rgba(255,255,255,.92);
+  border: 1px solid var(--border);
+  color: rgba(15,23,42,.90);
+  box-shadow: 0 10px 24px rgba(2,6,23,.10);
   cursor: pointer;
 }
 
@@ -451,53 +355,37 @@
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0,0,0,.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(2,6,23,.35);
 }
 
-/* ✅ Mobile behavior: slide-in drawer */
+/* Mobile: slide-in drawer */
 @media (max-width: 980px){
-  .sb-mobile-toggle{
-    display: grid;
-    place-items: center;
-  }
+  .sb-mobile-toggle{ display: grid; place-items: center; }
 
   .sb{
     position: fixed;
     left: 14px;
     top: 14px;
     height: calc(100vh - 28px);
-
     width: var(--sb-expanded);
     transform: translateX(-110%);
     transition: transform .18s ease;
-
     z-index: 1002;
   }
 
-  /* เปิดเมื่อกด toggle */
-  .sb.sb-mobile-open{
-    transform: translateX(0);
-  }
+  .sb.sb-mobile-open{ transform: translateX(0); }
 
-  /* บนมือถือไม่ต้อง hover expand/collapse */
-  .sb:hover{
-    width: var(--sb-expanded);
-  }
+  /* On mobile: no hover collapse */
+  .sb:hover{ width: var(--sb-expanded); }
 
-  /* บนมือถือให้ scroll ได้ (แต่ซ่อน scrollbar) */
   .sb-nav{
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .sb-nav::-webkit-scrollbar{
-    width: 0;
-    height: 0;
-  }
+  .sb-nav::-webkit-scrollbar{ width: 0; height: 0; }
 
-  /* บนมือถือให้โชว์ text ทั้งหมด */
+  /* Always show text on mobile */
   .sb-name,
   .sb-role,
   .sb-item-text,
@@ -510,42 +398,5 @@
     display: block !important;
   }
 
-  /* undo collapsed-only hiding on mobile */
-  .sb-bell{
-    display: grid !important;
-  }
+  .sb-bell{ display: grid !important; }
 }
-/* ===== FIX: Collapsed profile not weird ===== */
-.sb:not(:hover) .sb-top{
-  padding: 12px 8px 10px;
-}
-
-.sb:not(:hover) .sb-profile{
-  /* เอากรอบ/พื้นหลังออก ให้เหลือแค่ avatar */
-  background: transparent !important;
-  border: 0 !important;
-
-  /* ลด padding ไม่ให้บีบ */
-  padding: 6px !important;
-
-  /* จัด layout ให้กลาง */
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-
-  /* กันมุม/กรอบหลอก */
-  border-radius: 0 !important;
-}
-
-.sb:not(:hover) .sb-avatar{
-  width: 56px !important;
-  height: 56px !important;
-  border-radius: 20px !important;
-}
-
-/* ซ่อนส่วนอื่นใน profile ตอนย่อให้ชัวร์ */
-.sb:not(:hover) .sb-profile-info,
-.sb:not(:hover) .sb-bell{
-  display: none !important;
-}
-

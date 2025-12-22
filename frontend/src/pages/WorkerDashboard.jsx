@@ -25,7 +25,7 @@ export default function WorkerDashboard() {
     detail: "",
   });
 
-  // ✅ Pagination (เพิ่มเฉพาะส่วนนี้)
+  // ✅ Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -58,7 +58,6 @@ export default function WorkerDashboard() {
     try {
       const response = await axios.get("http://localhost:8000/api/leave/quota/my", getAuthHeader());
       setQuotas(response.data.quotas || []);
-      // ตั้งค่า LeaveType เริ่มต้นในฟอร์ม
       if (response.data.quotas.length > 0) {
         setLeaveForm((prev) => ({ ...prev, leaveTypeId: response.data.quotas[0].leaveTypeId }));
       }
@@ -94,7 +93,7 @@ export default function WorkerDashboard() {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
       alert("✅ Check In สำเร็จ!");
       fetchAttendanceData();
-      fetchLateSummary(); // อัปเดตยอดมาสายเผื่อวันนี้สาย
+      fetchLateSummary();
     } catch (err) {
       alert("❌ " + (err.response?.data?.message || "Check In ล้มเหลว"));
     }
@@ -112,15 +111,10 @@ export default function WorkerDashboard() {
 
   const handleLeaveChange = (e) => {
     const { name, value } = e.target;
-    
+
     setLeaveForm((prev) => {
       const newState = { ...prev, [name]: value };
-
-      // ✅ ถ้าสิ่งที่เปลี่ยนคือ startDate ให้เอาค่าไปใส่ใน endDate ด้วย
-      if (name === "startDate") {
-        newState.endDate = value;
-      }
-
+      if (name === "startDate") newState.endDate = value;
       return newState;
     });
   };
@@ -137,15 +131,12 @@ export default function WorkerDashboard() {
         reason: leaveForm.detail,
       };
 
-      // 💡 ส่งข้อมูล (ตอนนี้ Backend จะส่ง 200 พร้อม success: false ถ้าโควต้าไม่พอ)
       const res = await axios.post("http://localhost:8000/api/leave/request", payload, getAuthHeader());
 
-      // ✅ ตรวจสอบผลลัพธ์จาก Body
       if (res.data.success) {
         alert("✅ ส่งคำขอลาสำเร็จ!");
         setIsLeaveModalOpen(false);
 
-        // ล้างฟอร์ม
         setLeaveForm({
           leaveTypeId: quotas.length > 0 ? quotas[0].leaveTypeId : "",
           startDate: "",
@@ -153,20 +144,17 @@ export default function WorkerDashboard() {
           detail: "",
         });
 
-        fetchQuotaData(); // อัปเดตตัวเลขโควต้า
+        fetchQuotaData();
       } else {
-        // ⚠️ กรณีโควต้าไม่พอ หรือลาซ้ำ (ผลลัพธ์จาก Backend ที่เราดักไว้)
         alert("⚠️ ไม่สำเร็จ: " + res.data.message);
       }
     } catch (err) {
-      // ❌ กรณี Error รุนแรง เช่น Server ล่ม
       const errorMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ";
       alert("❌ " + errorMsg);
       console.error("Submit Leave Error:", err);
     }
   };
 
-  // Helper Formats
   const formatTime = (d) =>
     d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--";
   const formatDate = (s) =>
@@ -174,12 +162,13 @@ export default function WorkerDashboard() {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  // ✅ Pagination 계산 (เพิ่มเฉพาะส่วนนี้)
   const totalHistory = history.length;
   const startIdx = (page - 1) * pageSize;
-  const pagedHistory = useMemo(() => history.slice(startIdx, startIdx + pageSize), [history, startIdx, pageSize]);
+  const pagedHistory = useMemo(
+    () => history.slice(startIdx, startIdx + pageSize),
+    [history, startIdx, pageSize]
+  );
 
-  // ✅ เมื่อ history เปลี่ยน (fetch ใหม่) ให้กัน page หลุด
   useEffect(() => {
     setPage(1);
   }, [totalHistory]);
@@ -196,7 +185,6 @@ export default function WorkerDashboard() {
         </div>
       </header>
 
-      {/* สรุปมาสายจาก Backend */}
       <div className="late-warning">
         <span>
           Late this month:{" "}
@@ -204,34 +192,37 @@ export default function WorkerDashboard() {
             {lateSummary.lateCount} / {lateSummary.lateLimit}
           </strong>
         </span>
-        {lateSummary.lateCount > lateSummary.lateLimit && <span className="late-warning-danger"> Exceeded Limit!</span>}
+        {lateSummary.lateCount > lateSummary.lateLimit && (
+          <span className="late-warning-danger"> Exceeded Limit!</span>
+        )}
       </div>
 
       <section className="action-row">
         <div className="action-card">
           <h3>Check In</h3>
           <p className="action-time">{formatTime(checkedInAt)}</p>
-          <button className="primary-btn" onClick={handleCheckIn} disabled={!!checkedInAt}>
+          <button className="btn-checkin" onClick={handleCheckIn} disabled={!!checkedInAt}>
             {checkedInAt ? "Checked In" : "Check In Now"}
           </button>
         </div>
+
         <div className="action-card">
           <h3>Check Out</h3>
           <p className="action-time">{formatTime(checkedOutAt)}</p>
-          <button className="secondary-btn" onClick={handleCheckOut} disabled={!checkedInAt || !!checkedOutAt}>
+          <button className="btn-checkout" onClick={handleCheckOut} disabled={!checkedInAt || !!checkedOutAt}>
             {!checkedInAt ? "Check In First" : checkedOutAt ? "Checked Out" : "Check Out"}
           </button>
         </div>
+
         <div className="action-card">
           <h3>Leave</h3>
           <p className="action-time">Manage Leaves</p>
-          <button className="secondary-btn" onClick={() => setIsLeaveModalOpen(true)}>
+          <button className="btn-leave" onClick={() => setIsLeaveModalOpen(true)}>
             Request Leave
           </button>
         </div>
       </section>
 
-      {/* Leave Balance จาก Backend */}
       <section className="summary-row">
         {quotas.length > 0 ? (
           quotas.map((q) => (
@@ -275,7 +266,6 @@ export default function WorkerDashboard() {
             </tbody>
           </table>
 
-          {/* ✅ Pagination (เพิ่มเฉพาะส่วนนี้) */}
           <Pagination
             total={totalHistory}
             page={page}
@@ -286,7 +276,6 @@ export default function WorkerDashboard() {
         </div>
       </section>
 
-      {/* Leave Request Modal */}
       {isLeaveModalOpen && (
         <div className="modal-backdrop">
           <div className="modal">
@@ -300,18 +289,23 @@ export default function WorkerDashboard() {
                   </option>
                 ))}
               </select>
+
               <div className="date-row">
                 <label>
-                  Start Date <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveChange} required />
+                  Start Date
+                  <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveChange} required />
                 </label>
                 <label>
-                  End Date <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} required />
+                  End Date
+                  <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} required />
                 </label>
               </div>
-              <label>
-                Detail{" "}
+
+              <label className="full">
+                Detail
                 <textarea name="detail" rows="3" onChange={handleLeaveChange} placeholder="Reason..."></textarea>
               </label>
+
               <div className="modal-actions">
                 <button type="button" className="outline-btn" onClick={() => setIsLeaveModalOpen(false)}>
                   Cancel

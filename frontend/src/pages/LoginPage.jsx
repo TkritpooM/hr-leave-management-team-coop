@@ -141,24 +141,27 @@ export default function LoginPage() {
         <div className="divider" />
 
         {/* ===== Test Accounts ===== */}
-        <div className="test-account">
-          <div className="test-title">บัญชีทดสอบ:</div>
+       <div className="test-accounts">
+          <div className="title">บัญชีทดสอบ:</div>
 
-          <div className="test-row">
-            <span className="test-role">HR :</span>
-            <code className="test-value">hr.manager@company.com</code>
-          </div>
+          <div className="list">
+            <div className="row">
+              <span className="label">HR</span>
+              <code>hr.manager@company.com</code>
+            </div>
 
-          <div className="test-row">
-            <span className="test-role">Worker :</span>
-            <code className="test-value">worker.a@company.com</code>
-          </div>
+            <div className="row">
+              <span className="label">Worker</span>
+              <code>worker.a@company.com</code>
+            </div>
 
-          <div className="test-row">
-            <span className="test-role">Pass :</span>
-            <code className="test-value">Password123</code>
+            <div className="row">
+              <span className="label">Pass</span>
+              <code>Password123</code>
+            </div>
           </div>
         </div>
+
 
       </div>
     </div>

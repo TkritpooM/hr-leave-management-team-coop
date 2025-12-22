@@ -1,4 +1,8 @@
-/* ===== Page Background ===== */
+/* =========================================================
+   Login / Register (Corporate Green)
+   - Minimal, high readability
+   ========================================================= */
+
 .auth-page{
   min-height: 100vh;
   display:flex;
@@ -6,36 +10,32 @@
   justify-content:center;
   padding: 24px;
 
+  /* subtle corporate background */
   background:
-    radial-gradient(1200px 600px at 15% 10%, rgba(239,68,68,.12), transparent 60%),
-    radial-gradient(900px 500px at 85% 70%, rgba(239,68,68,.06), transparent 60%),
+    radial-gradient(1100px 540px at 12% 10%, rgba(22,163,74,.12), transparent 60%),
     linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
 
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   color: var(--text);
 }
 
-/* ===== Login Card ===== */
 .auth-card{
   width: min(520px, 92vw);
-  background: rgba(18, 22, 37, .82);
+  background: var(--card);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
   border-radius: 26px;
   padding: 34px 36px 28px;
   box-shadow: var(--shadow);
 }
 
-/* ===== Header ===== */
 .auth-header{ text-align:center; margin-bottom: 20px; }
-
 .brand{ display:inline-flex; align-items:center; gap: 10px; }
 
 .brand-title{
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 950;
   letter-spacing: -.02em;
-  color: #ffffff;
+  color: var(--text);
 }
 
 .subtitle{
@@ -44,7 +44,6 @@
   color: var(--muted);
 }
 
-/* ===== Form ===== */
 .auth-form{
   margin-top: 14px;
   display:flex;
@@ -53,7 +52,6 @@
 }
 
 .field{ display:flex; flex-direction:column; gap: 6px; }
-
 .label-row{ display:flex; justify-content:space-between; align-items:center; }
 
 .label{
@@ -62,42 +60,39 @@
   color: var(--muted);
 }
 
-/* ===== Inputs ===== */
 .input{
   width: 100%;
   height: 46px;
   padding: 10px 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,.04);
+  background: #fff;
   color: var(--text);
   font-size: 14px;
   outline: none;
   transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
-.input::placeholder{ color: rgba(229,231,235,.55); }
+.input::placeholder{ color: rgba(71,85,105,.75); }
 
 .input:focus{
-  border-color: rgba(239,68,68,.55);
+  border-color: rgba(22,163,74,.55);
   box-shadow: 0 0 0 3px var(--focus);
-  background: rgba(255,255,255,.06);
+  background: #fff;
 }
 
-/* ===== Show / Hide password ===== */
 .link-btn{
   border: none;
   background: transparent;
   font-size: 12px;
   font-weight: 900;
-  color: rgba(239,68,68,.95);
+  color: var(--accent2);
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 8px;
 }
-.link-btn:hover{ background: rgba(239,68,68,.12); }
+.link-btn:hover{ background: rgba(22,163,74,.10); }
 
-/* ===== Remember ===== */
 .row{ display:flex; align-items:center; }
 
 .checkbox{
@@ -110,88 +105,93 @@
 
 .checkbox input{ width: 14px; height: 14px; accent-color: var(--accent); }
 
-/* ===== Login Button ===== */
 .primary{
   height: 48px;
-  border: 1px solid rgba(239,68,68,.45);
+  border: 1px solid rgba(22,163,74,.35);
   border-radius: 999px;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
   color: #ffffff;
   font-weight: 950;
-  font-size: 15px;
   cursor: pointer;
-  box-shadow: 0 12px 22px rgba(239,68,68,.22);
+  box-shadow: 0 14px 28px rgba(22,163,74,.16);
   transition: transform .08s ease, filter .15s ease;
 }
-
-.primary:hover{ filter: brightness(1.05); }
+.primary:hover{ filter: brightness(0.98); }
 .primary:active{ transform: translateY(1px); }
 
-.primary:disabled{
-  opacity: .6;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-/* ===== Divider ===== */
-.divider{
-  height: 1px;
-  background: rgba(255,255,255,.10);
-  margin: 6px 0;
-}
-
-/* ===== Test Accounts ===== */
-.test-accounts{
+.error{
   margin-top: 10px;
-  text-align: center;
-}
-.test-title{
-  font-weight: 950;
-  color: var(--text);
-  margin-bottom: 8px;
-}
-.test-row{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap: 10px;
-  margin: 6px 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(220,38,38,.22);
+  background: rgba(220,38,38,.06);
+  color: rgba(127,29,29,.95);
+  font-weight: 800;
   font-size: 13px;
 }
-.test-label{
-  min-width: 68px;
-  text-align: right;
+
+.auth-footer{
+  margin-top: 14px;
+  text-align: center;
   color: var(--muted);
-  font-weight: 900;
+  font-size: 13px;
 }
-.test-pill{
-  display:inline-flex;
-  align-items:center;
-  padding: 4px 10px;
+
+.auth-footer button{
+  border: none;
+  background: transparent;
+  color: var(--accent2);
+  font-weight: 950;
+  cursor: pointer;
+  padding: 6px 8px;
   border-radius: 10px;
-  background: rgba(239,68,68,.12);
-  border: 1px solid rgba(239,68,68,.18);
-  color: #fff;
+}
+.auth-footer button:hover{ background: rgba(22,163,74,.10); }
+
+@media (max-width: 520px){
+  .auth-card{ padding: 28px 22px 22px; }
+  .brand-title{ font-size: 26px; }
+}
+
+/* ===== Test Accounts block (spacing fix) ===== */
+.test-accounts{
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(15,23,42,.14);
+  color: #0f172a;
+}
+
+.test-accounts .title{
   font-weight: 900;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  margin-bottom: 8px;
 }
 
-@media (max-width: 480px){
-  .auth-card{ padding: 26px 20px 22px; }
-  .brand-title{ font-size: 28px; }
+.test-accounts .list{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;              /* ระยะห่างแต่ละบรรทัด */
+  line-height: 1.55;     /* ความสูงบรรทัด */
 }
 
+.test-accounts .row{
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
 
-/* Backward compatible class names used in JSX */
-.test-account{ margin-top: 10px; text-align:center; }
-.test-role{ font-weight: 900; color: var(--muted); }
-.test-value{
-  background: rgba(239,68,68,.12);
-  border: 1px solid rgba(239,68,68,.18);
-  color: #fff;
-  padding: 3px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+.test-accounts .label{
   font-weight: 900;
+  color: rgba(15,23,42,.70);
+  min-width: 72px;       /* กันให้ label เท่ากัน */
 }
+
+.test-accounts code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+  font-size: 13px;
+  background: rgba(15,23,42,.04);
+  border: 1px solid rgba(15,23,42,.10);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+

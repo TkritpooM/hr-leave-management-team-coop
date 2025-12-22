@@ -8,10 +8,10 @@
   padding: 12px 14px;
   border-radius: 16px;
   border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
+  background: var(--tint);
 }
 .wn-item.ok{ border-color: rgba(16,185,129,.30); background: rgba(16,185,129,.10); }
-.wn-item.danger{ border-color: rgba(239,68,68,.30); background: rgba(239,68,68,.12); }
+.wn-item.danger{ border-color: rgba(220,38,38,.22); background: rgba(220,38,38,.08); }
 .wn-item.info{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); }
 
 .wn-item-title{ font-weight: 950; }

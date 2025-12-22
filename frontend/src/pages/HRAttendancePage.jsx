@@ -65,17 +65,16 @@ export default function HRAttendancePage() {
         "http://localhost:8000/api/leave/quota/my",
         getAuthHeader()
       );
-      
-      // ลอง console.log ดูว่า response.data หน้าตาเป็นยังไง
+
       console.log("Quota Response:", response.data);
 
-      const qs = response.data.quotas || []; // Backend ส่งมาเป็นชื่อ 'quotas'
+      const qs = response.data.quotas || [];
       setQuotas(qs);
 
       if (qs.length > 0) {
-        setLeaveForm((prev) => ({ 
-          ...prev, 
-          leaveTypeId: qs[0].leaveTypeId.toString() 
+        setLeaveForm((prev) => ({
+          ...prev,
+          leaveTypeId: qs[0].leaveTypeId.toString(),
         }));
       }
     } catch (err) {
@@ -114,7 +113,7 @@ export default function HRAttendancePage() {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
       alert("✅ Check In สำเร็จ!");
       fetchAttendanceData();
-      fetchLateSummary(); // อัปเดตยอดมาสาย
+      fetchLateSummary();
     } catch (err) {
       alert("❌ " + (err.response?.data?.message || "Check In ล้มเหลว"));
     }
@@ -134,12 +133,7 @@ export default function HRAttendancePage() {
     const { name, value } = e.target;
     setLeaveForm((prev) => {
       const newState = { ...prev, [name]: value };
-
-      // ✅ ถ้าสิ่งที่เปลี่ยนคือ startDate ให้เอาค่าไปใส่ใน endDate ด้วยอัตโนมัติ
-      if (name === "startDate") {
-        newState.endDate = value;
-      }
-
+      if (name === "startDate") newState.endDate = value;
       return newState;
     });
   };
@@ -162,25 +156,25 @@ export default function HRAttendancePage() {
         getAuthHeader()
       );
 
-      // ✅ ตรวจสอบ success จากร่างกายของ JSON ที่ Backend ส่งมา
       if (response.data.success) {
         alert("✅ " + (response.data.message || "ส่งคำขอลาสำเร็จ!"));
         setIsLeaveModalOpen(false);
-        fetchQuotaData(); // อัปเดตตัวเลขโควต้าหน้าจอ
-        // ล้างฟอร์ม (Optional)
-        setLeaveForm({ leaveTypeId: quotas[0]?.leaveTypeId.toString() || "", startDate: "", endDate: "", detail: "" });
+        fetchQuotaData();
+        setLeaveForm({
+          leaveTypeId: quotas[0]?.leaveTypeId.toString() || "",
+          startDate: "",
+          endDate: "",
+          detail: "",
+        });
       } else {
-        // ❌ กรณีโควต้าไม่พอ หรือ Validation ไม่ผ่าน (แต่ Server ตอบ 200 มาให้)
         alert("⚠️ " + (response.data.message || "ไม่สามารถส่งคำขอลาได้"));
       }
     } catch (err) {
-      // ❌ กรณี Server พัง หรือ Token หมดอายุ (Error Status 4xx, 5xx)
       const errorMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
       alert("❌ " + errorMsg);
     }
   };
 
-  // Helpers
   const formatTime = (d) =>
     d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--";
 
@@ -191,7 +185,6 @@ export default function HRAttendancePage() {
 
   return (
     <div className="page-card">
-      {/* Header เหมือน Worker */}
       <header className="worker-header">
         <div>
           <h1 className="worker-title">Hello, {user.firstName || "HR"}</h1>
@@ -202,7 +195,6 @@ export default function HRAttendancePage() {
         </div>
       </header>
 
-      {/* Late warning เหมือน Worker */}
       <div className="late-warning">
         <span>
           Late this month: <strong>{lateSummary.lateCount} / {lateSummary.lateLimit}</strong>
@@ -212,12 +204,11 @@ export default function HRAttendancePage() {
         )}
       </div>
 
-      {/* Action cards เหมือน Worker */}
       <section className="action-row">
         <div className="action-card">
           <h3>Check In</h3>
           <p className="action-time">{formatTime(checkedInAt)}</p>
-          <button className="primary-btn" onClick={handleCheckIn} disabled={!!checkedInAt}>
+          <button className="btn-checkin" onClick={handleCheckIn} disabled={!!checkedInAt}>
             {checkedInAt ? "Checked In" : "Check In Now"}
           </button>
         </div>
@@ -226,7 +217,7 @@ export default function HRAttendancePage() {
           <h3>Check Out</h3>
           <p className="action-time">{formatTime(checkedOutAt)}</p>
           <button
-            className="secondary-btn"
+            className="btn-checkout"
             onClick={handleCheckOut}
             disabled={!checkedInAt || !!checkedOutAt}
           >
@@ -237,13 +228,12 @@ export default function HRAttendancePage() {
         <div className="action-card">
           <h3>Leave</h3>
           <p className="action-time">Manage Leaves</p>
-          <button className="secondary-btn" onClick={() => setIsLeaveModalOpen(true)}>
+          <button className="btn-leave" onClick={() => setIsLeaveModalOpen(true)}>
             Request Leave
           </button>
         </div>
       </section>
 
-      {/* Leave Balance เหมือน Worker */}
       <section className="summary-row">
         {quotas.length > 0 ? (
           quotas.map((q) => (
@@ -259,7 +249,6 @@ export default function HRAttendancePage() {
         )}
       </section>
 
-      {/* History เหมือน Worker (คอลัมน์ Status) */}
       <section className="history-section">
         <h2>Your Personal Time History</h2>
         <div className="history-table-wrapper">
@@ -298,28 +287,22 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
-      {/* Leave Request Modal (เหมือน Worker) */}
       {isLeaveModalOpen && (
         <div className="modal-backdrop">
           <div className="modal">
             <h3>Request Leave</h3>
             <form onSubmit={handleSubmitLeave} className="leave-form">
               <label>Leave Type</label>
-              <select
-                  name="leaveTypeId"
-                  value={leaveForm.leaveTypeId}
-                  onChange={handleLeaveChange}
-                  required
-              >
-                  {quotas.length > 0 ? (
-                      quotas.map((q) => (
-                          <option key={q.leaveTypeId} value={q.leaveTypeId}>
-                              {q.leaveType?.typeName || "Unknown Type"} 
-                          </option>
-                      ))
-                  ) : (
-                      <option value="" disabled>No leave types available</option>
-                  )}
+              <select name="leaveTypeId" value={leaveForm.leaveTypeId} onChange={handleLeaveChange} required>
+                {quotas.length > 0 ? (
+                  quotas.map((q) => (
+                    <option key={q.leaveTypeId} value={q.leaveTypeId}>
+                      {q.leaveType?.typeName || "Unknown Type"}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>No leave types available</option>
+                )}
               </select>
 
               <div className="date-row">
@@ -335,20 +318,11 @@ export default function HRAttendancePage() {
 
               <label>
                 Detail
-                <textarea
-                  name="detail"
-                  rows="3"
-                  onChange={handleLeaveChange}
-                  placeholder="Reason."
-                />
+                <textarea name="detail" rows="3" onChange={handleLeaveChange} placeholder="Reason." />
               </label>
 
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="outline-btn"
-                  onClick={() => setIsLeaveModalOpen(false)}
-                >
+                <button type="button" className="outline-btn" onClick={() => setIsLeaveModalOpen(false)}>
                   Cancel
                 </button>
                 <button type="submit" className="primary-btn">

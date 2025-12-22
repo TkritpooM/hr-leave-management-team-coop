@@ -13,20 +13,19 @@
 }
 
 .sidebar-inner{
-  background: rgba(18, 22, 37, .78);
+  background: var(--card);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
   border-radius: 22px;
   padding: 14px 10px;
   height: 100%;
   display:flex;
   flex-direction:column;
   gap: 12px;
-  box-shadow: 0 14px 40px rgba(0,0,0,.35);
+  box-shadow: var(--shadow2);
 }
 
 .sidebar-topbox{
-  background: rgba(21, 26, 45, .85);
+  background: var(--card2);
   border: 1px solid var(--border);
   border-radius: 18px;
   padding: 12px 12px 14px;
@@ -43,7 +42,7 @@
 }
 
 .role-pill{
-  background: rgba(255,255,255,.06);
+  background: var(--tint);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 7px 10px;
@@ -63,7 +62,7 @@
   border: 1px solid transparent;
   border-radius: 999px;
   padding: 10px 14px;
-  background: rgba(255,255,255,.06);
+  background: var(--tint);
   color: var(--text);
   font-weight: 700;
   cursor: pointer;
@@ -71,14 +70,15 @@
 }
 
 .sidebar-item:hover{
-  background: rgba(255,255,255,.10);
+  background: var(--tint2);
   border-color: var(--border);
 }
 
 .sidebar-item.active{
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-  border-color: rgba(239, 68, 68, .55);
-  box-shadow: 0 12px 22px rgba(239,68,68,.20);
+  border-color: rgba(22,163,74,.40);
+  box-shadow: 0 12px 22px rgba(22,163,74,.16);
+  color: #fff;
 }
 
 .app-main{
@@ -92,9 +92,8 @@
   width:100%;
   max-width: 1250px;
   margin: 0 auto;
-  background: rgba(18, 22, 37, .78);
+  background: var(--card);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
   border-radius:22px;
   padding: 22px 24px 26px;
   box-shadow: var(--shadow);
@@ -113,11 +112,11 @@
 .btn.primary{
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
   color: #fff;
-  box-shadow: 0 12px 22px rgba(239,68,68,.22);
+  box-shadow: 0 12px 22px rgba(22,163,74,.16);
 }
 .btn.outline{
   background: transparent;
-  border: 1px solid rgba(239,68,68,.55);
+  border: 1px solid rgba(22,163,74,.45);
   color: var(--text);
 }
 .btn.small{ padding: 8px 12px; font-size: 13px; }

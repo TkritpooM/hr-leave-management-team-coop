@@ -1,132 +1,134 @@
-/* Auto-generated Glassmorphism Theme */
+/* =========================================================
+   Global UI Utilities (Corporate)
+   - Keeps existing class names used across pages/components
+   ========================================================= */
+
 :root{
-  --bg0:#07080d;
-  --bg1:#0b1020;
-  --bg2:#0a0d16;
-
-  --glass: rgba(255,255,255,.08);
-  --glass2: rgba(255,255,255,.06);
-  --border: rgba(255,255,255,.14);
-  --border2: rgba(255,255,255,.10);
-
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.66);
-
-  --accent: #ff2e2e;
-  --accent2:#b80f19;
-
-  --shadow: 0 18px 55px rgba(0,0,0,.55);
-  --shadow2: 0 12px 28px rgba(0,0,0,.35);
-
-  --r-lg: 24px;
-  --r-md: 16px;
-  --r-sm: 12px;
+  /* Backwards-compatible tokens used by existing CSS */
+  --glass: var(--card);
+  --glass2: var(--card2);
 }
 
-body{
-  background:
-    radial-gradient(1200px 700px at 15% 10%, rgba(255,46,46,.20), transparent 60%),
-    radial-gradient(900px 600px at 85% 70%, rgba(79,70,229,.18), transparent 55%),
-    radial-gradient(1000px 600px at 55% 15%, rgba(34,211,238,.10), transparent 60%),
-    linear-gradient(135deg, var(--bg1), var(--bg0) 60%, var(--bg2));
-}
-
-/* ===== Generic glass surfaces ===== */
-.glass{
-  background: var(--glass);
+/* ===== Generic surfaces ===== */
+.glass,
+.glass-soft,
+.page-card,
+.worker-card,
+.auth-card,
+.sidebar-inner,
+.calendar,
+.table-wrap,
+.history-table-wrapper,
+.wl-card,
+.wl-panel{
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.glass-soft{
-  background: var(--glass2);
-  border: 1px solid var(--border2);
   box-shadow: var(--shadow2);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  color: var(--text);
 }
 
-.glass-radius-lg{ border-radius: var(--r-lg); }
-.glass-radius-md{ border-radius: var(--r-md); }
-.glass-radius-sm{ border-radius: var(--r-sm); }
+.glass{ border-radius: var(--r-xl); }
+.glass-soft{
+  background: var(--card2);
+  border-radius: var(--r-lg);
+}
 
-/* ===== Buttons / inputs (global) ===== */
+.glass-radius-lg{ border-radius: var(--r-xl); }
+.glass-radius-md{ border-radius: var(--r-lg); }
+.glass-radius-sm{ border-radius: var(--r-md); }
+
+/* ===== Buttons (global) ===== */
 .btn, .primary-btn, .secondary-btn, .outline-btn, .primary, .link-btn{
   border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 10px 14px;
+  font-weight: 900;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+}
+
+.btn:active, .primary-btn:active, .secondary-btn:active, .outline-btn:active, .primary:active{
+  transform: translateY(1px);
+}
+
+.btn:disabled, .primary-btn:disabled, .secondary-btn:disabled, .outline-btn:disabled, .primary:disabled{
+  opacity: .55;
+  cursor: not-allowed;
 }
 
 .primary, .primary-btn, .btn.primary{
   background: linear-gradient(135deg, var(--accent), var(--accent2)) !important;
-  border-color: rgba(255,46,46,.35) !important;
-  box-shadow: 0 16px 32px rgba(255,46,46,.18) !important;
+  border-color: rgba(22,163,74,.35) !important;
+  box-shadow: 0 14px 28px rgba(22,163,74,.14) !important;
+  color: #fff !important;
 }
 
+.secondary-btn{
+  background: #fff;
+  border-color: var(--border2);
+  color: var(--text);
+}
+.secondary-btn:hover{ background: var(--tint); }
+
+.btn.outline, .outline-btn{
+  background: transparent;
+  border: 1px solid rgba(22,163,74,.45);
+  color: var(--text);
+}
+.btn.outline:hover, .outline-btn:hover{ background: rgba(22,163,74,.06); }
+
+/* Action button variants (requested) */
+.btn-checkin{
+  background: linear-gradient(135deg, var(--checkin), #12883d);
+  border-color: rgba(22,163,74,.35);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(22,163,74,.14);
+}
+.btn-checkout{
+  background: linear-gradient(135deg, var(--checkout), #b91c1c);
+  border-color: rgba(220,38,38,.35);
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(220,38,38,.12);
+}
+.btn-leave{
+  background: linear-gradient(135deg, var(--leave), #d97706);
+  border-color: rgba(245,158,11,.40);
+  color: #111827;
+  box-shadow: 0 14px 28px rgba(245,158,11,.12);
+}
+
+/* ===== Inputs ===== */
 .input, .wl-input, .wl-textarea, select, textarea, input{
-  border-color: rgba(255,255,255,.14);
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+
+.input::placeholder, .wl-input::placeholder, textarea::placeholder{
+  color: rgba(100,116,139,.85);
 }
 
 .input:focus, .wl-input:focus, .wl-textarea:focus, select:focus, textarea:focus, input:focus{
-  border-color: rgba(255,46,46,.60);
-  box-shadow: 0 0 0 3px rgba(255,46,46,.18);
+  border-color: rgba(22,163,74,.55);
+  box-shadow: 0 0 0 3px var(--focus);
 }
 
-/* ===== Common cards already used in project ===== */
-.page-card, .worker-card, .auth-card, .sidebar-inner, .calendar, .table-wrap, .history-table-wrapper, .wl-card, .wl-panel{
-  background: var(--glass2);
-  border: 1px solid var(--border2);
-  box-shadow: var(--shadow2);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-/* Stronger main container */
-.page-card, .worker-card, .auth-card{
-  background: var(--glass);
-  border-color: var(--border);
-  box-shadow: var(--shadow);
-}
-
-/* Tables */
+/* ===== Tables ===== */
 .table thead, .history-table thead, .wl-table thead{
-  background: rgba(255,255,255,.06) !important;
+  background: var(--tint) !important;
 }
 .table th, .table td, .history-table th, .history-table td, .wl-table th, .wl-table td{
-  border-bottom: 1px solid rgba(255,255,255,.08) !important;
+  border-bottom: 1px solid var(--border) !important;
 }
 
-/* Modal glass */
+/* ===== Modal ===== */
 .modal, .leave-modal{
-  background: rgba(20,20,28,.72) !important;
-  border: 1px solid rgba(255,255,255,.14) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow) !important;
+  border-radius: var(--r-xl) !important;
 }
-
-/* Sidebar item hover */
-.sidebar-item:hover{
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.12);
-}
-
-/* ===== Pagination ===== */
-.pager{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap: 12px;
-  padding: 12px 6px 0;
-  flex-wrap: wrap;
-}
-.pager-label{ color: var(--muted); font-size: 12px; font-weight: 800; }
-.pager-right{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
-.pager-select{
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(0,0,0,.24);
-  color: rgba(255,255,255,.92);
-  padding: 9px 12px;
-  outline: none;
-}
-.pager-page{ color: rgba(255,255,255,.82); font-weight: 900; font-size: 13px; }

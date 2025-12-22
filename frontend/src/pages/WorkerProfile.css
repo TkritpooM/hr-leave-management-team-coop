@@ -1,215 +1,242 @@
-/* Container หลัก */
-.profile-page-container {
-  padding: 1.5rem;
-  color: #fff;
-  max-width: 1400px;
+/* src/pages/WorkerProfile.css */
+/* Corporate re-design for light theme (fix low-contrast / blurry old dark CSS) */
+
+.profile-page-container{
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 18px 20px 28px;
+  color: var(--text);
 }
 
-.profile-page-header {
-  display: flex;
+.profile-page-header{
+  display:flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+  align-items:flex-start;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
-.profile-page-title {
+.profile-page-title{
   margin: 0;
   font-size: 28px;
-  font-weight: 800;
-}
-
-.refresh-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-/* Main Layout Grid */
-.profile-main-content {
-  display: grid;
-  grid-template-columns: 320px 1fr; /* คอลัมน์ซ้ายคงที่ ขวาขยายตามพื้นที่ */
-  gap: 1.5rem;
-  align-items: start;
-}
-
-/* คอลัมน์ซ้าย: Identity Card */
-.profile-identity-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 2.5rem 1.5rem;
-  backdrop-filter: blur(12px);
-  text-align: center;
-}
-
-.avatar-circle {
-  width: 130px;
-  height: 130px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  margin: 0 auto 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40px;
   font-weight: 900;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  letter-spacing: -.01em;
+  color: var(--text);
 }
 
-.avatar-circle img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.display-name {
-  font-size: 22px;
-  margin-bottom: 0.5rem;
-}
-
-.badge-role {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 1.5rem;
-}
-
-.status-pill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.status-pill.active .dot { background: #10b981; box-shadow: 0 0 10px #10b981; }
-
-/* คอลัมน์ขวา: Details Grid */
-.profile-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* แบ่งครึ่งแนวนอนสำหรับข้อมูล 2 ส่วน */
-  gap: 1.5rem;
-}
-
-.info-section {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 1.5rem;
-  height: 100%;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
+.profile-page-actions{
+  display:flex;
+  align-items:center;
   gap: 10px;
-  font-size: 18px;
-  margin-bottom: 1.5rem;
-  color: rgba(255, 255, 255, 0.9);
 }
 
-.info-field-list {
-  display: flex;
+/* Main layout */
+.profile-main-content{
+  display:grid;
+  grid-template-columns: 360px 1fr;
+  gap: 16px;
+  align-items:start;
+}
+
+/* Left identity card */
+.profile-identity-card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow2);
+  padding: 18px;
+  text-align:center;
+}
+
+.avatar-section{
+  display:flex;
   flex-direction: column;
-  gap: 1rem;
+  align-items:center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
 }
 
-.info-box {
-  background: rgba(255, 255, 255, 0.02);
-  padding: 1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.avatar-circle{
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 1000;
+  font-size: 40px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(22,163,74,.95), rgba(21,128,61,.95));
+  box-shadow: 0 16px 30px rgba(22,163,74,.18);
 }
 
-.info-box label {
-  display: block;
+.display-name{
+  margin: 6px 0 0;
+  font-size: 20px;
+  font-weight: 1000;
+  color: var(--text);
+}
+
+.badge-role{
+  margin-top: 2px;
+  display:inline-flex;
+  align-items:center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  font-weight: 900;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: .02em;
 }
 
-.info-box p {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
+.profile-identity-card .dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34,197,94,.12);
 }
 
-/* Highlight Box */
-.info-box.highlight.ok { border-left: 4px solid #10b981; }
-.info-box.highlight.danger { border-left: 4px solid #ef4444; }
+.profile-identity-card .info-box{
+  margin-top: 12px;
+  background: rgba(34,197,94,.10);
+  border: 1px solid rgba(34,197,94,.26);
+  color: #065f46;
+  border-radius: 999px;
+  padding: 10px 12px;
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  font-weight: 900;
+}
 
-.profile-page-actions {
-  display: flex;
+/* Right details grid */
+.profile-details-grid{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow2);
+  padding: 18px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.info-section{
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: var(--r-lg);
+  padding: 14px;
+}
+
+.section-header{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin: 0 0 10px 0;
+  font-weight: 1000;
+  font-size: 13px;
+  color: var(--text);
+  letter-spacing: .02em;
+}
+
+.info-field-list{
+  display:flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.edit-mode-btns {
-  display: flex;
-  gap: 8px;
+.info-box{
+  display:flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px dashed rgba(15,23,42,.10);
 }
 
-.edit-input {
-  width: 100%;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: white;
-  font-size: 15px;
-  margin-top: 5px;
-}
+.info-box:first-child{ border-top: none; padding-top: 0; }
 
-.edit-input:focus {
-  outline: none;
-  border-color: #6366f1;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.edit-hint {
+.info-box label{
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 10px;
+  font-weight: 900;
+  color: var(--muted2);
 }
 
-.edit-password-section {
-  border-left: 2px solid rgba(99, 102, 241, 0.3);
+.info-box span{
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text);
 }
 
-@media (max-width: 768px) {
-  .profile-page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+.edit-input{
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 0 12px;
+  color: var(--text);
+  font-weight: 800;
+  outline: none;
+}
+
+.edit-input:focus{
+  border-color: rgba(22,163,74,.50);
+  box-shadow: 0 0 0 3px rgba(22,163,74,.14);
+}
+
+.edit-hint{
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+/* Buttons (local fallback; global may already exist) */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+  cursor:pointer;
+  transition: transform .08s ease, box-shadow .12s ease, background .12s ease;
+}
+
+.btn:hover{ transform: translateY(-1px); }
+
+.btn.small{ height: 40px; padding: 0 14px; font-size: 13px; }
+.btn.outline{ background: rgba(22,163,74,.10); border-color: rgba(22,163,74,.35); }
+
+.btn.ok{
+  background: linear-gradient(135deg, var(--checkin), #12883d);
+  border-color: rgba(22,163,74,.35);
+  color: #fff;
+}
+
+.btn.danger{
+  background: linear-gradient(135deg, var(--checkout), #b91c1c);
+  border-color: rgba(220,38,38,.35);
+  color: #fff;
+}
+
+/* States */
+.p-loader{ color: var(--muted); font-weight: 900; }
+.p-error{ color: #b91c1c; font-weight: 900; }
+
+/* Responsive */
+@media (max-width: 980px){
+  .profile-main-content{
+    grid-template-columns: 1fr;
   }
-}
-
-/* Responsive Design */
-@media (max-width: 1100px) {
-  .profile-details-grid {
-    grid-template-columns: 1fr; /* หน้าจอขนาดกลาง ให้การ์ดข้อมูลซ้อนกัน */
-  }
-}
-
-@media (max-width: 850px) {
-  .profile-main-content {
-    grid-template-columns: 1fr; /* หน้าจอมือถือ ให้ทุกอย่างซ้อนกันแนวตั้ง */
-  }
-  .profile-identity-card {
-    padding: 1.5rem;
+  .profile-details-grid{
+    grid-template-columns: 1fr;
   }
 }
