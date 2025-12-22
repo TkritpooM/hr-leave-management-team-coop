@@ -248,3 +248,45 @@
   .action-row{ flex-direction: column; }
   .summary-row{ flex-direction: column; }
 }
+
+/* ===== Quota cards: make it less cramped (HR) ===== */
+
+.summary-row{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1180px){
+  .summary-row{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px){
+  .summary-row{ grid-template-columns: 1fr; }
+}
+
+.summary-card{
+  padding: 14px 16px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 96px;
+}
+
+.summary-card h4{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(15,23,42,.60);
+}
+
+.summary-card p{
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: rgba(15,23,42,.92);
+  word-break: keep-all;
+}

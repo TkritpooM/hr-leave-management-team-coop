@@ -1,6 +1,5 @@
 /* =========================================================
    AppSidebar (Corporate Green / Light)
-   - Keeps the same class names used by AppSidebar.jsx
    - Default collapsed; expands on hover (desktop)
    - Mobile drawer behavior preserved
    ========================================================= */
@@ -15,8 +14,6 @@
   position: sticky;
   top: 0;
   height: 100vh;
-
-  /* default: collapsed */
   width: var(--sb-collapsed);
 
   display: flex;
@@ -155,7 +152,6 @@
   padding: 10px 12px;
   cursor: pointer;
 
-  /* hidden when collapsed */
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px);
@@ -227,6 +223,13 @@
   color: rgba(15,23,42,.86);
 }
 
+/* normalize icons */
+.sb-item-ico svg{
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
 .sb-item-badge{
   position: absolute;
   top: -6px;
@@ -258,7 +261,7 @@
   transform: translateX(0);
 }
 
-/* Active */
+/* Active (expanded) */
 .sb-item.active{
   color: #ffffff;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -306,20 +309,25 @@
 }
 
 /* =========================================================
-   Collapsed state tweaks (avoid squeezed look)
+   ✅ FIX: Collapsed state (no "pill within pill", uniform icons)
    ========================================================= */
 .sb:not(:hover) .sb-top{ padding: 12px 8px 10px; }
+
 .sb:not(:hover) .sb-profile{
   grid-template-columns: 1fr;
   justify-items: center;
   padding: 12px 10px;
 }
+
 .sb:not(:hover) .sb-bell{ display: none; }
+
 .sb:not(:hover) .sb-avatar{
   width: 52px;
   height: 52px;
   border-radius: 20px;
 }
+
+/* hide text blocks */
 .sb:not(:hover) .sb-name,
 .sb:not(:hover) .sb-role,
 .sb:not(:hover) .sb-section-label,
@@ -328,11 +336,64 @@
 .sb:not(:hover) .sb-continue{
   display: none !important;
 }
-.sb:not(:hover) .sb-nav{ padding: 8px 8px 10px; overflow: hidden; }
-.sb:not(:hover) .sb-item{ justify-content: center; padding: 10px 8px; margin: 8px 6px; }
-.sb:not(:hover) .sb-item-ico{ width: 48px; height: 48px; border-radius: 18px; }
+
+/* ✅ Nav layout collapsed: center icons, remove extra padding/margins */
+.sb:not(:hover) .sb-nav{
+  padding: 10px 8px 12px;
+  overflow: hidden;
+  align-items: center;
+  gap: 14px;
+}
+
+.sb:not(:hover) .sb-item{
+  /* make link "invisible", icon becomes the only pill */
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100%;
+  justify-content: center;
+}
+
+.sb:not(:hover) .sb-item:hover{
+  transform: none;
+}
+
+/* icon pill slightly larger + nicer */
+.sb:not(:hover) .sb-item-ico{
+  width: 54px;
+  height: 54px;
+  border-radius: 20px;
+  background: rgba(15,23,42,.03);
+  border-color: rgba(15,23,42,.10);
+  box-shadow: 0 12px 26px rgba(2,6,23,.08);
+}
+
+/* ✅ Active in collapsed: highlight icon pill only */
+.sb:not(:hover) .sb-item.active{
+  color: inherit;
+}
+
+.sb:not(:hover) .sb-item.active .sb-item-ico{
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-color: rgba(22,163,74,.28);
+  box-shadow: 0 16px 34px rgba(22,163,74,.18);
+  color: #fff;
+}
+
+.sb:not(:hover) .sb-item.active .sb-item-ico svg{
+  color: #fff;
+}
+
+/* bottom area collapsed */
 .sb:not(:hover) .sb-bottom{ padding: 12px 10px 14px; }
-.sb:not(:hover) .sb-logout{ justify-content: center; padding: 12px 10px; }
+
+.sb:not(:hover) .sb-logout{
+  justify-content: center;
+  padding: 12px 10px;
+}
 
 /* ===== Mobile toggle + overlay ===== */
 .sb-mobile-toggle{
@@ -382,6 +443,7 @@
     overflow: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    align-items: stretch;
   }
   .sb-nav::-webkit-scrollbar{ width: 0; height: 0; }
 
@@ -399,4 +461,52 @@
   }
 
   .sb-bell{ display: grid !important; }
+
+  /* disable collapsed overrides on mobile */
+  .sb:not(:hover) .sb-item{
+    background: rgba(255,255,255,.75) !important;
+    border-color: transparent !important;
+    padding: 12px 10px !important;
+    margin: 6px 6px !important;
+    justify-content: flex-start !important;
+  }
+  .sb:not(:hover) .sb-item-ico{
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 16px !important;
+    background: var(--tint) !important;
+    border-color: var(--border) !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ===== FIX: top card overflow in collapsed (logo/profile card too big) ===== */
+.sb:not(:hover) .sb-top{
+  padding: 12px 10px 10px; /* ลด padding ให้พอดี */
+}
+
+.sb:not(:hover) .sb-profile{
+  /* เอาการ์ดพื้นหลังออก -> เหลือแค่ avatar */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  /* จัดให้อยู่กลาง และไม่กินพื้นที่เกิน */
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0 !important;
+}
+
+.sb:not(:hover) .sb-avatar{
+  width: 56px;
+  height: 56px;
+  border-radius: 20px; /* กลมสวย ไม่เหลี่ยมเกิน */
+}
+
+/* กันไม่ให้มีอะไรดันพื้นที่ */
+.sb:not(:hover) .sb-profile-info,
+.sb:not(:hover) .sb-bell{
+  display: none !important;
 }

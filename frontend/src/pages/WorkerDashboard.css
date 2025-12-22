@@ -254,3 +254,54 @@
 }
 
 .leave-form .full{ grid-column: 1 / -1; }
+
+/* ===== Quota cards: make it less cramped ===== */
+
+/* ให้ grid ยืดหยุ่นขึ้น */
+.summary-row{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1180px){
+  .summary-row{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px){
+  .summary-row{ grid-template-columns: 1fr; }
+}
+
+/* ตัวการ์ด */
+.summary-card{
+  padding: 14px 16px;              /* ลดความอึดอัด */
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;                        /* เพิ่ม breathing space */
+  min-height: 96px;                 /* ความสูงการ์ดให้เท่ากัน */
+}
+
+/* หัวข้อ: เบา/เล็กลง */
+.summary-card h4{
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;                 /* ลดจาก 900/950 */
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: rgba(15,23,42,.60);
+}
+
+/* ค่าหลัก: ยังเด่นแต่ไม่หนามาก */
+.summary-card p{
+  margin: 0;
+  font-size: 22px;                  /* ลดจาก 26+ */
+  line-height: 1.15;
+  font-weight: 800;                 /* ลดความหนา */
+  color: rgba(15,23,42,.92);
+}
+
+/* ถ้าข้อความยาว ให้ไม่แตกบรรทัดแบบแปลก */
+.summary-card p{
+  word-break: keep-all;
+}
+

@@ -72,8 +72,8 @@ export default function AppSidebar() {
 
   const user = useMemo(() => safeJSON(localStorage.getItem("user") || "{}", {}), []);
   const role = user.role === "HR" ? "HR" : "Worker";
-  
-  // ✅ แก้ไขที่ 1: กำหนด Key ของ Notifications ตาม Role ของ User ที่ Login อยู่
+
+  // ✅ Key ของ Notifications ตาม Role
   const notificationKey = role === "HR" ? "hr_unread_notifications" : "worker_unread_notifications";
 
   const fullName = `${user.firstName || user.first_name || "User"} ${user.lastName || user.last_name || ""}`.trim();
@@ -86,20 +86,18 @@ export default function AppSidebar() {
     if (mobileOpen) setMobileOpen(false);
   }, [location.pathname]);
 
-  // ✅ แก้ไขที่ 2: ปรับ useState ให้ดึงค่าเริ่มต้นตาม Role
   const [unread, setUnread] = useState(() => {
     const n = Number(localStorage.getItem(notificationKey) || "0");
     return Number.isFinite(n) ? n : 0;
   });
 
-  // ✅ แก้ไขที่ 3: ปรับ useEffect ให้ดักฟัง Key ที่ถูกต้องตาม Role
   useEffect(() => {
     const onStorage = () => {
       const n = Number(localStorage.getItem(notificationKey) || "0");
       setUnread(Number.isFinite(n) ? n : 0);
     };
     window.addEventListener("storage", onStorage);
-    const t = setInterval(onStorage, 1000); // Polling ทุก 1 วินาทีเพื่อให้เลข Update ทันที
+    const t = setInterval(onStorage, 1000);
     return () => {
       window.removeEventListener("storage", onStorage);
       clearInterval(t);
@@ -144,11 +142,10 @@ export default function AppSidebar() {
               <div className="sb-role">{role}</div>
             </div>
 
-            {/* ✅ กระดิ่งด้านบนจะแสดงเลขตาม Role แล้ว */}
-            <button 
-              className="sb-bell" 
-              type="button" 
-              title="Notifications" 
+            <button
+              className="sb-bell"
+              type="button"
+              title="Notifications"
               onClick={() => navigate(`/${role.toLowerCase()}/notifications`)}
             >
               <FiBell />
@@ -169,8 +166,6 @@ export default function AppSidebar() {
               <div className="sb-section-label">{sec.section}</div>
 
               {sec.items.map((item) => {
-                // ✅ แก้ไขที่ 4: ปรับให้แสดง Badge ได้ทั้ง Worker และ HR 
-                // ถ้าเมนูไหนมี badgeKey ตรงกับสถานะปัจจุบัน ให้เอาค่า unread มาโชว์
                 const showBadge = item.badgeKey === notificationKey;
                 const badgeCount = showBadge ? unread : 0;
 
