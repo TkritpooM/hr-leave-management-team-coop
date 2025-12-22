@@ -315,6 +315,154 @@
   color: #334155;
 }
 
+/* ===== การตกแต่ง Status Chips (Filter Buttons) ===== */
+
+.wl-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding: 4px 0;
+}
+
+.wl-chip-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--muted);
+  font-weight: 1000;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.wl-chip-mini span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  min-width: 20px;
+}
+
+/* Hover Effect */
+.wl-chip-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow2);
+  border-color: #cbd5e1;
+  color: var(--text);
+}
+
+/* Active & Specific Status Styles */
+
+/* 1. All (Default/Blue) */
+.wl-chip-mini.active {
+  background: #1e293b;
+  color: #fff;
+  border-color: #1e293b;
+}
+.wl-chip-mini.active span {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* 2. Pending (Orange) */
+.wl-chip-mini:nth-child(2).active {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+.wl-chip-mini:nth-child(2).active span {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+/* 3. Approved (Green) */
+.wl-chip-mini:nth-child(3).active {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #86efac;
+}
+.wl-chip-mini:nth-child(3).active span {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* 4. Rejected (Red) */
+.wl-chip-mini:nth-child(4).active {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+.wl-chip-mini:nth-child(4).active span {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* 5. Cancelled (Gray) */
+.wl-chip-mini:nth-child(5).active {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+.wl-chip-mini:nth-child(5).active span {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+/* ===== การตกแต่งปุ่ม Cancel ในตาราง Action ===== */
+
+.wl-btn-cancel {
+  /* พื้นฐาน: ทรงแคปซูลเพื่อให้เข้ากับดีไซน์ส่วนอื่น */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  color: #dc2626; /* สีแดงเข้ม (Destructive) */
+  border: 1.5px solid #fecaca;
+  padding: 6px 16px;
+  border-radius: 999px;
+  
+  /* ตัวอักษร */
+  font-size: 12px;
+  font-weight: 1000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  /* การตอบสนอง */
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* เอฟเฟกต์เมื่อเอาเมาส์ไปวาง (Hover) */
+.wl-btn-cancel:hover {
+  background-color: #fef2f2; /* พื้นหลังแดงอ่อนมาก */
+  border-color: #dc2626; /* ขอบเข้มขึ้น */
+  color: #b91c1c;
+  box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.1), 0 2px 4px -1px rgba(220, 38, 38, 0.06);
+  transform: translateY(-1px);
+}
+
+/* เอฟเฟกต์เมื่อกด (Active) */
+.wl-btn-cancel:active {
+  background-color: #fee2e2;
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* จัดปุ่มให้อยู่กึ่งกลางคอลัมน์ */
+.wl-table td:last-child {
+  text-align: center;
+  vertical-align: middle;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 980px){
   .wl-controls{ align-items: stretch; }

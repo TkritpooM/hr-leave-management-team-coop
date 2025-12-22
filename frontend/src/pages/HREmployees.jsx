@@ -147,11 +147,12 @@ export default function Employees() {
           <p className="emp-sub">จัดการข้อมูลพนักงานและโควต้าการลา</p>
         </div>
         <div className="emp-tools">
-          <input className="emp-input" value={q} onChange={e => setQ(e.target.value)} placeholder="ค้นหาพนักงาน..." />
+          <input className="emp-input" value={q} onChange={e => setQ(e.target.value)} placeholder="Search by name, email, or role..." />
           <button className="emp-btn emp-btn-outline" onClick={handleSyncQuotas} title="Sync Default Quotas"><FiRefreshCw className={loading ? "spin" : ""} /> Sync Default</button>
           <button className="emp-btn emp-btn-primary" onClick={openAddModal}><FiUserPlus /> Add New</button>
-          <button className="emp-btn emp-btn-outline" onClick={fetchEmployees} disabled={loading}>
+          <button className="emp-btn emp-btn-outline" onClick={fetchEmployees} disabled={loading} title="Refresh List">
             <FiRefreshCw className={loading ? "spin" : ""} />
+            <span className="hidden-mobile">Refresh</span>
           </button>
         </div>
       </div>
