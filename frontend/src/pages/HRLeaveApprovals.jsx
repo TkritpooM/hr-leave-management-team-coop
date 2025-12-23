@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Pagination from "../components/Pagination";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 export default function HRLeaveApprovals() {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -55,7 +56,7 @@ export default function HRLeaveApprovals() {
     if (idArray.length === 0) return;
 
     const confirmMsg = actionType === "approve" ? "Approve" : "Reject";
-    if (!window.confirm(`Confirm to ${confirmMsg} ${idArray.length} item(s)?`)) return;
+    if (!(await alertConfirm("ยืนยันการทำรายการ", `Confirm to ${confirmMsg} ${idArray.length} item(s)?`, "ยืนยัน"))) return;
 
     try {
       await Promise.all(
@@ -68,12 +69,12 @@ export default function HRLeaveApprovals() {
         )
       );
 
-      alert(`Successfully ${actionType}d!`);
+      await alertSuccess("สำเร็จ", `Successfully ${actionType}d!`);
       setSelected(new Set());
       fetchPendingRequests();
     } catch (err) {
       console.error(err);
-      alert(`Error: ${err.response?.data?.message || err.message}`);
+      await alertError("เกิดข้อผิดพลาด", (err.response?.data?.message || err.message));
     }
   };
 

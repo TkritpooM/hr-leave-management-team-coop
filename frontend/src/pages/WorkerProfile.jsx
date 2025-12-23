@@ -6,6 +6,7 @@ import {
   FiBriefcase, FiRefreshCw, FiEdit2, FiCheck, FiX, FiLock
 } from "react-icons/fi";
 import "./WorkerProfile.css";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 export default function WorkerProfile() {
   const [profile, setProfile] = useState(() => {
@@ -61,7 +62,7 @@ export default function WorkerProfile() {
         });
         
         if (res.data.success) {
-        alert("อัปเดตข้อมูลสำเร็จ");
+        await alertSuccess("สำเร็จ", "อัปเดตข้อมูลสำเร็จ");
         setIsEditing(false); // ปิดโหมดแก้ไข
         
         // --- เรียกฟังก์ชันดึงข้อมูลใหม่ เพื่ออัปเดต UI โดยไม่ต้องรีโหลดหน้า ---
@@ -69,7 +70,7 @@ export default function WorkerProfile() {
         // --------------------------------------------------------
         }
     } catch (err) {
-        alert(err.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดต");
+        await alertError("เกิดข้อผิดพลาด", (err.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดต"));
     }
   };
 

@@ -110,3 +110,36 @@ button, input, select, textarea{ font-family: inherit; }
   background-clip: content-box;
 }
 *::-webkit-scrollbar-track{ background: transparent; }
+
+
+/* ===== SweetAlert2 Corporate Theme ===== */
+.swal2-corp {
+  border-radius: 18px !important;
+  padding: 18px !important;
+}
+
+.swal2-title-corp {
+  font-weight: 800 !important;
+  letter-spacing: 0.3px !important;
+}
+
+.swal2-html-corp {
+  color: #374151 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+}
+
+.swal2-confirm-corp,
+.swal2-cancel-corp {
+  border-radius: 999px !important;
+  padding: 10px 16px !important;
+  min-width: 120px;
+  margin: 0 6px !important;
+  font-weight: 800 !important;
+}
+
+.swal2-confirm-corp:focus,
+.swal2-cancel-corp:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+}
+

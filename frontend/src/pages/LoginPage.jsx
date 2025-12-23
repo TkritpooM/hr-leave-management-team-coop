@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import axios from 'axios';
 import "./LoginPage.css";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
@@ -55,7 +56,7 @@ export default function LoginPage() {
         await syncNotifications(data.token, data.user.role);
 
         // Alert บอกผู้ใช้
-        alert("Login สำเร็จ! ✅ ยินดีต้อนรับ " + (data.user?.firstName || "User"));
+        await alertSuccess("เข้าสู่ระบบสำเร็จ", `ยินดีต้อนรับ ${(data.user?.firstName || "User")}`);
 
         // 3. --- 🔥 จุดที่แก้ไข: ย้ายหน้าตามที่ Backend บอก ---
         // ใช้ data.redirectUrl ที่ backend ส่งมา (ถ้าไม่มีให้กันเหนียวไป worker)
@@ -67,7 +68,7 @@ export default function LoginPage() {
       
       // ดึงข้อความ Error ที่ Backend ส่งมา
       const errorMessage = err.response?.data?.message || "เชื่อมต่อ Server ไม่ได้ หรือรหัสผ่านผิด";
-      alert("❌ " + errorMessage);
+      await alertError("เข้าสู่ระบบไม่สำเร็จ", errorMessage);
 
     } finally {
       setSubmitting(false);

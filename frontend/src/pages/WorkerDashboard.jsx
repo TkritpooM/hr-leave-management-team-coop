@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./WorkerDashboard.css";
 import Pagination from "../components/Pagination";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -139,21 +140,21 @@ export default function WorkerDashboard() {
   const handleCheckIn = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
-      alert("✅ Check In สำเร็จ!");
+      await alertSuccess("สำเร็จ", "Check In สำเร็จ");
       fetchAttendanceData();
       fetchLateSummary();
     } catch (err) {
-      alert("❌ " + (err.response?.data?.message || "Check In ล้มเหลว"));
+      await alertError("Check In ล้มเหลว", (err.response?.data?.message || "ไม่สามารถ Check In ได้"));
     }
   };
 
   const handleCheckOut = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkout", {}, getAuthHeader());
-      alert("✅ Check Out สำเร็จ!");
+      await alertSuccess("สำเร็จ", "Check Out สำเร็จ");
       fetchAttendanceData();
     } catch (err) {
-      alert("❌ " + (err.response?.data?.message || "Check Out ล้มเหลว"));
+      await alertError("Check Out ล้มเหลว", (err.response?.data?.message || "ไม่สามารถ Check Out ได้"));
     }
   };
 
@@ -198,7 +199,7 @@ export default function WorkerDashboard() {
       });
 
       if (res.data.success) {
-        alert("✅ ส่งคำขอลาสำเร็จ!");
+        await alertSuccess("สำเร็จ", "ส่งคำขอลาสำเร็จ");
         setIsLeaveModalOpen(false);
         setSelectedFile(null); // 🔥 ล้างไฟล์หลังส่งสำเร็จ
 
@@ -211,11 +212,11 @@ export default function WorkerDashboard() {
 
         fetchQuotaData();
       } else {
-        alert("⚠️ ไม่สำเร็จ: " + res.data.message);
+        await alertInfo("ไม่สำเร็จ", res.data.message);
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ";
-      alert("❌ " + errorMsg);
+      await alertError("เกิดข้อผิดพลาด", errorMsg);
       console.error("Submit Leave Error:", err);
     }
   };

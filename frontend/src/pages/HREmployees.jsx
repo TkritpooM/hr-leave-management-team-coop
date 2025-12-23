@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus } from "react-icons/fi";
 import "./HREmployees.css";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
 const authHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
@@ -100,21 +101,21 @@ export default function Employees() {
       }
       setEmpModalOpen(false);
       fetchEmployees();
-      alert(`✅ ${isEditMode ? "อัปเดต" : "เพิ่ม"} พนักงานเรียบร้อยแล้ว`);
+      await alertSuccess("สำเร็จ", `${isEditMode ? "อัปเดต" : "เพิ่ม"} พนักงานเรียบร้อยแล้ว`);
     } catch (err) {
-      alert("❌ เกิดข้อผิดพลาด: " + (err.response?.data?.message || err.message));
+      await alertError("เกิดข้อผิดพลาด", (err.response?.data?.message || err.message));
     }
   };
 
   const handleSyncQuotas = async () => {
-    if (!window.confirm("ต้องการอัปเดตโควต้าวันลาของพนักงานทุกคนตามค่าเริ่มต้นใช่หรือไม่?")) return;
+    if (!(await alertConfirm("ยืนยันการทำรายการ", "ต้องการอัปเดตโควต้าวันลาของพนักงานทุกคนตามค่าเริ่มต้นใช่หรือไม่?", "ยืนยัน"))) return;
 
     try {
       setLoading(true);
       await api.post("/api/admin/hr/sync-quotas", {}, authHeader());
-      alert("✅ Sync โควต้ามาตรฐานให้พนักงานทุกคนสำเร็จ");
+      await alertSuccess("สำเร็จ", "Sync โควต้ามาตรฐานให้พนักงานทุกคนสำเร็จ");
     } catch (err) {
-      alert("❌ เกิดข้อผิดพลาดในการ Sync");
+      await alertError("เกิดข้อผิดพลาด", "เกิดข้อผิดพลาดในการ Sync");
     } finally {
       setLoading(false);
     }
@@ -150,9 +151,9 @@ export default function Employees() {
         authHeader()
       );
       setQuotaOpen(false);
-      alert("✅ อัปเดตโควต้าวันลาสำเร็จ");
+      await alertSuccess("สำเร็จ", "อัปเดตโควต้าวันลาสำเร็จ");
     } catch (err) {
-      alert("❌ ไม่สามารถอัปเดตได้");
+      await alertError("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตได้");
     }
   };
 

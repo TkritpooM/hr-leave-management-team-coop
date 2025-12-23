@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import "./WorkerNotifications.css";
 import Pagination from "../components/Pagination";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
 const getAuthHeader = () => ({
@@ -94,36 +95,36 @@ export default function HRNotifications() {
     try {
       await api.put("/api/notifications/mark-all-read", {}, getAuthHeader());
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      alert("อ่านการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว");
+      await alertSuccess("สำเร็จ", "อ่านการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว");
     } catch (err) {
       console.error("Mark all read failed:", err);
     }
   };
 
   const deleteNoti = async (id) => {
-    if (!window.confirm("คุณต้องการลบการแจ้งเตือนนี้ใช่หรือไม่?")) return;
+    if (!(await alertConfirm("ยืนยันการลบ", "คุณต้องการลบการแจ้งเตือนนี้ใช่หรือไม่?", "ลบ"))) return;
     try {
       await api.delete(`/api/notifications/${id}`, getAuthHeader());
       setNotifications((prev) => prev.filter((n) => n.notificationId !== id));
       if (pagedNotifications.length === 1 && page > 1) setPage(page - 1);
     } catch (err) {
       console.error("Delete failed:", err);
-      alert("ไม่สามารถลบการแจ้งเตือนได้");
+      await alertError("ไม่สามารถลบได้", "ไม่สามารถลบการแจ้งเตือนได้");
     }
   };
 
   const handleClearAll = async () => {
-    if (!window.confirm("คุณต้องการลบการแจ้งเตือนทั้งหมดใช่หรือไม่?")) return;
+    if (!(await alertConfirm("ยืนยันการลบทั้งหมด", "คุณต้องการลบการแจ้งเตือนทั้งหมดใช่หรือไม่?", "ลบทั้งหมด"))) return;
     try {
       const res = await api.delete("/api/notifications/clear-all", getAuthHeader());
       if (res.data.success) {
         setNotifications([]);
         setPage(1);
-        alert("ล้างการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว");
+        await alertSuccess("สำเร็จ", "ล้างการแจ้งเตือนทั้งหมดเรียบร้อยแล้ว");
       }
     } catch (err) {
       console.error("Clear all failed:", err);
-      alert("เกิดข้อผิดพลาดในการล้างข้อมูล");
+      await alertError("เกิดข้อผิดพลาด", "เกิดข้อผิดพลาดในการล้างข้อมูล");
     }
   };
 

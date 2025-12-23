@@ -4,6 +4,7 @@ import axios from "axios";
 import moment from "moment";
 import "./WorkerLeave.css";
 import Pagination from "../components/Pagination";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 const normStatus = (s) => String(s || "").trim().toLowerCase();
 
@@ -48,7 +49,7 @@ export default function WorkerLeave() {
 
   // 🔥 ฟังก์ชันยกเลิกใบลา
   const handleCancelLeave = async (requestId) => {
-    if (!window.confirm("คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?")) return;
+    if (!(await alertConfirm("ยืนยันการยกเลิก", "คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?", "ยืนยัน"))) return;
     try {
       const res = await axios.patch(
         `http://localhost:8000/api/leave/${requestId}/cancel`,
@@ -56,14 +57,14 @@ export default function WorkerLeave() {
         getAuthHeader()
       );
       if (res.data.success) {
-        alert("✅ ยกเลิกคำขอลาเรียบร้อยแล้ว");
+        await alertSuccess("สำเร็จ", "ยกเลิกคำขอลาเรียบร้อยแล้ว");
         fetchData(); 
       } else {
-        alert("❌ ไม่สามารถยกเลิกได้: " + res.data.message);
+        await alertError("ไม่สามารถยกเลิกได้", res.data.message);
       }
     } catch (err) {
       console.error("Cancel Leave Error:", err);
-      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+      await alertError("เกิดข้อผิดพลาด", "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
   };
 

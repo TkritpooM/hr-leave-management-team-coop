@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiPlus, FiEdit2, FiTrash2, FiSave } from "react-icons/fi";
 import "./HRLeaveTypeSettings.css";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
 const authHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
@@ -65,19 +66,19 @@ export default function LeaveSettings() {
 
       setModalOpen(false);
       fetchTypes();
-      alert("✅ บันทึกประเภทการลาเรียบร้อยแล้ว");
+      await alertSuccess("สำเร็จ", "บันทึกประเภทการลาเรียบร้อยแล้ว");
     } catch (err) {
-      alert("❌ เกิดข้อผิดพลาด");
+      await alertError("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกได้");
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("คุณต้องการลบประเภทการลานี้ใช่หรือไม่? (อาจกระทบข้อมูลโควต้าเดิม)")) return;
+    if (!(await alertConfirm("ยืนยันการลบ", "คุณต้องการลบประเภทการลานี้ใช่หรือไม่? (อาจกระทบข้อมูลโควต้าเดิม)", "ลบ"))) return;
     try {
       await api.delete(`/api/admin/leavetype/${id}`, authHeader());
       fetchTypes();
     } catch (err) {
-      alert("❌ ไม่สามารถลบได้");
+      await alertError("ไม่สามารถลบได้", "โปรดลองใหม่อีกครั้ง");
     }
   };
 

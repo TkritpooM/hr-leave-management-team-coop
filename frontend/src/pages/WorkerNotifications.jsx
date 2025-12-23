@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 import "./WorkerNotifications.css";
 import Pagination from "../components/Pagination";
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
 const getAuthHeader = () => ({
@@ -96,7 +97,7 @@ export default function WorkerNotifications() {
   };
 
   const deleteNoti = async (id) => {
-    if (!window.confirm("คุณต้องการลบการแจ้งเตือนนี้ใช่หรือไม่?")) return;
+    if (!(await alertConfirm("ยืนยันการลบ", "คุณต้องการลบการแจ้งเตือนนี้ใช่หรือไม่?", "ลบ"))) return;
     try {
       await api.delete(`/api/notifications/${id}`, getAuthHeader());
       setNotifications((prev) => prev.filter((n) => n.notificationId !== id));
@@ -107,7 +108,7 @@ export default function WorkerNotifications() {
   };
 
   const handleClearAll = async () => {
-    if (!window.confirm("คุณต้องการลบการแจ้งเตือนทั้งหมดใช่หรือไม่?")) return;
+    if (!(await alertConfirm("ยืนยันการลบทั้งหมด", "คุณต้องการลบการแจ้งเตือนทั้งหมดใช่หรือไม่?", "ลบทั้งหมด"))) return;
     try {
       const res = await api.delete("/api/notifications/clear-all", getAuthHeader());
       if (res.data.success) {

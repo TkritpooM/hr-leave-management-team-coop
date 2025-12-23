@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./HRAttendancePage.css";
 import moment from "moment"; // 🔥 มั่นใจว่าได้ลง moment ไว้แล้ว (เหมือนหน้า worker)
+import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -153,27 +154,27 @@ export default function HRAttendancePage() {
   const handleCheckIn = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
-      alert("✅ Check In สำเร็จ!");
+      await alertSuccess("สำเร็จ", "Check In สำเร็จ");
       fetchAttendanceData();
       fetchLateSummary();
     } catch (err) {
-      alert("❌ " + (err.response?.data?.message || "Check In ล้มเหลว"));
+      await alertError("Check In ล้มเหลว", (err.response?.data?.message || "ไม่สามารถ Check In ได้"));
     }
   };
 
   const handleCheckOut = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkout", {}, getAuthHeader());
-      alert("✅ Check Out สำเร็จ!");
+      await alertSuccess("สำเร็จ", "Check Out สำเร็จ");
       fetchAttendanceData();
     } catch (err) {
-      alert("❌ " + (err.response?.data?.message || "Check Out ล้มเหลว"));
+      await alertError("Check Out ล้มเหลว", (err.response?.data?.message || "ไม่สามารถ Check Out ได้"));
     }
   };
 
   // 🔥 ฟังก์ชันยกเลิกใบลาของตัวเอง
   const handleCancelLeave = async (requestId) => {
-    if (!window.confirm("คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?")) return;
+    if (!(await alertConfirm("ยืนยันการยกเลิก", "คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?", "ยืนยัน"))) return;
     try {
       const res = await axios.patch(
         `http://localhost:8000/api/leave/${requestId}/cancel`,
@@ -181,15 +182,15 @@ export default function HRAttendancePage() {
         getAuthHeader()
       );
       if (res.data.success) {
-        alert("✅ ยกเลิกคำขอลาเรียบร้อยแล้ว");
+        await alertSuccess("สำเร็จ", "ยกเลิกคำขอลาเรียบร้อยแล้ว");
         fetchLeaveHistory();
         fetchQuotaData();
       } else {
-        alert("❌ ไม่สามารถยกเลิกได้: " + res.data.message);
+        await alertError("ไม่สามารถยกเลิกได้", res.data.message);
       }
     } catch (err) {
       console.error("Cancel Leave Error:", err);
-      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+      await alertError("เกิดข้อผิดพลาด", "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
   };
 
@@ -232,7 +233,7 @@ export default function HRAttendancePage() {
       });
 
       if (response.data.success) {
-        alert("✅ ส่งคำขอลาสำเร็จ!");
+        await alertSuccess("สำเร็จ", "ส่งคำขอลาสำเร็จ");
         setIsLeaveModalOpen(false);
         setSelectedFile(null);
         fetchQuotaData();
@@ -244,11 +245,11 @@ export default function HRAttendancePage() {
           detail: "",
         });
       } else {
-        alert("⚠️ " + (response.data.message || "ไม่สามารถส่งคำขอลาได้"));
+        await alertInfo("ไม่สามารถส่งคำขอลาได้", (response.data.message || "โปรดลองใหม่อีกครั้ง"));
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์";
-      alert("❌ " + errorMsg);
+      await alertError("เกิดข้อผิดพลาด", errorMsg);
     }
   };
 
