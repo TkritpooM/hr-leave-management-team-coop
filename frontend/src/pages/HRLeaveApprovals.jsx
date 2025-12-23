@@ -7,9 +7,12 @@ export default function HRLeaveApprovals() {
   const [selected, setSelected] = useState(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
-  // ✅ Pagination (เพิ่มเฉพาะส่วนนี้)
+  // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // 🔥 URL สำหรับดึงไฟล์จาก Backend
+  const UPLOAD_URL = "http://localhost:8000/uploads/";
 
   // Helper Header
   const getAuthHeader = () => {
@@ -17,7 +20,7 @@ export default function HRLeaveApprovals() {
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // 1. ดึงข้อมูล (แก้ URL ให้มี /admin/pending)
+  // 1. ดึงข้อมูล
   const fetchPendingRequests = async () => {
     try {
       setIsLoading(true);
@@ -34,7 +37,6 @@ export default function HRLeaveApprovals() {
     fetchPendingRequests();
   }, []);
 
-  // ✅ เมื่อข้อมูลเปลี่ยน (fetch ใหม่) reset หน้า
   useEffect(() => {
     setPage(1);
   }, [leaveRequests.length]);
@@ -80,7 +82,35 @@ export default function HRLeaveApprovals() {
     return new Date(dateString).toLocaleDateString("en-GB");
   };
 
-  // ✅ Pagination apply (เพิ่มเฉพาะส่วนนี้)
+  // 🔥 ฟังก์ชันแสดงปุ่มดูไฟล์แนบ
+  const renderAttachment = (fileName) => {
+    if (!fileName) return <span style={{ color: "#9ca3af" }}>No file</span>;
+
+    const isImage = /\.(jpg|jpeg|png|gif)$/i.test(fileName);
+    const isPDF = fileName.toLowerCase().endsWith(".pdf");
+
+    return (
+      <a
+        href={`${UPLOAD_URL}${fileName}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="View Attachment"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          color: "#2563eb",
+          textDecoration: "none",
+          fontWeight: "500",
+          fontSize: "14px",
+        }}
+      >
+        {isImage ? "🖼️ Image" : isPDF ? "📄 PDF" : "📁 File"}
+      </a>
+    );
+  };
+
+  // Pagination apply
   const total = leaveRequests.length;
   const startIdx = (page - 1) * pageSize;
   const paged = useMemo(() => leaveRequests.slice(startIdx, startIdx + pageSize), [leaveRequests, startIdx, pageSize]);
@@ -126,14 +156,16 @@ export default function HRLeaveApprovals() {
               <th>Type</th>
               <th>Date</th>
               <th>Detail</th>
+              {/* 🔥 คอลัมน์ใหม่ */}
+              <th>Attachment</th> 
               <th>Status</th>
-              <th style={{ width: 220 }}>Action</th>
+              <th style={{ width: 200 }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: 20 }}>
+                <td colSpan="9" style={{ textAlign: "center", padding: 20 }}>
                   Loading...
                 </td>
               </tr>
@@ -148,13 +180,17 @@ export default function HRLeaveApprovals() {
                   <td>{r.employee ? `${r.employee.firstName} ${r.employee.lastName || ""}` : `ID: ${r.employeeId}`}</td>
 
                   <td>
-                    <span className="badge">{r.leaveType?.name || "Leave"}</span>
+                    <span className="badge">{r.leaveType?.typeName || "Leave"}</span>
                   </td>
 
                   <td>
                     {formatDate(r.startDate)} → {formatDate(r.endDate)}
                   </td>
                   <td>{r.reason || "-"}</td>
+                  
+                  {/* 🔥 แสดงไฟล์แนบ */}
+                  <td>{renderAttachment(r.attachmentUrl)}</td>
+
                   <td>
                     <span className="status pending">{r.status}</span>
                   </td>
@@ -173,7 +209,7 @@ export default function HRLeaveApprovals() {
               ))
             ) : (
               <tr>
-                <td colSpan="8" style={{ textAlign: "center", padding: 20 }}>
+                <td colSpan="9" style={{ textAlign: "center", padding: 20 }}>
                   No pending requests.
                 </td>
               </tr>
@@ -181,7 +217,6 @@ export default function HRLeaveApprovals() {
           </tbody>
         </table>
 
-        {/* ✅ Pagination (เพิ่มเฉพาะส่วนนี้) */}
         <Pagination
           total={total}
           page={page}

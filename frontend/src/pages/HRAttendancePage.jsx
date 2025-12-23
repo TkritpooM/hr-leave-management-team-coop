@@ -1,7 +1,7 @@
-// src/pages/HRAttendancePage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./HRAttendancePage.css";
+import moment from "moment"; // 🔥 มั่นใจว่าได้ลง moment ไว้แล้ว (เหมือนหน้า worker)
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -11,6 +11,8 @@ function num(v) {
   const x = Number(v);
   return Number.isFinite(x) ? x : 0;
 }
+
+const normStatus = (s) => String(s || "").trim().toLowerCase();
 
 function QuotaCard({ title, usedDays, totalDays }) {
   const used = num(usedDays);
@@ -56,11 +58,13 @@ export default function HRAttendancePage() {
 
   // Backend data
   const [history, setHistory] = useState([]);
+  const [leaveHistory, setLeaveHistory] = useState([]); // 🔥 เพิ่มประวัติการลา
   const [quotas, setQuotas] = useState([]);
   const [lateSummary, setLateSummary] = useState({ lateCount: 0, lateLimit: 5 });
 
-  // Leave modal
+  // Leave modal & File attachment
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [leaveForm, setLeaveForm] = useState({
     leaveTypeId: "",
     startDate: "",
@@ -73,14 +77,13 @@ export default function HRAttendancePage() {
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // Attendance
+  // 1) Attendance Data
   const fetchAttendanceData = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader());
       const records = response.data.records || [];
       setHistory(records);
 
-      // ✅ reset กันค้าง
       setCheckedInAt(null);
       setCheckedOutAt(null);
 
@@ -96,7 +99,17 @@ export default function HRAttendancePage() {
     }
   };
 
-  // Quota
+  // 2) Leave History Data 🔥
+  const fetchLeaveHistory = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/leave/my", getAuthHeader());
+      setLeaveHistory(response.data.requests || []);
+    } catch (err) {
+      console.error("Failed to fetch leave history:", err);
+    }
+  };
+
+  // 3) Quota Data
   const fetchQuotaData = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/leave/quota/my", getAuthHeader());
@@ -114,7 +127,7 @@ export default function HRAttendancePage() {
     }
   };
 
-  // Late Summary
+  // 4) Late Summary
   const fetchLateSummary = async () => {
     try {
       const response = await axios.get("http://localhost:8000/api/timerecord/late/summary", getAuthHeader());
@@ -129,15 +142,14 @@ export default function HRAttendancePage() {
 
   useEffect(() => {
     fetchAttendanceData();
+    fetchLeaveHistory(); // 🔥
     fetchQuotaData();
     fetchLateSummary();
 
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handlers
   const handleCheckIn = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
@@ -159,6 +171,28 @@ export default function HRAttendancePage() {
     }
   };
 
+  // 🔥 ฟังก์ชันยกเลิกใบลาของตัวเอง
+  const handleCancelLeave = async (requestId) => {
+    if (!window.confirm("คุณมั่นใจหรือไม่ที่จะยกเลิกคำขอลาใบนี้?")) return;
+    try {
+      const res = await axios.patch(
+        `http://localhost:8000/api/leave/${requestId}/cancel`,
+        {},
+        getAuthHeader()
+      );
+      if (res.data.success) {
+        alert("✅ ยกเลิกคำขอลาเรียบร้อยแล้ว");
+        fetchLeaveHistory();
+        fetchQuotaData();
+      } else {
+        alert("❌ ไม่สามารถยกเลิกได้: " + res.data.message);
+      }
+    } catch (err) {
+      console.error("Cancel Leave Error:", err);
+      alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
+  };
+
   const handleLeaveChange = (e) => {
     const { name, value } = e.target;
     setLeaveForm((prev) => {
@@ -168,24 +202,41 @@ export default function HRAttendancePage() {
     });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmitLeave = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        leaveTypeId: parseInt(leaveForm.leaveTypeId, 10),
-        startDate: leaveForm.startDate,
-        endDate: leaveForm.endDate,
-        startDuration: "Full",
-        endDuration: "Full",
-        reason: leaveForm.detail,
-      };
+      const formData = new FormData();
+      formData.append("leaveTypeId", parseInt(leaveForm.leaveTypeId, 10));
+      formData.append("startDate", leaveForm.startDate);
+      formData.append("endDate", leaveForm.endDate);
+      formData.append("startDuration", "Full");
+      formData.append("endDuration", "Full");
+      formData.append("reason", leaveForm.detail);
+      
+      if (selectedFile) {
+        formData.append("attachment", selectedFile);
+      }
 
-      const response = await axios.post("http://localhost:8000/api/leave/request", payload, getAuthHeader());
+      const token = localStorage.getItem("token");
+      const response = await axios.post("http://localhost:8000/api/leave/request", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (response.data.success) {
-        alert("✅ " + (response.data.message || "ส่งคำขอลาสำเร็จ!"));
+        alert("✅ ส่งคำขอลาสำเร็จ!");
         setIsLeaveModalOpen(false);
+        setSelectedFile(null);
         fetchQuotaData();
+        fetchLeaveHistory(); // 🔥 อัปเดตตารางหลังส่ง
         setLeaveForm({
           leaveTypeId: quotas[0]?.leaveTypeId.toString() || "",
           startDate: "",
@@ -271,6 +322,7 @@ export default function HRAttendancePage() {
         )}
       </section>
 
+      {/* --- Section: Time History --- */}
       <section className="history-section">
         <h2>Your Personal Time History</h2>
         <div className="history-table-wrapper">
@@ -285,13 +337,9 @@ export default function HRAttendancePage() {
             </thead>
             <tbody>
               {history.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="empty">
-                    ไม่มีข้อมูล
-                  </td>
-                </tr>
+                <tr><td colSpan="4" className="empty">ไม่มีข้อมูลการลงเวลา</td></tr>
               ) : (
-                history.map((row) => (
+                history.slice(0, 10).map((row) => (
                   <tr key={row.recordId}>
                     <td>{formatDate(row.workDate)}</td>
                     <td>{formatTime(row.checkInTime)}</td>
@@ -309,6 +357,55 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
+      {/* --- 🔥 Section: Leave History (ใหม่) --- */}
+      <section className="history-section" style={{ marginTop: '30px' }}>
+        <h2>Your Personal Leave History</h2>
+        <div className="history-table-wrapper">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Date Range</th>
+                <th>Days</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leaveHistory.length === 0 ? (
+                <tr><td colSpan="5" className="empty">ยังไม่มีประวัติการลา</td></tr>
+              ) : (
+                leaveHistory.slice(0, 10).map((req) => (
+                  <tr key={req.requestId}>
+                    <td><strong>{req.leaveType?.typeName}</strong></td>
+                    <td>
+                      {moment(req.startDate).format("DD MMM")} - {moment(req.endDate).format("DD MMM YYYY")}
+                    </td>
+                    <td>{req.totalDaysRequested}</td>
+                    <td>
+                      <span className={`status-badge status-${normStatus(req.status)}`}>
+                        {req.status}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {normStatus(req.status) === "pending" && (
+                        <button
+                          className="btn-leave"
+                          style={{ padding: '4px 8px', fontSize: '12px', backgroundColor: '#ef4444' }}
+                          onClick={() => handleCancelLeave(req.requestId)}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {isLeaveModalOpen && (
         <div className="modal-backdrop">
           <div className="modal">
@@ -316,40 +413,34 @@ export default function HRAttendancePage() {
             <form onSubmit={handleSubmitLeave} className="leave-form">
               <label>Leave Type</label>
               <select name="leaveTypeId" value={leaveForm.leaveTypeId} onChange={handleLeaveChange} required>
-                {quotas.length > 0 ? (
-                  quotas.map((q) => (
-                    <option key={q.leaveTypeId} value={q.leaveTypeId}>
-                      {q.leaveType?.typeName || "Unknown Type"}
-                    </option>
-                  ))
-                ) : (
-                  <option value="" disabled>No leave types available</option>
-                )}
+                {quotas.map((q) => (
+                  <option key={q.leaveTypeId} value={q.leaveTypeId}>
+                    {q.leaveType?.typeName || "Unknown Type"}
+                  </option>
+                ))}
               </select>
 
               <div className="date-row">
-                <label>
-                  Start Date
-                  <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveChange} required />
-                </label>
-                <label>
-                  End Date
-                  <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} required />
-                </label>
+                <label>Start Date <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveChange} required /></label>
+                <label>End Date <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} required /></label>
               </div>
 
-              <label>
+              <label className="full">
                 Detail
-                <textarea name="detail" rows="3" onChange={handleLeaveChange} placeholder="Reason." />
+                <textarea name="detail" rows="3" value={leaveForm.detail} onChange={handleLeaveChange} placeholder="Reason." />
+              </label>
+
+              <label className="full">
+                หลักฐานแนบ (ใบรับรองแพทย์/เอกสารอื่นๆ)
+                <input type="file" accept="image/*, .pdf, .doc, .docx, .zip" onChange={handleFileChange} style={{ border: 'none', padding: '10px 0' }} />
+                <small style={{ color: '#666', display: 'block', marginTop: '-5px', fontSize: '0.8rem' }}>
+                  รองรับ: JPG, PNG, PDF, Word และ ZIP (ไม่เกิน 5MB)
+                </small>
               </label>
 
               <div className="modal-actions">
-                <button type="button" className="outline-btn" onClick={() => setIsLeaveModalOpen(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="primary-btn">
-                  Submit
-                </button>
+                <button type="button" className="outline-btn" onClick={() => { setIsLeaveModalOpen(false); setSelectedFile(null); }}>Cancel</button>
+                <button type="submit" className="primary-btn">Submit</button>
               </div>
             </form>
           </div>

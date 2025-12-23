@@ -44,7 +44,10 @@ pnpm prisma:seedclear
 ```
 ### Manage Schema DB
 ```bash
+Add column default_days
 pnpx prisma@6 migrate dev --name add_default_days_to_leavetype
+Add column attachment
+pnpx prisma@6 migrate dev --name add_attachment_to_leave
 ```
 ### To Run Project
 ```bash

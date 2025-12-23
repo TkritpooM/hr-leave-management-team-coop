@@ -97,6 +97,7 @@ model LeaveRequest {
   startDuration       String    @map("start_duration") // 'Full', 'HalfMorning', 'HalfAfternoon'
   endDuration         String    @map("end_duration") // 'Full', 'HalfMorning', 'HalfAfternoon'
   reason              String?
+  attachmentUrl       String?   @map("attachment_url") @db.VarChar(255)
   status              String    @default("Pending") // 'Pending', 'Approved', 'Rejected'
   requestedAt         DateTime  @map("requested_at") @default(now())
   approvedByHrId      Int?      @map("approved_by_hr_id")

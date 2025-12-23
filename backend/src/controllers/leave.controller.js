@@ -1,6 +1,8 @@
 // backend/src/controllers/leave.controller.js
 
 const prisma = require('../models/prisma');
+const fs = require('fs');
+const path = require('path');
 const leaveService = require('../services/leave.service');
 const leaveModel = require('../models/leave.model');
 const notificationService = require('../services/notification.service');
@@ -11,6 +13,8 @@ const requestLeave = async (req, res, next) => {
     try {
         const employeeId = parseInt(req.user.employeeId);
         const { startDate, endDate, leaveTypeId, startDuration, endDuration, reason } = req.body;
+
+        const attachmentUrl = req.file ? req.file.filename : null;
 
         // 1. ตรวจสอบการลาทับซ้อน
         await leaveService.checkLeaveOverlap(employeeId, startDate, endDate);
@@ -38,6 +42,7 @@ const requestLeave = async (req, res, next) => {
                     startDuration: startDuration || 'Full',
                     endDuration: endDuration || 'Full',
                     reason: reason || null,
+                    attachmentUrl: attachmentUrl,
                     status: 'Pending',
                 },
                 include: {
@@ -132,9 +137,14 @@ const cancelLeaveRequest = async (req, res, next) => {
         const employeeId = parseInt(req.user.employeeId);
         const requestId = parseInt(req.params.requestId);
 
-        // 1. ค้นหาใบลาและตรวจสอบว่าเป็นเจ้าของจริงไหม
+        // 1. ค้นหาใบลาและตรวจสอบว่าเป็นเจ้าของจริงไหม (ดึง attachmentUrl มาด้วย)
         const leaveRequest = await prisma.leaveRequest.findUnique({
-            where: { requestId }
+            where: { requestId },
+            select: {
+                employeeId: true,
+                status: true,
+                attachmentUrl: true // 🔥 ดึงชื่อไฟล์มาเพื่อเตรียมลบ
+            }
         });
 
         if (!leaveRequest) {
@@ -153,16 +163,30 @@ const cancelLeaveRequest = async (req, res, next) => {
             });
         }
 
+        // --- 🔥 ส่วนที่เพิ่มเข้ามา: ลบไฟล์รูปจริงออกจากโฟลเดอร์ uploads ---
+        if (leaveRequest.attachmentUrl) {
+            const filePath = path.join(__dirname, '../../uploads', leaveRequest.attachmentUrl);
+            
+            if (fs.existsSync(filePath)) {
+                fs.unlink(filePath, (err) => {
+                    if (err) console.error("Failed to delete file during cancellation:", err);
+                    else console.log("Deleted file due to cancellation:", leaveRequest.attachmentUrl);
+                });
+            }
+        }
+
         // 3. ใช้ Transaction อัปเดตสถานะ และลบ Notification "NewRequest" ของ HR ออกจาก DB
         await prisma.$transaction(async (tx) => {
             // อัปเดตสถานะเป็น Cancelled
             await tx.leaveRequest.update({
                 where: { requestId },
-                data: { status: 'Cancelled' }
+                data: { 
+                    status: 'Cancelled',
+                    attachmentUrl: null // 🔥 ล้างชื่อไฟล์ใน DB ออกด้วยหลังจากไฟล์จริงถูกลบ
+                }
             });
 
             // ลบแจ้งเตือน "คำขอใหม่" เดิมออกจาก Database ของ HR ทุกคน
-            // ขั้นตอนนี้จะทำให้เมื่อ HR กด Refresh หน้าจอ เลข Badge จะลดลงตามจริง
             await tx.notification.deleteMany({
                 where: {
                     relatedRequestId: requestId,
@@ -171,15 +195,13 @@ const cancelLeaveRequest = async (req, res, next) => {
             });
         });
 
-        // 4. ส่งสัญญาณ WebSocket แบบพิเศษ (ไม่ใช่ NOTIFICATION) เพื่อให้หน้าจอ HR อัปเดตข้อมูล
+        // 4. ส่งสัญญาณ WebSocket แบบพิเศษ เพื่อให้หน้าจอ HR อัปเดตข้อมูล
         const allHR = await prisma.employee.findMany({
             where: { role: 'HR', isActive: true },
             select: { employeeId: true }
         });
 
         allHR.forEach(hr => {
-            // ✅ เปลี่ยนจาก type: 'NOTIFICATION' เป็น 'UPDATE_SIGNAL'
-            // เพื่อให้ Frontend ของ HR รู้ว่าต้อง fetch ข้อมูลใหม่ แต่ไม่ต้องเพิ่มเลข Badge
             notificationService.sendNotification(hr.employeeId, {
                 type: 'UPDATE_SIGNAL', 
                 action: 'REFRESH_LEAVE_LIST',
@@ -187,7 +209,7 @@ const cancelLeaveRequest = async (req, res, next) => {
             });
         });
 
-        res.status(200).json({ success: true, message: 'ยกเลิกคำขอลาเรียบร้อยแล้ว' });
+        res.status(200).json({ success: true, message: 'ยกเลิกคำขอลาและลบไฟล์แนบเรียบร้อยแล้ว' });
 
     } catch (error) {
         next(error);
@@ -409,10 +431,48 @@ const updateLeaveRequest = async (req, res, next) => {
 const deleteLeaveRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // await leaveModel.delete(id);
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    next(err);
+    const requestId = parseInt(id);
+
+    // 1. ค้นหาข้อมูลใบลาใน Database ก่อนเพื่อตรวจสอบว่ามีไฟล์แนบหรือไม่
+    const request = await prisma.leaveRequest.findUnique({
+      where: { requestId: requestId },
+      select: { attachmentUrl: true } // ดึงมาเฉพาะชื่อไฟล์
+    });
+
+    if (!request) {
+      throw CustomError.notFound('ไม่พบคำขอลาที่ต้องการลบ');
+    }
+
+    // 2. ถ้ามีชื่อไฟล์แนบ ให้ทำการลบไฟล์จริงออกจากเซิร์ฟเวอร์
+    if (request.attachmentUrl) {
+      // สร้าง Path เต็มไปยังไฟล์ (ย้อนกลับไป 2 ระดับจากโฟลเดอร์ controllers ไปยัง root)
+      const filePath = path.join(__dirname, '../../uploads', request.attachmentUrl);
+
+      // ตรวจสอบก่อนว่าไฟล์มีอยู่จริงไหม แล้วค่อยสั่งลบ
+      if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error("เกิดข้อผิดพลาดในการลบไฟล์จริง:", err);
+            // เราจะไม่หยุดการทำงาน (next) ตรงนี้ เพื่อให้ Database ยังคงถูกลบได้
+          } else {
+            console.log("ลบไฟล์แนบสำเร็จ:", request.attachmentUrl);
+          }
+        });
+      }
+    }
+
+    // 3. ลบข้อมูลออกจาก Database
+    await prisma.leaveRequest.delete({
+      where: { requestId: requestId }
+    });
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'ลบคำขอลาและไฟล์แนบที่เกี่ยวข้องเรียบร้อยแล้ว' 
+    });
+
+  } catch (error) {
+    next(error);
   }
 };
 

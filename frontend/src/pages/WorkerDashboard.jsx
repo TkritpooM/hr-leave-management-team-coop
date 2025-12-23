@@ -1,4 +1,3 @@
-// src/pages/WorkerDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./WorkerDashboard.css";
@@ -62,6 +61,7 @@ export default function WorkerDashboard() {
 
   // Leave modal
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // 🔥 เพิ่มสำหรับเก็บไฟล์รูป
   const [leaveForm, setLeaveForm] = useState({
     leaveTypeId: "",
     startDate: "",
@@ -85,7 +85,6 @@ export default function WorkerDashboard() {
       const records = response.data.records || [];
       setHistory(records);
 
-      // ✅ FIX: reset ทุกครั้งก่อนหา today (กันค้าง)
       setCheckedInAt(null);
       setCheckedOutAt(null);
 
@@ -135,10 +134,8 @@ export default function WorkerDashboard() {
     fetchLateSummary();
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handlers
   const handleCheckIn = async () => {
     try {
       await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
@@ -169,23 +166,41 @@ export default function WorkerDashboard() {
     });
   };
 
+  // 🔥 ฟังก์ชันเลือกไฟล์
+  const handleFileChange = (e) => {
+    if (e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmitLeave = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        leaveTypeId: parseInt(leaveForm.leaveTypeId, 10),
-        startDate: leaveForm.startDate,
-        endDate: leaveForm.endDate,
-        startDuration: "Full",
-        endDuration: "Full",
-        reason: leaveForm.detail,
-      };
+      // 🔥 เปลี่ยนมาใช้ FormData เพื่อส่งรูปภาพ
+      const formData = new FormData();
+      formData.append("leaveTypeId", parseInt(leaveForm.leaveTypeId, 10));
+      formData.append("startDate", leaveForm.startDate);
+      formData.append("endDate", leaveForm.endDate);
+      formData.append("startDuration", "Full");
+      formData.append("endDuration", "Full");
+      formData.append("reason", leaveForm.detail);
+      
+      if (selectedFile) {
+        formData.append("attachment", selectedFile);
+      }
 
-      const res = await axios.post("http://localhost:8000/api/leave/request", payload, getAuthHeader());
+      const token = localStorage.getItem("token");
+      const res = await axios.post("http://localhost:8000/api/leave/request", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data", // 🔥 ระบุว่าเป็นข้อมูลแบบไฟล์
+        },
+      });
 
       if (res.data.success) {
         alert("✅ ส่งคำขอลาสำเร็จ!");
         setIsLeaveModalOpen(false);
+        setSelectedFile(null); // 🔥 ล้างไฟล์หลังส่งสำเร็จ
 
         setLeaveForm({
           leaveTypeId: quotas.length > 0 ? quotas[0].leaveTypeId : "",
@@ -361,11 +376,26 @@ export default function WorkerDashboard() {
 
               <label className="full">
                 Detail
-                <textarea name="detail" rows="3" onChange={handleLeaveChange} placeholder="Reason..."></textarea>
+                <textarea name="detail" rows="3" value={leaveForm.detail} onChange={handleLeaveChange} placeholder="Reason..."></textarea>
+              </label>
+
+              {/* 🔥 เพิ่มช่องเลือกไฟล์รูปภาพหลักฐาน */}
+              <label className="full">
+                หลักฐานแนบ (เช่น ใบรับรองแพทย์)
+                <input 
+                  type="file" 
+                  accept="image/*, .pdf, .doc, .docx, .zip"
+                  onChange={handleFileChange} 
+                  style={{ border: 'none', padding: '10px 0', marginBottom: '0' }}
+                />
+                {/* 💡 เพิ่มข้อความกำกับด้านล่างช่องเลือกไฟล์ */}
+                <small style={{ color: '#666', display: 'block', marginTop: '-5px', fontSize: '0.8rem' }}>
+                  รองรับ: JPG, PNG, PDF, Word และ ZIP (ไม่เกิน 5MB)
+                </small>
               </label>
 
               <div className="modal-actions">
-                <button type="button" className="outline-btn" onClick={() => setIsLeaveModalOpen(false)}>
+                <button type="button" className="outline-btn" onClick={() => { setIsLeaveModalOpen(false); setSelectedFile(null); }}>
                   Cancel
                 </button>
                 <button type="submit" className="primary-btn">

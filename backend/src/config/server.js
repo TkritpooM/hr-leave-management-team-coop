@@ -3,6 +3,8 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const fs = require('fs');
+const path = require('path');
 const errorMiddleware = require('../middlewares/error.middleware');
 
 // Routes Import
@@ -14,6 +16,12 @@ const notificationRoute = require('../routes/notification.route');
 
 const createApp = () => {
     const app = express();
+
+    const uploadDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+        console.log('📁 Created "uploads" folder automatically.');
+    }
 
     app.get('/favicon.ico', (req, res) => res.status(204).end());
 
@@ -43,7 +51,7 @@ const createApp = () => {
     app.use('/api/timerecord', timeRecordRoute);
     app.use('/api/leave', leaveRequestRoute);
     app.use('/api/notifications', notificationRoute);
-
+    app.use('/uploads', express.static(uploadDir));
 
     // 5. 404 Handler
     app.use((req, res, next) => {
