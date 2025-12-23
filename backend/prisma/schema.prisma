@@ -43,6 +43,8 @@ model LeaveType {
   typeName    String       @unique @map("type_name")
   isPaid      Boolean      @map("is_paid") @default(true)
   defaultDays Decimal      @map("default_days") @default(0.00) @db.Decimal(5, 2)
+  canCarryForward Boolean        @default(false) @map("can_carry_forward")
+  maxCarryDays    Decimal        @default(0.00) @map("max_carry_days") @db.Decimal(5, 2)
   // Relations
   leaveQuotas   LeaveQuota[]
   leaveRequests LeaveRequest[]

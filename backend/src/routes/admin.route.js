@@ -40,6 +40,7 @@ router.put('/employees/:employeeId', [
 
 // Quota Management per Employee (NEW - สำหรับ Modal ในหน้า Employees.js)
 router.post('/hr/sync-quotas', adminController.syncAllEmployeesQuota);
+router.post('/hr/process-carry-forward', authorizeRole(['HR']), adminController.processYearEndCarryForward);
 router.get('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), validate ], adminController.getEmployeeQuota);
 router.put('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), body('quotas').isArray(), validate ], adminController.updateEmployeeQuotaBulk);
 

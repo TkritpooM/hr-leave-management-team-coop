@@ -324,3 +324,142 @@
 }
 
 .leave-form .full{ grid-column: 1 / -1; }
+
+/* เพิ่มเติมจากไฟล์เดิม */
+
+.quota-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Badge แสดงยอดทบสะสม */
+.carried-badge {
+  font-size: 10px;
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 800;
+  border: 1px solid #bbf7d0;
+  width: fit-content;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* เน้นยอด Available */
+.qm.highlight {
+  background: rgba(30, 64, 175, 0.05);
+  border-color: rgba(30, 64, 175, 0.1);
+}
+
+.qm.highlight .qm-value {
+  color: #1e40af;
+}
+
+/* เน้นยอดคงเหลือสีเขียว */
+.qm.success {
+  background: rgba(22, 163, 74, 0.05);
+  border-color: rgba(22, 163, 74, 0.1);
+}
+
+.qm.success .qm-value {
+  color: #166534;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  grid-column: 1 / -1;
+}
+
+.outline-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary-btn {
+  flex: 2;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ปรับปรุง CSS ของ Quota Card ให้ขยายตามเนื้อหา */
+.quota-card {
+  min-height: 130px; /* เพิ่มความสูงเล็กน้อยเผื่อพื้นที่ Badge */
+}
+
+/* การจัดการชื่อและ Badge ใน Quota Card */
+.quota-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.carried-badge {
+    background: #ecfdf5;
+    color: #10b981;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+    border: 1px solid #d1fae5;
+    width: fit-content;
+}
+
+/* กล่องสรุปวันหยุดใน Modal */
+.leave-preview-info {
+    grid-column: 1 / -1;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #0369a1;
+    font-size: 14px;
+}
+
+.leave-preview-info strong {
+    font-size: 18px;
+    color: #0284c7;
+}
+
+.mini-note {
+    font-size: 11px;
+    color: #0ea5e9;
+    margin: 0;
+}
+
+.section-subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 20px 0 10px;
+}
+
+.modal-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close-x {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--muted);
+}

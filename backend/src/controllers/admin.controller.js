@@ -83,12 +83,15 @@ const getLeaveTypes = async (req, res, next) => {
 
 const createLeaveType = async (req, res, next) => {
     try {
-        const { typeName, isPaid, defaultDays } = req.body; // รับค่า defaultDays
+        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays } = req.body;
         const newType = await prisma.leaveType.create({ 
             data: { 
                 typeName, 
                 isPaid: isPaid !== undefined ? isPaid : true,
-                defaultDays: parseFloat(defaultDays) || 0 // เก็บค่าเข้า DB
+                defaultDays: parseFloat(defaultDays) || 0,
+                // 🔥 เพิ่ม 2 ฟิลด์นี้
+                canCarryForward: !!canCarryForward,
+                maxCarryDays: parseFloat(maxCarryDays) || 0
             } 
         });
         res.status(201).json({ success: true, message: 'Leave type created.', type: newType });
@@ -98,13 +101,16 @@ const createLeaveType = async (req, res, next) => {
 const updateLeaveType = async (req, res, next) => {
     try {
         const leaveTypeId = parseInt(req.params.leaveTypeId);
-        const { typeName, isPaid, defaultDays } = req.body;
+        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays } = req.body;
         const updatedType = await prisma.leaveType.update({ 
             where: { leaveTypeId }, 
             data: { 
                 typeName, 
                 isPaid, 
-                defaultDays: parseFloat(defaultDays) 
+                defaultDays: parseFloat(defaultDays),
+                // 🔥 เพิ่ม 2 ฟิลด์นี้
+                canCarryForward: !!canCarryForward,
+                maxCarryDays: parseFloat(maxCarryDays) || 0
             } 
         });
         res.status(200).json({ success: true, message: 'Leave type updated.', type: updatedType });
@@ -223,6 +229,89 @@ const syncAllEmployeesQuota = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
+const processYearEndCarryForward = async (req, res, next) => {
+    try {
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+
+        // 1. ดึงประเภทการลาที่มีนโยบาย "ทบยอดได้"
+        const carryForwardTypes = await prisma.leaveType.findMany({
+            where: { canCarryForward: true }
+        });
+
+        if (carryForwardTypes.length === 0) {
+            return res.status(200).json({ success: true, message: "No leave types configured for carry forward." });
+        }
+
+        // 2. ดึงพนักงานทั้งหมดที่ยังทำงานอยู่
+        const employees = await prisma.employee.findMany({
+            where: { isActive: true },
+            select: { employeeId: true }
+        });
+
+        const operations = [];
+
+        for (const emp of employees) {
+            for (const type of carryForwardTypes) {
+                // 3. หายอดคงเหลือของปีปัจจุบัน (Current Year)
+                const currentQuota = await prisma.leaveQuota.findUnique({
+                    where: {
+                        employeeId_leaveTypeId_year: {
+                            employeeId: emp.employeeId,
+                            leaveTypeId: type.leaveTypeId,
+                            year: currentYear
+                        }
+                    }
+                });
+
+                let carryAmount = 0;
+                if (currentQuota) {
+                    const remaining = currentQuota.totalDays - currentQuota.usedDays;
+                    // ทบได้ไม่เกินที่นโยบายกำหนด (maxCarryDays) และไม่ติดลบ
+                    carryAmount = Math.max(0, Math.min(remaining, type.maxCarryDays));
+                }
+
+                // 4. เตรียม Upsert เข้าปีหน้า (Next Year)
+                // เราจะเอา defaultDays ของปีหน้า + carryAmount ที่ทบมา
+                operations.push(
+                    prisma.leaveQuota.upsert({
+                        where: {
+                            employeeId_leaveTypeId_year: {
+                                employeeId: emp.employeeId,
+                                leaveTypeId: type.leaveTypeId,
+                                year: nextYear
+                            }
+                        },
+                        update: {
+                            carriedOverDays: carryAmount,
+                            // ❌ ห้ามเอา carryAmount ไปบวกเพิ่มใน totalDays
+                            totalDays: type.defaultDays 
+                        },
+                        create: {
+                            employeeId: emp.employeeId,
+                            leaveTypeId: type.leaveTypeId,
+                            year: nextYear,
+                            carriedOverDays: carryAmount,
+                            totalDays: type.defaultDays, // ✅ เก็บแค่ค่ามาตรฐาน
+                            usedDays: 0
+                        }
+                    })
+                );
+            }
+        }
+
+        // รัน Transaction ทั้งหมด
+        await prisma.$transaction(operations);
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Successfully processed carry forward from ${currentYear} to ${nextYear}.` 
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // 1. เพิ่มพนักงานใหม่โดย HR
 const createEmployee = async (req, res, next) => {
     try {
@@ -289,5 +378,5 @@ module.exports = {
     getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType, 
     getQuotas, createQuota, updateQuota, 
     getHolidays, createHoliday, deleteHoliday,
-    syncAllEmployeesQuota, createEmployee, updateEmployeeByAdmin
+    syncAllEmployeesQuota, processYearEndCarryForward, createEmployee, updateEmployeeByAdmin
 };

@@ -114,6 +114,7 @@ export default function Employees() {
       setLoading(true);
       await api.post("/api/admin/hr/sync-quotas", {}, authHeader());
       await alertSuccess("สำเร็จ", "Sync โควต้ามาตรฐานให้พนักงานทุกคนสำเร็จ");
+      fetchEmployees();
     } catch (err) {
       await alertError("เกิดข้อผิดพลาด", "เกิดข้อผิดพลาดในการ Sync");
     } finally {
@@ -126,8 +127,9 @@ export default function Employees() {
     setQuotaOpen(true);
     try {
       const res = await api.get(`/api/admin/hr/leave-quota/${emp.employeeId}`, authHeader());
-      const quotas = res.data.quotas || [];
-      const map = new Map(quotas.map((x) => [x.leaveTypeId, x]));
+      const quotasData = res.data.quotas || [];
+      const map = new Map(quotasData.map((x) => [x.leaveTypeId, x]));
+      
       const rows = types.map((t) => {
         const hit = map.get(t.leaveTypeId);
         return {
@@ -135,6 +137,8 @@ export default function Employees() {
           typeName: t.typeName,
           totalDays: hit ? Number(hit.totalDays) : 0,
           usedDays: hit ? Number(hit.usedDays) : 0,
+          carriedOverDays: hit ? Number(hit.carriedOverDays) : 0, // 🔥 เพิ่มฟิลด์ยอดทบ
+          canCarry: t.isCarryForward || t.maxCarryDays > 0
         };
       });
       setQuotaRows(rows);
@@ -147,7 +151,13 @@ export default function Employees() {
     try {
       await api.put(
         `/api/admin/hr/leave-quota/${activeEmp.employeeId}`,
-        { quotas: quotaRows.map((r) => ({ leaveTypeId: r.leaveTypeId, totalDays: r.totalDays })) },
+        { 
+          quotas: quotaRows.map((r) => ({ 
+            leaveTypeId: r.leaveTypeId, 
+            totalDays: r.totalDays,
+            carriedOverDays: r.carriedOverDays // 🔥 ส่งค่ายอดทบกลับไปด้วย
+          })) 
+        },
         authHeader()
       );
       setQuotaOpen(false);
@@ -362,16 +372,24 @@ export default function Employees() {
             </div>
 
             <div className="emp-modal-body">
+              <div className="quota-header-row" style={{ display: 'flex', fontWeight: 'bold', paddingBottom: '8px', borderBottom: '1px solid #eee', marginBottom: '12px', fontSize: '13px' }}>
+                <div style={{ flex: 1 }}>ประเภทการลา / ใช้ไปแล้ว</div>
+                <div style={{ width: '85px', textAlign: 'center' }}>โควต้าปีนี้</div>
+                <div style={{ width: '85px', textAlign: 'center' }}>ยกยอดมา</div>
+              </div>
+
               {quotaRows.map((r) => (
-                <div className="quota-row" key={r.leaveTypeId}>
-                  <div className="quota-left">
-                    <div className="quota-type">{r.typeName}</div>
-                    <div className="quota-mini">Used: {r.usedDays}</div>
+                <div className="quota-row" key={r.leaveTypeId} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0', borderBottom: '1px solid #f9f9f9' }}>
+                  <div className="quota-left" style={{ flex: 1 }}>
+                    <div className="quota-type" style={{ fontWeight: 'bold', fontSize: '14px' }}>{r.typeName}</div>
+                    <div className="quota-mini" style={{ fontSize: '12px', color: '#888' }}>Used: {r.usedDays} days</div>
                   </div>
 
-                  <div className="quota-right">
+                  {/* ช่องแก้โควต้าปกติ */}
+                  <div className="quota-field">
                     <input
                       className="quota-input"
+                      style={{ width: '70px', textAlign: 'center' }}
                       type="number"
                       min="0"
                       step="0.5"
@@ -386,10 +404,34 @@ export default function Employees() {
                         )
                       }
                     />
-                    <div className="quota-unit">days</div>
+                  </div>
+
+                  {/* 🔥 ช่องแก้โควต้าทบยอด (Carried Over) */}
+                  <div className="quota-field">
+                    <input
+                      className="quota-input highlight-carry"
+                      style={{ width: '70px', textAlign: 'center', backgroundColor: r.canCarry ? '#f0fdf4' : '#f1f5f9', borderColor: r.canCarry ? '#bbf7d0' : '#e2e8f0', cursor: r.canCarry ? 'text' : 'not-allowed' }}
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={r.carriedOverDays}
+                      disabled={!r.canCarry}
+                      onChange={(e) =>
+                        setQuotaRows((prev) =>
+                          prev.map((row) =>
+                            row.leaveTypeId === r.leaveTypeId
+                              ? { ...row, carriedOverDays: Number(e.target.value) }
+                              : row
+                          )
+                        )
+                      }
+                    />
                   </div>
                 </div>
               ))}
+              <div style={{ marginTop: '12px', fontSize: '11px', color: '#666', fontStyle: 'italic' }}>
+                * ช่องสีเขียว = แก้ไขยอดทบได้ | ช่องสีเทา = ไม่อนุญาตให้ทบยอด (ตั้งค่าที่ Leave Settings)
+              </div>
             </div>
 
             <div className="emp-modal-actions">

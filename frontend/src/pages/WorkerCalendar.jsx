@@ -80,20 +80,26 @@ export default function WorkerCalendar() {
   // map leaves by date range (all statuses)
   const leaveByDate = useMemo(() => {
     const map = {};
-    leaves.forEach((l) => {
-      let cur = moment(l.startDate).startOf("day");
-      const end = moment(l.endDate).startOf("day");
-      while (cur.isSameOrBefore(end, "day")) {
-        const key = cur.format("YYYY-MM-DD");
-        if (!map[key]) map[key] = [];
-        map[key].push({
-          type: l.leaveType?.typeName || "Leave",
-          status: l.status,
-          reason: l.reason || "-",
-        });
-        cur.add(1, "day");
-      }
-    });
+    
+    // 🔥 เพิ่ม .filter เพื่อกรองเอา Rejected ออก
+    leaves
+      .filter((l) => l.status !== "Rejected") 
+      .forEach((l) => {
+        let cur = moment(l.startDate).startOf("day");
+        const end = moment(l.endDate).startOf("day");
+        
+        while (cur.isSameOrBefore(end, "day")) {
+          const key = cur.format("YYYY-MM-DD");
+          if (!map[key]) map[key] = [];
+          map[key].push({
+            type: l.leaveType?.typeName || "Leave",
+            status: l.status,
+            reason: l.reason || "-",
+          });
+          cur.add(1, "day");
+        }
+      });
+      
     return map;
   }, [leaves]);
 

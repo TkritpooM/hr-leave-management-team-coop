@@ -82,6 +82,11 @@ router.get('/admin/all', authorizeRole(['HR']), ensureHandler(leaveController.ge
 router.put('/admin/approval/:requestId', authorizeRole(['HR']), ensureHandler(leaveController.handleApproval, 'handleApproval'));
 
 // --- 🆔 3. Routes ที่มี Parameter (:requestId) - ต้องอยู่ล่างสุด ---
+router.get(
+    '/calculate-days', 
+    authorizeRole(['Worker', 'HR']), 
+    ensureHandler(leaveController.previewCalculateDays, 'previewCalculateDays')
+);
 router.get('/:requestId', authorizeRole(['Worker', 'HR']), ensureHandler(leaveController.getRequestDetail, 'getRequestDetail'));
 
 // (Optional) Shared/Other

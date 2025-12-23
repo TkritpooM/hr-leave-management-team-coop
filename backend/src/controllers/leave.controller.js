@@ -272,11 +272,15 @@ const handleApproval = async (req, res, next) => {
                         throw CustomError.badRequest("ไม่พบข้อมูลโควต้าสำหรับการลาประเภทนี้ในปีปัจจุบัน");
                     }
 
-                    const availableDays = parseFloat((quota.totalDays.toNumber() - quota.usedDays.toNumber()).toFixed(2));
+                    // 🔥 ตรรกะใหม่: ตรวจสอบจากสิทธิ์รวม (ปีปัจจุบัน + ยอดทบ)
+                    const totalEffectiveQuota = quota.totalDays.toNumber() + quota.carriedOverDays.toNumber();
+                    const availableDays = parseFloat((totalEffectiveQuota - quota.usedDays.toNumber()).toFixed(2));
+                    
                     if (requestedDays > availableDays) {
-                        throw CustomError.conflict(`โควต้าไม่พออนุมัติ (คงเหลือ: ${availableDays}, ต้องการใช้: ${requestedDays})`);
+                        throw CustomError.conflict(`โควต้าไม่พออนุมัติ (คงเหลือรวมยอดทบ: ${availableDays}, ต้องการใช้: ${requestedDays})`);
                     }
 
+                    // อัปเดตยอดใช้ไป
                     await tx.leaveQuota.update({
                         where: { quotaId: quota.quotaId },
                         data: { usedDays: { increment: requestedDays } }
@@ -285,7 +289,7 @@ const handleApproval = async (req, res, next) => {
                 finalStatus = 'Approved';
             } 
             
-            // 1. อัปเดตสถานะของใบลา
+            // อัปเดตสถานะใบลา
             const updatedRequest = await tx.leaveRequest.update({
                 where: { requestId },
                 data: {
@@ -295,8 +299,7 @@ const handleApproval = async (req, res, next) => {
                 }
             });
 
-            // 🆕 2. สร้างการแจ้งเตือนลงฐานข้อมูล (Database)
-            // เพื่อให้ Worker สามารถกลับมาอ่านย้อนหลังในหน้า Notification ได้
+            // สร้าง Notification
             const newNotification = await tx.notification.create({
                 data: {
                     employeeId: employeeId,
@@ -310,16 +313,12 @@ const handleApproval = async (req, res, next) => {
             return { updatedRequest, newNotification };
         });
 
-        // 🆕 3. ส่ง Notification แบบ Real-time ผ่าน WebSocket
-        // ถ้า Worker ออนไลน์อยู่ แจ้งเตือนจะเด้งขึ้นทันทีและเลข Badge ใน Sidebar จะอัปเดต
+        // ส่ง WebSocket
         notificationService.sendNotification(result.updatedRequest.employeeId, {
-            type: 'NOTIFICATION', // ส่ง type ให้ตรงกับที่ Service/Frontend คาดหวัง
+            type: 'NOTIFICATION',
             data: result.newNotification
         });
 
-        // 🆕 4. อัปเดตเลข Badge ใน Sidebar ของ Worker (ผ่าน WebSocket STATUS หรือการส่ง Noti ปกติ)
-        // เพื่อให้ Worker ทราบว่ามีข้อความใหม่ที่ยังไม่ได้อ่าน
-        
         res.status(200).json({ 
             success: true, 
             message: `ดำเนินการ ${result.updatedRequest.status.toLowerCase()} สำเร็จ`, 
@@ -334,29 +333,31 @@ const handleApproval = async (req, res, next) => {
     }
 };
 
+// ปรับปรุงฟังก์ชัน getMyQuotas ให้ส่งค่า availableDays ที่รวมยอดทบแล้ว
 const getMyQuotas = async (req, res, next) => {
     try {
         const employeeId = parseInt(req.user.employeeId);
         const currentYear = moment().year();
 
-        // ค้นหาโควต้า
         const quotas = await prisma.leaveQuota.findMany({
-            where: {
-                employeeId: employeeId,
-                year: currentYear
-            },
-            include: { leaveType: true } // ต้องมีบรรทัดนี้เพื่อเอาชื่อประเภทการลามาแสดง
+            where: { employeeId, year: currentYear },
+            include: { leaveType: true }
         });
         
-        // Debug: ดูใน Terminal ของ Backend ว่าเจอข้อมูลไหม
-        // console.log(`Searching quota for Emp: ${employeeId}, Year: ${currentYear}, Found: ${quotas.length}`);
-
-        const formattedQuotas = quotas.map(q => ({
-            ...q,
-            totalDays: parseFloat(q.totalDays.toString()),
-            usedDays: parseFloat(q.usedDays.toString()),
-            availableDays: parseFloat((parseFloat(q.totalDays) - parseFloat(q.usedDays)).toFixed(2)),
-        }));
+        const formattedQuotas = quotas.map(q => {
+            const total = parseFloat(q.totalDays.toString());
+            const carried = parseFloat(q.carriedOverDays.toString());
+            const used = parseFloat(q.usedDays.toString());
+            
+            return {
+                ...q,
+                totalDays: total,
+                carriedOverDays: carried,
+                usedDays: used,
+                // 🔥 สิทธิ์คงเหลือ = (ปีปัจจุบัน + ยอดทบ) - ใช้ไป
+                availableDays: parseFloat((total + carried - used).toFixed(2)),
+            };
+        });
 
         res.status(200).json({ success: true, quotas: formattedQuotas });
     } catch (error) { 
@@ -476,6 +477,22 @@ const deleteLeaveRequest = async (req, res, next) => {
   }
 };
 
+const previewCalculateDays = async (req, res, next) => {
+    try {
+        const { startDate, endDate, startDuration, endDuration } = req.query;
+        // เรียกใช้ calculateTotalDays จาก leaveService ที่คุณมีอยู่แล้ว
+        const totalDays = await leaveService.calculateTotalDays(
+            startDate, 
+            endDate, 
+            startDuration || 'Full', 
+            endDuration || 'Full'
+        );
+        res.status(200).json({ success: true, totalDays });
+    } catch (error) { 
+        next(error); 
+    }
+};
+
 // ต้อง export ฟังก์ชันที่ route เรียกใช้
 module.exports = {
   requestLeave, 
@@ -491,4 +508,5 @@ module.exports = {
   getLeaveById,
   updateLeaveRequest,
   deleteLeaveRequest,
+  previewCalculateDays,
 };

@@ -10,6 +10,7 @@
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:generate": "npx prisma generate",
     "prisma:seed": "node prisma/seed.js",
+    "prisma:seedV2": "node prisma/seedV2.js",
     "prisma:seedclear": "node prisma/seedcleardata.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

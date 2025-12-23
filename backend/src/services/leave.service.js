@@ -132,7 +132,7 @@ const checkQuotaAvailability = async (employeeId, leaveTypeId, requestedDays, ye
     const leaveType = await prisma.leaveType.findUnique({ where: { leaveTypeId } });
     if (!leaveType?.isPaid) return true;
 
-    // 2. ดึงโควต้าของพนักงานปีนั้นๆ (ยอดที่ Approve ไปแล้ว)
+    // 2. ดึงโควต้าของพนักงานปีนั้นๆ
     const quota = await prisma.leaveQuota.findUnique({
         where: { 
             employeeId_leaveTypeId_year: { 
@@ -145,13 +145,12 @@ const checkQuotaAvailability = async (employeeId, leaveTypeId, requestedDays, ye
 
     if (!quota) throw CustomError.badRequest("ยังไม่มีการตั้งค่าโควต้าการลาสำหรับพนักงานคนนี้ในปีปัจจุบัน");
 
-    // 3. 🔥 จุดที่เพิ่ม: คำนวณยอดวันลาที่ "รอนุมัติอยู่ (Pending)"
+    // 3. คำนวณยอดวันลาที่ "รอนุมัติอยู่ (Pending)" ในปีนั้น
     const pendingRequests = await prisma.leaveRequest.aggregate({
         where: {
             employeeId: employeeId,
             leaveTypeId: leaveTypeId,
             status: 'Pending',
-            // กรองเฉพาะปีที่ลาตรงกัน (อิงตาม startDate)
             startDate: {
                 gte: moment().year(year).startOf('year').toDate(),
                 lte: moment().year(year).endOf('year').toDate()
@@ -164,16 +163,17 @@ const checkQuotaAvailability = async (employeeId, leaveTypeId, requestedDays, ye
 
     const pendingDays = parseFloat(pendingRequests._sum.totalDaysRequested || 0);
     const approvedUsedDays = parseFloat(quota.usedDays);
-    const totalQuota = parseFloat(quota.totalDays);
-
-    // 4. 🔥 ตรรกะใหม่: (ที่ใช้ไปแล้ว + ที่รออนุมัติ + ที่กำลังจะขอใหม่) ต้องไม่เกิน โควต้าทั้งหมด
-    const totalUsedAndPending = approvedUsedDays + pendingDays;
-    const available = parseFloat((totalQuota - totalUsedAndPending).toFixed(2));
+    
+    // 🔥 ตรรกะใหม่: สิทธิ์ทั้งหมด = โควต้าปีปัจจุบัน + ยอดทบจากปีที่แล้ว
+    const totalEffectiveQuota = parseFloat(quota.totalDays) + parseFloat(quota.carriedOverDays);
+    
+    // สิทธิ์ที่เหลือจริง = สิทธิ์ทั้งหมด - (ที่ใช้ไปแล้ว + ที่รออนุมัติ)
+    const available = parseFloat((totalEffectiveQuota - (approvedUsedDays + pendingDays)).toFixed(2));
 
     if (requestedDays > available) {
         throw CustomError.conflict(
             `โควต้าไม่พอ เนื่องจากคุณมีรายการรอนุมัติอยู่ ${pendingDays} วัน ` +
-            `(คงเหลือจริงที่ลาได้: ${available} วัน, ต้องการใช้: ${requestedDays} วัน)`
+            `(คงเหลือรวมยอดทบที่ลาได้: ${available} วัน, ต้องการใช้: ${requestedDays} วัน)`
         );
     }
 

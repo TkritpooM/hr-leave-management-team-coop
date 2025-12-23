@@ -334,3 +334,124 @@
 }
 .date-row{ display:flex; gap: 10px; }
 .modal-actions{ margin-top: 8px; display:flex; justify-content:flex-end; gap: 10px; }
+
+/* ปรับปรุง Quota Card ให้รองรับเนื้อหาที่เพิ่มขึ้น */
+.quota-card {
+    min-height: 130px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Badge แสดงยอดทบสะสม (Carried Over) */
+.carried-badge {
+    display: inline-block;
+    font-size: 10px;
+    background-color: #ecfdf5; /* สีเขียวอ่อน */
+    color: #166534; /* สีเขียวเข้ม */
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 800;
+    border: 1px solid #bbf7d0;
+    width: fit-content;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* เน้นยอดสิทธิ์รวม (Available) */
+.qm.highlight {
+    background: rgba(30, 64, 175, 0.05) !important;
+    border-color: rgba(30, 64, 175, 0.1) !important;
+}
+
+.qm.highlight .qm-value {
+    color: #1e40af; /* สีน้ำเงินเข้ม */
+}
+
+/* เน้นยอดคงเหลือ (Remaining) */
+.qm.success {
+    background: rgba(22, 163, 74, 0.05) !important;
+    border-color: rgba(22, 163, 74, 0.1) !important;
+}
+
+.qm.success .qm-value {
+    color: #166534; /* สีเขียวเข้ม */
+}
+
+/* กล่องสรุปวันลาจริงใน Modal (Preview) */
+.leave-preview-info {
+    grid-column: 1 / -1;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #0369a1;
+    margin-bottom: 10px;
+}
+
+.preview-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.preview-main strong {
+    font-size: 20px;
+    color: #0284c7;
+}
+
+.mini-note {
+    font-size: 11px;
+    color: #0ea5e9;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ปรับปรุงส่วนหัวของ Modal */
+.modal-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+}
+
+.close-x {
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--muted);
+    transition: color 0.2s;
+}
+
+.close-x:hover {
+    color: #ef4444;
+}
+
+/* ปรับปรุงปุ่มใน Modal */
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.modal-actions button {
+    height: 44px;
+    flex: 1;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  font-weight: 950;
+  color: var(--muted); /* หรือใช้ #64748b */
+  margin-top: 24px;
+  margin-bottom: 12px;
+  letter-spacing: 0.01em;
+}
