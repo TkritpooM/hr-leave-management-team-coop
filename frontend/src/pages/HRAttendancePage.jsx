@@ -163,7 +163,8 @@ export default function HRAttendancePage() {
 
   const handleCheckIn = async () => {
     try {
-      await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
+      // เดิม: /checkin -> แก้เป็น: /check-in
+      await axios.post("http://localhost:8000/api/timerecord/check-in", {}, getAuthHeader());
       await alertSuccess("สำเร็จ", "Check In สำเร็จ");
       fetchAttendanceData();
       fetchLateSummary();
@@ -172,7 +173,8 @@ export default function HRAttendancePage() {
 
   const handleCheckOut = async () => {
     try {
-      await axios.post("http://localhost:8000/api/timerecord/checkout", {}, getAuthHeader());
+      // เดิม: /checkout -> แก้เป็น: /check-out
+      await axios.post("http://localhost:8000/api/timerecord/check-out", {}, getAuthHeader());
       await alertSuccess("สำเร็จ", "Check Out สำเร็จ");
       fetchAttendanceData();
     } catch (err) { alertError("Check Out ล้มเหลว", err.response?.data?.message); }

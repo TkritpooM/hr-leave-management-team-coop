@@ -149,19 +149,25 @@ export default function WorkerDashboard() {
   // Handlers
   const handleCheckIn = async () => {
     try {
-      await axios.post("http://localhost:8000/api/timerecord/checkin", {}, getAuthHeader());
+      // เปลี่ยนจาก /checkin เป็น /check-in
+      await axios.post("http://localhost:8000/api/timerecord/check-in", {}, getAuthHeader());
       await alertSuccess("สำเร็จ", "ลงชื่อเข้างานเรียบร้อย");
       fetchAttendanceData();
       fetchLateSummary();
-    } catch (err) { alertError("ล้มเหลว", err.response?.data?.message); }
+    } catch (err) { 
+      alertError("ล้มเหลว", err.response?.data?.message); 
+    }
   };
 
   const handleCheckOut = async () => {
     try {
-      await axios.post("http://localhost:8000/api/timerecord/checkout", {}, getAuthHeader());
+      // เปลี่ยนจาก /checkout เป็น /check-out
+      await axios.post("http://localhost:8000/api/timerecord/check-out", {}, getAuthHeader());
       await alertSuccess("สำเร็จ", "ลงชื่อออกงานเรียบร้อย");
       fetchAttendanceData();
-    } catch (err) { alertError("ล้มเหลว", err.response?.data?.message); }
+    } catch (err) { 
+      alertError("ล้มเหลว", err.response?.data?.message); 
+    }
   };
 
   const handleLeaveChange = (e) => {
