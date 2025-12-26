@@ -7,3 +7,4 @@ APP_NAME="My Awesome App"
 THEME="dark"
 # เพิ่มบรรทัดนี้ใน BeforePushMain
 DEBUG_MODE=true
+DEBUG_MODE=true
