@@ -1,0 +1,3 @@
+# --- Config in Poom ---
+DEBUG_MODE=false
+VERSION="1.0.1"
