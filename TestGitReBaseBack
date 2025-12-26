@@ -1,0 +1,9 @@
+# --- Backend Config ---
+API_URL="http://localhost:8000"
+DB_HOST="localhost"
+
+# --- Frontend Config ---
+APP_NAME="My Awesome App"
+THEME="dark"
+# เพิ่มบรรทัดนี้ใน BeforePushMain
+DEBUG_MODE=true
