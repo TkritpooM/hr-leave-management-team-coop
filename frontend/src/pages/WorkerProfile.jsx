@@ -83,22 +83,7 @@ export default function WorkerProfile() {
     <div className="profile-page-container">
       <header className="profile-page-header">
         <h1 className="profile-page-title">My Profile</h1>
-        <div className="profile-page-actions">
-          {!isEditing ? (
-            <button className="btn outline small" onClick={() => setIsEditing(true)}>
-              <FiEdit2 /> แก้ไขโปรไฟล์
-            </button>
-          ) : (
-            <div className="edit-mode-btns">
-              <button className="btn small ok" onClick={handleUpdate}>
-                <FiCheck /> บันทึก
-              </button>
-              <button className="btn small danger" onClick={() => setIsEditing(false)}>
-                <FiX /> ยกเลิก
-              </button>
-            </div>
-          )}
-        </div>
+        
       </header>
 
       <div className="profile-main-content">
