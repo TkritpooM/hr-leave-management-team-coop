@@ -2,7 +2,6 @@
 DEBUG_MODE=false
 VERSION="1.0.1"
 
-<<<<<<< HEAD
 # --- Frontend Config ---
 APP_NAME="My Awesome App"
 THEME="dark"
@@ -19,6 +18,4 @@ DEBUG_MODE=true
 DEBUG_MODE=true
 DEBUG_MODE=true
 DEBUG_MODE=true
-=======
->>>>>>> 9b7a3a2a63bf80b5a4aaa810b404169f3118f109
 DEBUG_MODE=true
