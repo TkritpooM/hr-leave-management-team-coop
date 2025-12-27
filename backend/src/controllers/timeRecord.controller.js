@@ -183,6 +183,65 @@ const getTopLateEmployees = async (req, res, next) => {
     } catch (error) { next(error); }
 };
 
+const getDailyDetail = async (req, res, next) => {
+    try {
+        const { date } = req.query;
+        if (!date) return res.status(400).json({ success: false, message: "Date is required" });
+
+        const targetDate = moment(date).startOf('day').toDate();
+        const endOfTargetDate = moment(date).endOf('day').toDate();
+
+        const allEmployees = await prisma.employee.findMany({
+            where: { isActive: true },
+            select: { employeeId: true, firstName: true, lastName: true, role: true }
+        });
+
+        const attendance = await prisma.timeRecord.findMany({
+            where: { workDate: { gte: targetDate, lte: endOfTargetDate } },
+            include: { employee: true }
+        });
+
+        const leaves = await prisma.leaveRequest.findMany({
+            where: {
+                status: 'Approved',
+                startDate: { lte: endOfTargetDate },
+                endDate: { gte: targetDate }
+            },
+            include: { 
+                employee: true, 
+                leaveType: true,
+                // ✅ แก้ไข: ถ้าชื่อฟิลด์ใน Prisma ของคุณไม่ใช่ approvedByHr ให้ลองเปลี่ยนตาม Schema
+                approvedByHR: { select: { firstName: true, lastName: true } } 
+            }
+        });
+
+        const presentIds = attendance.map(a => a.employeeId);
+        const leaveIds = leaves.map(l => l.employeeId);
+
+        const absent = allEmployees.filter(emp => 
+            !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId)
+        );
+
+        res.status(200).json({
+            success: true,
+            data: {
+                present: attendance,
+                leaves: leaves,
+                absent: absent,
+                summary: {
+                    total: allEmployees.length,
+                    presentCount: attendance.length,
+                    leaveCount: leaves.length,
+                    absentCount: absent.length
+                }
+            }
+        });
+    } catch (error) {
+        console.error("DEBUG BACKEND ERROR:", error); // 🔥 พิมพ์ Error ออกมาดูใน Console Backend
+        next(error);
+    }
+};
+
 // 👇 บรรทัดนี้สำคัญมากครับ ต้องมีปิดท้ายไฟล์เสมอ ห้ามขาด!
 module.exports = { 
     handleCheckIn, 
@@ -192,5 +251,6 @@ module.exports = {
     getMonthlyLateSummary, 
     getMonthlyLateStats, 
     exportAttendanceCSV,
-    getTopLateEmployees
+    getTopLateEmployees,
+    getDailyDetail
 };

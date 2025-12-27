@@ -18,4 +18,7 @@ router.get('/export', authenticateToken, timeRecordController.exportAttendanceCS
 // Ranking Late
 router.get('/stats/late-top', authenticateToken, timeRecordController.getTopLateEmployees);
 
+// Daily Details Functions
+router.get('/daily-detail', authenticateToken, timeRecordController.getDailyDetail);
+
 module.exports = router;
