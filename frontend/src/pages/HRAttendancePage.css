@@ -88,7 +88,7 @@
 .action-card h3{ margin:0; font-size: 18px; }
 .action-time{ font-size: 20px; font-weight: 950; margin: 4px 0 8px; }
 
-/* Corporate Action Buttons */
+/* Corporate Action Buttons (Main Buttons) */
 .btn-checkin,
 .btn-checkout,
 .btn-leave{
@@ -119,6 +119,25 @@
   transform: translateY(1px);
 }
 
+/* ✅ สไตล์ปุ่มเฉพาะสำหรับ Cancel ในตาราง (แก้วิธีช่องขยาย) */
+.history-table td .btn-leave {
+  height: 28px !important; /* บังคับความสูงให้เล็กลง */
+  padding: 0 12px !important;
+  font-size: 11px !important;
+  border-radius: 8px !important;
+  width: fit-content !important;
+  background: rgba(239, 68, 68, 0.1) !important; /* สีแดง Ghost */
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.2) !important;
+  box-shadow: none !important;
+  margin: 0 auto;
+}
+
+.history-table td .btn-leave:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  filter: none !important;
+}
+
 /* Check In (Green) */
 .btn-checkin{
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
@@ -135,7 +154,7 @@
   box-shadow: 0 12px 26px rgba(220,38,38,.22);
 }
 
-/* Leave (Yellow) */
+/* Leave (Yellow) - สำหรับปุ่มหลักด้านบน */
 .btn-leave{
   background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
   color: #111827;
@@ -168,7 +187,7 @@
 .primary-btn:disabled,.secondary-btn:disabled{ opacity:.55; cursor:not-allowed; box-shadow:none; }
 
 /* =========================================================
-   ✅ NEW: Quota cards (same as Worker)
+    ✅ NEW: Quota cards (same as Worker)
    ========================================================= */
 .quota-grid{
   display:grid;
@@ -288,7 +307,7 @@
 }
 .history-table{ width:100%; border-collapse: collapse; font-size: 14px; }
 .history-table thead{ background: var(--tint2); }
-.history-table th, .history-table td{ padding: 10px 12px; border-bottom: 1px solid var(--tint); text-align:left; }
+.history-table th, .history-table td{ padding: 10px 12px; border-bottom: 1px solid var(--tint); text-align:left; vertical-align: middle; }
 .history-table th{ color: var(--muted); font-weight: 900; }
 .history-table tr:hover td{ background: var(--tint); }
 .empty{ text-align:center; color: var(--muted); padding: 18px 0; }
@@ -335,20 +354,12 @@
 .date-row{ display:flex; gap: 10px; }
 .modal-actions{ margin-top: 8px; display:flex; justify-content:flex-end; gap: 10px; }
 
-/* ปรับปรุง Quota Card ให้รองรับเนื้อหาที่เพิ่มขึ้น */
-.quota-card {
-    min-height: 130px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
 /* Badge แสดงยอดทบสะสม (Carried Over) */
 .carried-badge {
     display: inline-block;
     font-size: 10px;
-    background-color: #ecfdf5; /* สีเขียวอ่อน */
-    color: #166534; /* สีเขียวเข้ม */
+    background-color: #ecfdf5; 
+    color: #166534; 
     padding: 2px 8px;
     border-radius: 999px;
     font-weight: 800;
@@ -365,7 +376,7 @@
 }
 
 .qm.highlight .qm-value {
-    color: #1e40af; /* สีน้ำเงินเข้ม */
+    color: #1e40af; 
 }
 
 /* เน้นยอดคงเหลือ (Remaining) */
@@ -375,7 +386,7 @@
 }
 
 .qm.success .qm-value {
-    color: #166534; /* สีเขียวเข้ม */
+    color: #166534; 
 }
 
 /* กล่องสรุปวันลาจริงใน Modal (Preview) */
@@ -450,7 +461,7 @@
 .section-subtitle {
   font-size: 14px;
   font-weight: 950;
-  color: var(--muted); /* หรือใช้ #64748b */
+  color: var(--muted); 
   margin-top: 24px;
   margin-bottom: 12px;
   letter-spacing: 0.01em;

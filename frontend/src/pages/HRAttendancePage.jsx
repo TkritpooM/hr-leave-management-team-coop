@@ -325,7 +325,7 @@ export default function HRAttendancePage() {
       </section>
 
       <h2 className="section-subtitle">
-        สิทธิ์การลาของคุณ (รวมสิทธิ์ที่ทบมาปีที่แล้ว)
+        Your Leave Balance (Including Carry-over)
       </h2>
 
       <section className="quota-grid">
@@ -390,7 +390,7 @@ export default function HRAttendancePage() {
                     <td><span className={`status-badge status-${normStatus(req.status)}`}>{req.status}</span></td>
                     <td style={{ textAlign: 'center' }}>
                       {normStatus(req.status) === "pending" && (
-                        <button className="btn-leave" style={{ padding: '4px 8px', fontSize: '12px', backgroundColor: '#ef4444' }} onClick={() => handleCancelLeave(req.requestId)}>Cancel</button>
+                        <button className="btn-leave" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', boxShadow: 'none' }} onClick={() => handleCancelLeave(req.requestId)}>Cancel</button>
                       )}
                     </td>
                   </tr>
