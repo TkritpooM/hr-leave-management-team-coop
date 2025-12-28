@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from "recharts";
-import { FiPlus, FiSave, FiRefreshCw, FiCalendar } from "react-icons/fi";
+import { FiPlus, FiSave, FiRefreshCw, FiCalendar, FiTrendingUp, FiCheckCircle, FiXCircle, FiClock, FiFileText } from "react-icons/fi";
 import "./HRDashboard.css";
 import DailyDetailModal from "../components/DailyDetailModal";
 import Pagination from "../components/Pagination";
@@ -73,7 +73,6 @@ export default function HRDashboard() {
   const todayStr = toISODate(new Date());
 
   /* ===== API Calls ===== */
-
   const fetchMonthLeaves = async () => {
     try {
       const start = toISODate(new Date(viewYear, viewMonth, 1));
@@ -125,7 +124,6 @@ export default function HRDashboard() {
       const res = await axiosClient.get(`/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}`);
       const { individualReport, leaveChartData, perfectEmployees } = res.data.data;
 
-      // Calculate Totals for Summary Cards
       const summary = individualReport.reduce((acc, emp) => ({
         present: acc.present + emp.presentCount,
         late: acc.late + emp.lateCount,
@@ -143,20 +141,17 @@ export default function HRDashboard() {
       setLeaveChartData(leaveChartData);
       setPerfectEmployees(perfectEmployees);
     } catch (err) {
-      alertError("Error", "ไม่สามารถดึงข้อมูลรายงานได้");
+      alertError("Error", "Unable to fetch report data.");
     } finally { setLoading(false); }
   };
 
   /* ===== Handlers ===== */
-
   const handleExportPerformance = () => {
-    if (employeeReport.length === 0) return alertError("Error", "ไม่มีข้อมูลสำหรับ Export");
-    
+    if (employeeReport.length === 0) return alertError("Error", "No data to export.");
     let csv = 'Employee Name,Present (Days),Late (Times),Leave (Days),Absent (Days),Late Rate\n';
     employeeReport.forEach(emp => {
       csv += `"${emp.name}",${emp.presentCount},${emp.lateCount},${emp.leaveCount},${emp.absentCount},${emp.lateRate}%\n`;
     });
-
     const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -170,8 +165,6 @@ export default function HRDashboard() {
   const handleStartDateChange = (e) => {
     const newStart = e.target.value;
     setRangeStart(newStart);
-    
-    // เมื่อเลือกวันเริ่ม ให้หาปฏิทินวันสุดท้ายของเดือนนั้นอัตโนมัติ
     const endOfMonth = moment(newStart).endOf('month').format("YYYY-MM-DD");
     setRangeEnd(endOfMonth);
   };
@@ -184,11 +177,10 @@ export default function HRDashboard() {
       setSelectedDate(dateStr);
       setDailyModalOpen(true);
     } catch (err) {
-      alertError("ผิดพลาด", "ไม่สามารถดึงข้อมูลได้");
+      alertError("Error", "Unable to load data.");
     } finally { setLoading(false); }
   };
 
-  /* ===== Effects ===== */
   useEffect(() => {
     fetchMonthLeaves();
     fetchChartData();
@@ -204,15 +196,15 @@ export default function HRDashboard() {
       id: `att-${r.recordId}`,
       name: `${r.employee.firstName} ${r.employee.lastName}`,
       role: r.employee.role,
-      checkIn: r.checkInTime ? moment(r.checkInTime).format("HH:mm") : "-",
-      checkOut: r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "-",
+      checkIn: r.checkInTime ? moment(r.checkInTime).format("HH:mm") : "--:--",
+      checkOut: r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "--:--",
       status: r.isLate ? "Late" : "On Time",
     }));
     const leave = leaveRequests.map((l) => ({
       id: `leave-${l.requestId}`,
       name: `${l.employee.firstName} ${l.employee.lastName}`,
       role: l.employee.role,
-      checkIn: "-", checkOut: "-",
+      checkIn: "--:--", checkOut: "--:--",
       status: `Leave (${l.leaveType.typeName})`,
     }));
     return [...att, ...leave];
@@ -222,18 +214,18 @@ export default function HRDashboard() {
     <div className="page-card hr-dashboard">
       <header className="hr-header">
         <div>
-          <h1 className="hr-title">HR Dashboard</h1>
-          <p className="hr-subtitle">จัดการเวลาเข้างานและข้อมูลการลาพนักงาน</p>
+          <h1 className="hr-title">Management Dashboard</h1>
+          <p className="hr-subtitle">Oversee employee attendance and leave requests</p>
         </div>
         <div className="hr-header-right">
-          <div className="pill date-pill">วันที่เลือก: {moment(selectedDate).format("DD MMM YYYY")}</div>
+          <div className="pill date-pill"><FiCalendar /> Selected: {moment(selectedDate).format("DD MMM YYYY")}</div>
         </div>
       </header>
 
       <div className="hr-tabs">
-        {["overview", "reports", "audit"].map((t) => (
+        {["overview", "reports"].map((t) => (
           <button key={t} className={`btn small ${tab === t ? "primary" : "outline"}`} onClick={() => setTab(t)}>
-            {t.charAt(0).toUpperCase() + t.slice(1)}
+            {t === "overview" ? "Overview" : "Performance Reports"}
           </button>
         ))}
       </div>
@@ -247,7 +239,7 @@ export default function HRDashboard() {
                 <h2 className="month-label">{moment(new Date(viewYear, viewMonth, 1)).format("MMMM YYYY")}</h2>
                 <button className="nav-btn" onClick={() => setViewMonth(prev => prev === 11 ? 0 : prev + 1)}>›</button>
               </div>
-              <button className="btn outline small" onClick={() => setSelectedDate(todayStr)}>Go to Today</button>
+              <button className="btn outline small today-btn" onClick={() => setSelectedDate(todayStr)}>Go to Today</button>
             </div>
 
             <div className="calendar">
@@ -268,7 +260,8 @@ export default function HRDashboard() {
                         >
                           <div className="cal-date-row">
                             <span className="cal-date">{d.getDate()}</span>
-                            {leaves.length > 2 && <span className="more-badge">+{leaves.length - 2}</span>}
+                            {leaves.length > 2 && (<span className="more-count-badge">+{leaves.length - 2}</span>
+                            )}
                           </div>
                           <div className="cal-leave-list">
                             {leaves.slice(0, 2).map((x, i) => (
@@ -286,17 +279,17 @@ export default function HRDashboard() {
 
           <section className="dashboard-section details-section">
             <div className="section-header">
-              <h3>บันทึกพนักงานประจำวัน</h3>
-              <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}>Refresh</button>
+              <h3>Daily Attendance Records</h3>
+              <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}><FiRefreshCw className={loading ? "spin" : ""} /> Refresh</button>
             </div>
             <div className="table-wrap">
               <table className="table">
                 <thead>
-                  <tr><th>Employee</th><th>Role</th><th>Time In</th><th>Time Out</th><th>Status</th></tr>
+                  <tr><th>Employee</th><th>Role</th><th>In</th><th>Out</th><th>Status</th></tr>
                 </thead>
                 <tbody>
                   {dayRecords.length === 0 ? (
-                    <tr><td colSpan="5" className="empty">ไม่พบข้อมูลสำหรับวันนี้</td></tr>
+                    <tr><td colSpan="5" className="empty">No records found for this date.</td></tr>
                   ) : (
                     dayRecords.slice((page-1)*pageSize, page*pageSize).map((r) => (
                       <tr key={r.id}>
@@ -324,68 +317,57 @@ export default function HRDashboard() {
 
       {tab === "reports" && (
         <section className="dashboard-section">
-           <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
-              <div><h3>HR Reports</h3><p>วิเคราะห์ผลงานและสถิติการเข้างานรายบุคคล</p></div>
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <label style={{ fontSize: '12px', color: '#666' }}>เริ่ม:</label>
-                  <input 
-                    type="date" 
-                    value={rangeStart} 
-                    max={todayStr} // ล็อคไม่ให้เลือกวันในอนาคต
-                    onChange={handleStartDateChange} 
-                  />
+            <div className="section-header reports-header">
+              <div><h3>HR Analytics</h3><p>Detailed performance and attendance trends</p></div>
+              <div className="reports-controls">
+                <div className="input-group">
+                  <label>Start:</label>
+                  <input type="date" value={rangeStart} max={todayStr} onChange={handleStartDateChange} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <label style={{ fontSize: '12px', color: '#666' }}>สิ้นสุด:</label>
-                  <input 
-                    type="date" 
-                    value={rangeEnd} 
-                    onChange={e => setRangeEnd(e.target.value)} 
-                  />
+                <div className="input-group">
+                  <label>End:</label>
+                  <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} />
                 </div>
                 <button className="btn primary small" onClick={fetchReport} disabled={loading}>Run Report</button>
                 <button className="btn outline small" onClick={handleExportPerformance} disabled={employeeReport.length === 0}>
                   <FiSave /> Export CSV
                 </button>
               </div>
-           </div>
+            </div>
 
-           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginTop: 20 }}>
-              <Card title="Present" value={reportSummary.present} tone="green" />
-              <Card title="On Leave" value={reportSummary.leave} tone="blue" />
-              <Card title="Late" value={reportSummary.late} tone="red" />
-              <Card title="Absent" value={reportSummary.absent} tone="gray" />
-              <Card title="Late Rate" value={`${reportSummary.lateRate}%`} tone="amber" />
-           </div>
+            <div className="stats-grid">
+              <Card title="Present" value={reportSummary.present} tone="green" icon={<FiCheckCircle />} />
+              <Card title="On Leave" value={reportSummary.leave} tone="blue" icon={<FiFileText />} />
+              <Card title="Late" value={reportSummary.late} tone="red" icon={<FiClock />} />
+              <Card title="Absent" value={reportSummary.absent} tone="gray" icon={<FiXCircle />} />
+              <Card title="Late Rate" value={`${reportSummary.lateRate}%`} tone="amber" icon={<FiTrendingUp />} />
+            </div>
 
-           <div className="table-wrap" style={{ marginTop: 25 }}>
-              <div style={{ padding: "15px", fontWeight: "bold", borderBottom: "1px solid #eee", background: "#fafafa" }}>
-                ตารางสรุปผลงานพนักงานรายบุคคล
-              </div>
+            <div className="table-wrap" style={{ marginTop: 25 }}>
+              <div className="table-header-title">Employee Performance Summary</div>
               <table className="table">
                 <thead>
                   <tr>
-                    <th>พนักงาน</th>
-                    <th style={{ textAlign: "center" }}>มาทำงาน (วัน)</th>
-                    <th style={{ textAlign: "center" }}>มาสาย (ครั้ง)</th>
-                    <th style={{ textAlign: "center" }}>ลา (วัน)</th>
-                    <th style={{ textAlign: "center" }}>ขาดงาน (วัน)</th>
-                    <th style={{ textAlign: "center" }}>Late Rate</th>
+                    <th>Employee</th>
+                    <th className="text-center">Days Present</th>
+                    <th className="text-center">Times Late</th>
+                    <th className="text-center">Days Leave</th>
+                    <th className="text-center">Days Absent</th>
+                    <th className="text-center">Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {employeeReport.length === 0 ? (
-                    <tr><td colSpan="6" className="empty">กรุณากด Run Report เพื่อดูข้อมูล</td></tr>
+                    <tr><td colSpan="6" className="empty">Click "Run Report" to load analytics.</td></tr>
                   ) : (
                     employeeReport.map(emp => (
                       <tr key={emp.employeeId}>
                         <td><strong>{emp.name}</strong></td>
-                        <td style={{ textAlign: "center" }}>{emp.presentCount}</td>
-                        <td style={{ textAlign: "center" }} className={emp.lateCount > 0 ? "text-danger" : ""}>{emp.lateCount}</td>
-                        <td style={{ textAlign: "center" }}>{emp.leaveCount}</td>
-                        <td style={{ textAlign: "center" }} className={emp.absentCount > 0 ? "text-danger" : ""}>{emp.absentCount}</td>
-                        <td style={{ textAlign: "center" }}>
+                        <td className="text-center">{emp.presentCount}</td>
+                        <td className="text-center text-danger">{emp.lateCount}</td>
+                        <td className="text-center">{emp.leaveCount}</td>
+                        <td className="text-center text-danger">{emp.absentCount}</td>
+                        <td className="text-center">
                             <span className={`badge ${emp.lateRate > 20 ? "badge-late" : "badge-ok"}`}>{emp.lateRate}%</span>
                         </td>
                       </tr>
@@ -393,28 +375,26 @@ export default function HRDashboard() {
                   )}
                 </tbody>
               </table>
-           </div>
+            </div>
 
-           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))", gap: 20, marginTop: 25 }}>
-              {/* พนักงานดีเด่น */}
-              <div className="card-custom" style={{ padding: 20, border: "1px solid #e5e7eb" }}>
-                <h5 style={{ color: "#16a34a", marginBottom: 15 }}>🏆 พนักงานดีเด่น (Perfect Attendance)</h5>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div className="charts-container">
+              <div className="report-card">
+                <h5 className="card-title">🏆 Top Performance (Perfect Attendance)</h5>
+                <div className="perfect-list">
                   {perfectEmployees.length > 0 ? perfectEmployees.map(emp => (
-                    <div key={emp.employeeId} className="d-flex justify-content-between p-2 bg-light rounded shadow-sm">
+                    <div key={emp.employeeId} className="perfect-item">
                       <span className="fw-500">{emp.name}</span>
-                      <span className="badge bg-success">ดีเยี่ยม</span>
+                      <span className="badge badge-ok">EXCELLENT</span>
                     </div>
-                  )) : <p className="text-center text-muted py-4">ไม่มีข้อมูลในช่วงนี้</p>}
+                  )) : <p className="empty-msg">No data available for this period.</p>}
                 </div>
               </div>
 
-              {/* กราฟสัดส่วนการลา */}
-              <div className="card-custom" style={{ padding: 20, border: "1px solid #e5e7eb" }}>
-                <h5 style={{ marginBottom: 15 }}>📊 สัดส่วนประเภทการลา</h5>
-                <div style={{ width: "100%", height: 250 }}>
+              <div className="report-card">
+                <h5 className="card-title">📊 Leave Distribution</h5>
+                <div className="chart-box">
                   {leaveChartData.length > 0 ? (
-                    <ResponsiveContainer>
+                    <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie data={leaveChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                           {leaveChartData.map((entry, index) => (
@@ -424,10 +404,10 @@ export default function HRDashboard() {
                         <Tooltip />
                       </PieChart>
                     </ResponsiveContainer>
-                  ) : <p className="text-center text-muted py-5">ไม่มีข้อมูลการลา</p>}
+                  ) : <p className="empty-msg">No leave data found.</p>}
                 </div>
               </div>
-           </div>
+            </div>
         </section>
       )}
 
@@ -436,8 +416,7 @@ export default function HRDashboard() {
   );
 }
 
-/* --- Sub-components --- */
-function Card({ title, value, tone }) {
+function Card({ title, value, tone, icon }) {
   const themes = {
     green: { bg: "#f0fdf4", border: "#22c55e", fg: "#166534" },
     blue: { bg: "#eff6ff", border: "#3b82f6", fg: "#1e40af" },
@@ -447,9 +426,12 @@ function Card({ title, value, tone }) {
   };
   const p = themes[tone];
   return (
-    <div style={{ background: p.bg, borderLeft: `4px solid ${p.border}`, borderRadius: 12, padding: 15 }}>
-      <div style={{ color: p.fg, fontWeight: 700, fontSize: 13 }}>{title}</div>
-      <div style={{ color: p.fg, fontWeight: 900, fontSize: 24 }}>{value}</div>
+    <div className="stat-card" style={{ background: p.bg, borderLeft: `4px solid ${p.border}` }}>
+      <div className="stat-content">
+        <div className="stat-label" style={{ color: p.fg }}>{title}</div>
+        <div className="stat-value" style={{ color: p.fg }}>{value}</div>
+      </div>
+      <div className="stat-icon" style={{ color: p.border }}>{icon}</div>
     </div>
   );
 }

@@ -51,7 +51,7 @@ const getAllTimeRecords = async (req, res, next) => {
                 },
                 ...(employeeId && { employeeId: parseInt(employeeId) })
             },
-            include: { employee: { select: { employeeId: true, firstName: true, lastName: true } } },
+            include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } } },
             orderBy: { workDate: 'desc' }
         });
         res.status(200).json({ success: true, records });
@@ -198,7 +198,7 @@ const getDailyDetail = async (req, res, next) => {
 
         const attendance = await prisma.timeRecord.findMany({
             where: { workDate: { gte: targetDate, lte: endOfTargetDate } },
-            include: { employee: true }
+            include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } } }
         });
 
         const leaves = await prisma.leaveRequest.findMany({
