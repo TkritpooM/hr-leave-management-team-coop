@@ -167,6 +167,15 @@ export default function HRDashboard() {
     link.remove();
   };
 
+  const handleStartDateChange = (e) => {
+    const newStart = e.target.value;
+    setRangeStart(newStart);
+    
+    // Auto End of Month: เมื่อเลือกวันเริ่ม ให้เซตวันจบเป็นสิ้นเดือนนั้น
+    const endOfMonth = moment(newStart).endOf('month').format("YYYY-MM-DD");
+    setRangeEnd(endOfMonth);
+  };
+
   const openDailyDetail = async (dateStr) => {
     try {
       setLoading(true);

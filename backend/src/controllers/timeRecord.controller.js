@@ -247,6 +247,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
         const { startDate, endDate } = req.query;
         const start = moment(startDate).tz("Asia/Bangkok").startOf('day');
         const end = moment(endDate).tz("Asia/Bangkok").endOf('day');
+        const today = moment().tz("Asia/Bangkok").startOf('day');
 
         // 1. ดึงพนักงานทุกคน
         const employees = await prisma.employee.findMany({
@@ -259,7 +260,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
         let curr = start.clone();
         while (curr.isSameOrBefore(end, 'day')) {
             const dayOfWeek = curr.day();
-            if (dayOfWeek !== 0 && dayOfWeek !== 6) { // ไม่นับเสาร์-อาทิตย์
+            if (dayOfWeek !== 0 && dayOfWeek !== 6 && curr.isSameOrBefore(today, 'day')) {
                 workDays.push(curr.format('YYYY-MM-DD'));
             }
             curr.add(1, 'day');
