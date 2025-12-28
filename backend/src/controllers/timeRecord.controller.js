@@ -294,7 +294,37 @@ const getEmployeePerformanceReport = async (req, res, next) => {
             };
         });
 
-        res.status(200).json({ success: true, data: report });
+        // 4. สรุปประเภทการลา (สำหรับทำกราฟ Pie Chart)
+        const leaveSummaryByType = {};
+        allLeaves.forEach(l => {
+            const typeName = l.leaveType.typeName;
+            const days = parseFloat(l.totalDaysRequested);
+            if (leaveSummaryByType[typeName]) {
+                leaveSummaryByType[typeName] += days;
+            } else {
+                leaveSummaryByType[typeName] = days;
+            }
+        });
+
+        // แปลงเป็น Array เพื่อให้ Frontend ใช้ง่าย
+        const leaveChartData = Object.keys(leaveSummaryByType).map(name => ({
+            name,
+            value: leaveSummaryByType[name]
+        }));
+
+        // 5. คัดเลือกพนักงานดีเด่น (ไม่สาย ไม่ลา และมีวันมาทำงาน > 0)
+        const perfectEmployees = report.filter(emp => 
+            emp.presentCount > 0 && emp.lateCount === 0 && emp.leaveCount === 0
+        );
+
+        res.status(200).json({ 
+            success: true, 
+            data: {
+                individualReport: report,
+                leaveChartData: leaveChartData,
+                perfectEmployees: perfectEmployees
+            } 
+        });
     } catch (error) { next(error); }
 };
 

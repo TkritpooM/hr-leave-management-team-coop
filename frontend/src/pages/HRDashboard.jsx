@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart, Pie, Cell
 } from "recharts";
 import "./HRDashboard.css";
 import DailyDetailModal from "../components/DailyDetailModal";
@@ -82,6 +83,8 @@ export default function HRDashboard() {
 
   // Reports
   const [employeeReport, setEmployeeReport] = useState([]);
+  const [leaveChartData, setLeaveChartData] = useState([]);
+  const [perfectEmployees, setPerfectEmployees] = useState([]);
 
   /* ===== API Calls ===== */
 
@@ -137,30 +140,38 @@ export default function HRDashboard() {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const [att, lv] = await Promise.all([
-        axiosClient.get(`/timerecord/all?startDate=${rangeStart}&endDate=${rangeEnd}`),
-        axiosClient.get(`/leave/admin/all?startDate=${rangeStart}&endDate=${rangeEnd}`),
-      ]);
-      const records = att.data.records || [];
-      const leaves = (lv.data.requests || []).filter((r) => r.status === "Approved");
-      const late = records.filter((r) => r.isLate).length;
+      const res = await axiosClient.get(`/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}`);
       
+      // 1. ดึงข้อมูลที่ได้จาก Backend
+      const { individualReport, leaveChartData, perfectEmployees } = res.data.data;
+
+      // 2. คำนวณสรุปยอดรวม (Summary) จากข้อมูลรายบุคคลที่ได้มา
+      const totalPresent = individualReport.reduce((sum, emp) => sum + emp.presentCount, 0);
+      const totalLate = individualReport.reduce((sum, emp) => sum + emp.lateCount, 0);
+      const totalLeave = individualReport.reduce((sum, emp) => sum + emp.leaveCount, 0);
+      const totalItems = totalPresent + totalLeave; // ยอดรวมรายการทั้งหมด
+      const avgLateRate = totalPresent > 0 ? Math.round((totalLate / totalPresent) * 100) : 0;
+
+      // 3. อัปเดต State สรุปยอดรวม (เพื่อให้ตัวเลขด้านบนไม่เป็น 0)
       setReportSummary({
-        present: records.length,
-        leave: leaves.length,
-        late,
-        total: records.length + leaves.length,
-        lateRate: records.length > 0 ? Math.round((late / records.length) * 100) : 0,
+        present: totalPresent,
+        leave: totalLeave,
+        late: totalLate,
+        total: totalItems,
+        lateRate: avgLateRate
       });
 
-      // ดึง Top Late
-      const month = moment(rangeStart).format("YYYY-MM");
-      const top = await axiosClient.get(`/timerecord/stats/late-top?month=${month}`).catch(() => null);
-      setTopLate(top?.data?.data || []);
-      const perfRes = await axiosClient.get(`/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}`);
-      setEmployeeReport(perfRes.data.data);
-    } catch (err) { alertError("Error", "ไม่สามารถดึงรายงานได้");
-    } finally { setLoading(true); setLoading(false); }
+      // 4. อัปเดต State ข้อมูลส่วนอื่นๆ
+      setEmployeeReport(individualReport);
+      setLeaveChartData(leaveChartData);
+      setPerfectEmployees(perfectEmployees);
+
+    } catch (err) {
+      console.error("Fetch Report Error:", err);
+      alertError("Error", "ไม่สามารถดึงข้อมูลรายงานได้");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExport = async () => {
@@ -433,6 +444,57 @@ export default function HRDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
+            {/* --- ส่วนที่ 1: พนักงานดีเด่น & กราฟการลา --- */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", 
+              gap: "20px", 
+              marginTop: "25px" 
+            }}>
+              
+              {/* ฝั่งซ้าย: พนักงานดีเด่น */}
+              <div className="card-custom" style={{ padding: "20px", border: "1px solid #e5e7eb" }}>
+                <h5 style={{ color: "#16a34a", marginBottom: "15px" }}>🏆 พนักงานดีเด่น (Perfect Attendance)</h5>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {perfectEmployees.length > 0 ? perfectEmployees.map(emp => (
+                    <div key={emp.employeeId} className="d-flex justify-content-between p-2 bg-light rounded shadow-sm">
+                      <span className="fw-500">{emp.name}</span>
+                      <span className="badge bg-success">ดีเยี่ยม</span>
+                    </div>
+                  )) : <p className="text-center text-muted py-4">ไม่มีข้อมูลพนักงานดีเด่นในช่วงนี้</p>}
+                </div>
+              </div>
+
+              {/* ฝั่งขวา: สรุปสัดส่วนการลา (Pie Chart Version) */}
+              <div className="card-custom" style={{ padding: "20px", border: "1px solid #e5e7eb" }}>
+                <h5 style={{ marginBottom: "15px" }}>📊 สัดส่วนประเภทการลา</h5>
+                <div style={{ width: "100%", height: "250px" }}>
+                  {leaveChartData.length > 0 ? (
+                    <ResponsiveContainer>
+                      <PieChart>
+                        <Pie
+                          data={leaveChartData}
+                          dataKey="value"
+                          nameKey="name"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          label={(entry) => `${entry.name}: ${entry.value}วัน`}
+                        >
+                          {/* กำหนดสีแยกตามประเภทการลา */}
+                          {leaveChartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index === 0 ? "#3b82f6" : index === 1 ? "#10b981" : "#f59e0b"} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <p className="text-center text-muted py-5">ไม่มีข้อมูลการลา</p>
+                  )}
+                </div>
+              </div>
             </div>
         </section>
       )}
