@@ -83,13 +83,12 @@ const getLeaveTypes = async (req, res, next) => {
 
 const createLeaveType = async (req, res, next) => {
     try {
-        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays } = req.body;
+        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays, colorCode } = req.body;
         const newType = await prisma.leaveType.create({ 
             data: { 
                 typeName, 
                 isPaid: isPaid !== undefined ? isPaid : true,
                 defaultDays: parseFloat(defaultDays) || 0,
-                // 🔥 เพิ่ม 2 ฟิลด์นี้
                 canCarryForward: !!canCarryForward,
                 maxCarryDays: parseFloat(maxCarryDays) || 0,
                 colorCode: colorCode || "#3b82f6"
@@ -102,16 +101,16 @@ const createLeaveType = async (req, res, next) => {
 const updateLeaveType = async (req, res, next) => {
     try {
         const leaveTypeId = parseInt(req.params.leaveTypeId);
-        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays } = req.body;
+        const { typeName, isPaid, defaultDays, canCarryForward, maxCarryDays, colorCode } = req.body;
         const updatedType = await prisma.leaveType.update({ 
             where: { leaveTypeId }, 
             data: { 
                 typeName, 
                 isPaid, 
                 defaultDays: parseFloat(defaultDays),
-                // 🔥 เพิ่ม 2 ฟิลด์นี้
                 canCarryForward: !!canCarryForward,
-                maxCarryDays: parseFloat(maxCarryDays) || 0
+                maxCarryDays: parseFloat(maxCarryDays) || 0,
+                colorCode: colorCode
             } 
         });
         res.status(200).json({ success: true, message: 'Leave type updated.', type: updatedType });

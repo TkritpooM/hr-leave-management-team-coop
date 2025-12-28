@@ -45,8 +45,8 @@ router.get('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), validat
 router.put('/hr/leave-quota/:employeeId', [ param('employeeId').isInt(), body('quotas').isArray(), validate ], adminController.updateEmployeeQuotaBulk);
 
 // Leave Type Management (Write actions)
-router.post('/leavetype', [ body('typeName').notEmpty().withMessage('Type Name is required.'), body('isPaid').optional().isBoolean().withMessage('isPaid must be a boolean.'), validate ], adminController.createLeaveType);
-router.put('/leavetype/:leaveTypeId', [ param('leaveTypeId').isInt(), body('typeName').notEmpty(), body('isPaid').optional().isBoolean(), validate ], adminController.updateLeaveType);
+router.post('/leavetype', [ body('typeName').notEmpty().withMessage('Type Name is required.'), body('isPaid').optional().isBoolean().withMessage('isPaid must be a boolean.'), body('colorCode').optional().isString(), validate ], adminController.createLeaveType);
+router.put('/leavetype/:leaveTypeId', [ param('leaveTypeId').isInt(), body('typeName').notEmpty(), body('isPaid').optional().isBoolean(), body('colorCode').optional().isString(), validate ], adminController.updateLeaveType);
 router.delete('/leavetype/:leaveTypeId', [ param('leaveTypeId').isInt(), validate ], adminController.deleteLeaveType);
 
 // Leave Quota Management (CRUD เดิม)
