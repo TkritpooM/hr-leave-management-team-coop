@@ -91,7 +91,8 @@ const createLeaveType = async (req, res, next) => {
                 defaultDays: parseFloat(defaultDays) || 0,
                 // 🔥 เพิ่ม 2 ฟิลด์นี้
                 canCarryForward: !!canCarryForward,
-                maxCarryDays: parseFloat(maxCarryDays) || 0
+                maxCarryDays: parseFloat(maxCarryDays) || 0,
+                colorCode: colorCode || "#3b82f6"
             } 
         });
         res.status(201).json({ success: true, message: 'Leave type created.', type: newType });

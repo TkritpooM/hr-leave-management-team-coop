@@ -104,7 +104,8 @@ export default function LeaveSettings() {
       isPaid: !!t.isPaid,
       defaultDays: t.defaultDays ?? 0,
       canCarryForward: !!t.canCarryForward,
-      maxCarryDays: t.maxCarryDays ?? 0
+      maxCarryDays: t.maxCarryDays ?? 0,
+      colorCode: t.colorCode || "#3b82f6"
     });
     setModalOpen(true);
   };
@@ -253,6 +254,13 @@ export default function LeaveSettings() {
                     <input className="quota-input w-full" type="number" step="0.5" min="0" value={form.maxCarryDays} onChange={(e) => setForm({ ...form, maxCarryDays: e.target.value })} required={form.canCarryForward} />
                   </div>
                 )}
+              </div>
+              <div className="form-col">
+                <label>Color for chart reports (Chart Color)</label>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <input type="color" value={form.colorCode} onChange={(e) => setForm({ ...form, colorCode: e.target.value })} style={{ width: '50px', height: '38px', padding: '0', border: 'none' }} />
+                  <input className="quota-input" value={form.colorCode} onChange={(e) => setForm({ ...form, colorCode: e.target.value })} />
+                </div>
               </div>
             </div>
             <div className="emp-modal-actions">

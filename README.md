@@ -55,6 +55,8 @@ Add column CrossingYearV3
 pnpx prisma@6 migrate dev --name add_Quota_type_Leave_Quota
 Add Polyci
 pnpx prisma@6 migrate dev --name add_attendance_policy
+Add LeaveType Color for HR Dashboard (Report Tabs)
+pnpx prisma@6 migrate dev --name add_color_to_leavetype
 ```
 ### To Run Project
 ```bash
