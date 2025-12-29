@@ -4,12 +4,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from "recharts";
-import { FiPlus, FiSave, FiRefreshCw, FiCalendar, FiTrendingUp, FiCheckCircle, FiXCircle, FiClock, FiFileText } from "react-icons/fi";
+import { FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiFileText, FiTrendingUp, FiSave } from "react-icons/fi";
 import "./HRDashboard.css";
 import DailyDetailModal from "../components/DailyDetailModal";
 import Pagination from "../components/Pagination";
 import axiosClient from "../api/axiosClient";
-import { alertConfirm, alertError } from "../utils/sweetAlert";
+import { alertError } from "../utils/sweetAlert";
 
 /* ===== Helpers ===== */
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -31,14 +31,6 @@ function getMonthMatrix(year, monthIndex) {
   }
   return weeks;
 }
-
-const leaveTypeClass = (typeName = "") => {
-  const t = String(typeName || "").toLowerCase();
-  if (t.includes("sick")) return "leave-badge sick";
-  if (t.includes("personal")) return "leave-badge personal";
-  if (t.includes("vacation")) return "leave-badge vacation";
-  return "leave-badge";
-};
 
 export default function HRDashboard() {
   const [tab, setTab] = useState("overview");
@@ -84,13 +76,18 @@ export default function HRDashboard() {
       approved.forEach((leave) => {
         let curr = moment(leave.startDate).startOf("day");
         const last = moment(leave.endDate).startOf("day");
+        
+        // 🔥 จุดสำคัญ: ดึงสีจาก leaveType มาใช้ (ถ้าไม่มีให้ใช้สีฟ้า Default)
+        const typeColor = leave.leaveType?.colorCode || "#3b82f6";
+        const typeName = leave.leaveType?.typeName || "Leave";
+
         while (curr.isSameOrBefore(last, "day")) {
           const ds = curr.format("YYYY-MM-DD");
           if (!mapping[ds]) mapping[ds] = [];
           mapping[ds].push({
             name: `${leave.employee.firstName} ${leave.employee.lastName}`,
-            typeName: leave.leaveType?.typeName || "Leave",
-            colorCode: leave.leaveType?.colorCode || "#3b82f6",
+            typeName: typeName,
+            colorCode: typeColor, // ✅ ส่งสีเข้าไปใน Object นี้
           });
           curr.add(1, "day");
         }
@@ -139,7 +136,7 @@ export default function HRDashboard() {
       });
 
       setEmployeeReport(individualReport);
-      setLeaveChartData(leaveChartData);
+      setLeaveChartData(leaveChartData); // ข้อมูลนี้ควรมีสี (color) ติดมาด้วยจาก Backend
       setPerfectEmployees(perfectEmployees);
     } catch (err) {
       alertError("Error", "Unable to fetch report data.");
@@ -207,6 +204,7 @@ export default function HRDashboard() {
       role: l.employee.role,
       checkIn: "--:--", checkOut: "--:--",
       status: `Leave (${l.leaveType.typeName})`,
+      // ถ้าอยากให้ Badge ในตารางมีสีด้วย ก็ดึง l.leaveType.colorCode มาใช้ตรงนี้ได้นะคะ
     }));
     return [...att, ...leave];
   }, [attendanceRecords, leaveRequests]);
@@ -266,7 +264,19 @@ export default function HRDashboard() {
                           </div>
                           <div className="cal-leave-list">
                             {leaves.slice(0, 2).map((x, i) => (
-                              <div key={i} className="leave-pill" style={{ backgroundColor: x.colorCode, color: '#fff', borderLeft: '3px solid rgba(0,0,0,0.1)' }} title={x.name}>{x.name}</div>
+                              <div 
+                                key={i} 
+                                className="leave-pill" 
+                                style={{ 
+                                  backgroundColor: x.colorCode, /* 🔥 ใช้สีจากฐานข้อมูล */
+                                  color: '#fff', 
+                                  // เพิ่มเงาให้ตัวหนังสืออ่านง่ายขึ้น
+                                  textShadow: '0 1px 2px rgba(0,0,0,0.2)' 
+                                }} 
+                                title={`${x.name} - ${x.typeName}`}
+                              >
+                                {x.name}
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -283,6 +293,7 @@ export default function HRDashboard() {
               <h3>Daily Attendance Records</h3>
               <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}><FiRefreshCw className={loading ? "spin" : ""} /> Refresh</button>
             </div>
+            {/* ... (ส่วนตารางด้านล่างเหมือนเดิม) ... */}
             <div className="table-wrap">
               <table className="table">
                 <thead>
@@ -344,7 +355,8 @@ export default function HRDashboard() {
               <Card title="Late Rate" value={`${reportSummary.lateRate}%`} tone="amber" icon={<FiTrendingUp />} />
             </div>
 
-            <div className="table-wrap" style={{ marginTop: 25 }}>
+            {/* ... (ส่วนตาราง Reports เหมือนเดิม) ... */}
+             <div className="table-wrap" style={{ marginTop: 25 }}>
               <div className="table-header-title">Employee Performance Summary</div>
               <table className="table">
                 <thead>
@@ -399,6 +411,7 @@ export default function HRDashboard() {
                       <PieChart>
                         <Pie data={leaveChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
                           {leaveChartData.map((entry, index) => (
+                            /* 🔥 จุดสำคัญ: กราฟวงกลมก็ควรดึงสีมาแสดงด้วย */
                             <Cell key={`cell-${index}`} fill={entry.color || "#3b82f6"} />
                           ))}
                         </Pie>
