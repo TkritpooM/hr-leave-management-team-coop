@@ -62,6 +62,9 @@ export default function HRDashboard() {
   const [pageSize, setPageSize] = useState(10);
   const [dailyModalOpen, setDailyModalOpen] = useState(false);
   const [dailyData, setDailyData] = useState(null);
+  const [reportPage, setReportPage] = useState(1);
+  const [reportPageSize, setReportPageSize] = useState(10);
+  const [reportPagination, setReportPagination] = useState({ total: 0, totalPages: 0 });
 
   const weeks = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
   const todayStr = toISODate(new Date());
@@ -131,11 +134,13 @@ export default function HRDashboard() {
     } finally { setLoading(false); }
   };
 
-  const fetchReport = async () => {
+  const fetchReport = async (targetPage = 1) => {
     setLoading(true);
     try {
-      const res = await axiosClient.get(`/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}`);
-      const { individualReport, leaveChartData, perfectEmployees } = res.data.data;
+      const res = await axiosClient.get(
+        `/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}&page=${targetPage}&limit=${reportPageSize}`
+      );
+      const { individualReport, leaveChartData, pagination } = res.data.data;
 
       const summary = individualReport.reduce((acc, emp) => ({
         present: acc.present + emp.presentCount,
@@ -152,7 +157,8 @@ export default function HRDashboard() {
 
       setEmployeeReport(individualReport);
       setLeaveChartData(leaveChartData);
-      setPerfectEmployees(perfectEmployees);
+      setReportPagination(pagination);
+      setReportPage(targetPage);
     } catch (err) { alertError("Error", "Unable to fetch report data.");
     } finally { setLoading(false); }
   };
@@ -174,6 +180,10 @@ export default function HRDashboard() {
     link.remove();
   };
 
+  useEffect(() => {
+    if (employeeReport.length > 0) fetchReport(1);
+  }, [reportPageSize]);
+
   const openDailyDetail = async (dateStr) => {
     try {
       setLoading(true);
@@ -189,6 +199,10 @@ export default function HRDashboard() {
     } catch (err) { alertError("Error", "Unable to load data.");
     } finally { setLoading(false); }
   };
+
+  useEffect(() => {
+    if (employeeReport.length > 0) fetchReport(1);
+  }, [reportPageSize]);
 
   useEffect(() => {
     fetchCalendarData();
@@ -396,6 +410,16 @@ export default function HRDashboard() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+              <Pagination 
+                total={reportPagination.total} 
+                page={reportPage} 
+                pageSize={reportPageSize} 
+                onPageChange={fetchReport} 
+                onPageSizeChange={setReportPageSize} 
+              />
             </div>
 
             <div className="charts-container">

@@ -237,8 +237,13 @@ const getDailyDetail = async (req, res, next) => {
     const { date } = req.query;
     if (!date) return res.status(400).json({ success: false, message: "Date is required" });
 
+    const targetDateStr = moment(date).format('YYYY-MM-DD');
     const targetDate = moment(date).startOf('day').toDate();
     const endOfTargetDate = moment(date).endOf('day').toDate();
+
+    const policy = await prisma.attendancePolicy.findFirst();
+    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).format('YYYY-MM-DD'));
+    const isSpecialHoliday = specialHolidays.includes(targetDateStr);
 
     const allEmployees = await prisma.employee.findMany({
       where: { isActive: true },
@@ -266,9 +271,9 @@ const getDailyDetail = async (req, res, next) => {
     const presentIds = attendance.map(a => a.employeeId);
     const leaveIds = leaves.map(l => l.employeeId);
 
-    const absent = allEmployees.filter(emp =>
-      !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId)
-    );
+    const absent = isSpecialHoliday 
+      ? [] 
+      : allEmployees.filter(emp => !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId));
 
     res.status(200).json({
       success: true,
@@ -276,6 +281,7 @@ const getDailyDetail = async (req, res, next) => {
         present: attendance,
         leaves: leaves,
         absent: absent,
+        isSpecialHoliday: isSpecialHoliday,
         summary: {
           total: allEmployees.length,
           presentCount: attendance.length,
@@ -284,87 +290,81 @@ const getDailyDetail = async (req, res, next) => {
         }
       }
     });
-  } catch (error) {
-    console.error("DEBUG BACKEND ERROR:", error);
-    next(error);
-  }
+  } catch (error) { next(error); }
 };
 
 const getEmployeePerformanceReport = async (req, res, next) => {
   try {
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, page = 1, limit = 10 } = req.query;
     const start = moment(startDate).tz("Asia/Bangkok").startOf('day');
     const end = moment(endDate).tz("Asia/Bangkok").endOf('day');
     const today = moment().tz("Asia/Bangkok").startOf('day');
 
-    const employees = await prisma.employee.findMany({
-      where: {
-        joiningDate: { lte: end.toDate() },
-        OR: [
-          { resignationDate: null },
-          { resignationDate: { gte: start.toDate() } }
-        ]
-      },
-      select: { employeeId: true, firstName: true, lastName: true, role: true, joiningDate: true }
-    });
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skipValue = (pageNum - 1) * limitNum;
 
+    const whereCondition = {
+      joiningDate: { lte: end.toDate() },
+      OR: [
+        { resignationDate: null },
+        { resignationDate: { gte: start.toDate() } }
+      ]
+    };
+
+    const [totalCount, employees, policy] = await Promise.all([
+      prisma.employee.count({ where: whereCondition }),
+      prisma.employee.findMany({
+        where: whereCondition,
+        select: { employeeId: true, firstName: true, lastName: true, role: true, joiningDate: true },
+        skip: skipValue,
+        take: limitNum
+      }),
+      prisma.attendancePolicy.findFirst()
+    ]);
+
+    const employeeIds = employees.map(e => e.employeeId);
+    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).format('YYYY-MM-DD'));
     const effectiveEnd = end.isAfter(today) ? today : end;
 
     let workDaysList = [];
     let curr = start.clone();
     while (curr.isSameOrBefore(effectiveEnd, 'day')) {
       const dayOfWeek = curr.day();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        workDaysList.push(curr.format('YYYY-MM-DD'));
+      const dateStr = curr.format('YYYY-MM-DD');
+      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !specialHolidays.includes(dateStr)) {
+        workDaysList.push(dateStr);
       }
       curr.add(1, 'day');
     }
 
     const [allAttendance, allLeaves] = await Promise.all([
       prisma.timeRecord.findMany({
-        where: { workDate: { gte: start.toDate(), lte: end.toDate() } }
+        where: { workDate: { gte: start.toDate(), lte: end.toDate() }, employeeId: { in: employeeIds } }
       }),
       prisma.leaveRequest.findMany({
         where: {
           status: 'Approved',
           startDate: { lte: end.toDate() },
-          endDate: { gte: start.toDate() }
+          endDate: { gte: start.toDate() },
+          employeeId: { in: employeeIds }
         },
         include: { leaveType: true }
       })
     ]);
 
-    const leaveSummaryByType = {};
-    allLeaves.forEach(l => {
-      const typeName = l.leaveType.typeName;
-      const color = l.leaveType.colorCode || "#3b82f6";
-      const days = parseFloat(l.totalDaysRequested);
-
-      if (!leaveSummaryByType[typeName]) {
-        leaveSummaryByType[typeName] = { name: typeName, value: 0, color: color };
-      }
-      leaveSummaryByType[typeName].value += days;
-    });
-
     const report = employees.map(emp => {
       const myAtts = allAttendance.filter(a => a.employeeId === emp.employeeId);
       const myLeaves = allLeaves.filter(l => l.employeeId === emp.employeeId);
-
       const presentCount = myAtts.length;
       const lateCount = myAtts.filter(a => a.isLate).length;
-      const leaveCount = myLeaves.reduce((sum, l) => sum + parseFloat(l.totalDaysRequested), 0);
-
+      
       let absentCount = 0;
       const empJoiningDate = moment(emp.joiningDate).format('YYYY-MM-DD');
-
       workDaysList.forEach(day => {
         if (day >= empJoiningDate) {
           const hasAtt = myAtts.some(a => moment(a.workDate).format('YYYY-MM-DD') === day);
-          const hasLeave = myLeaves.some(l => {
-            const lStart = moment(l.startDate).format('YYYY-MM-DD');
-            const lEnd = moment(l.endDate).format('YYYY-MM-DD');
-            return day >= lStart && day <= lEnd;
-          });
+          const hasLeave = myLeaves.some(l => day >= moment(l.startDate).format('YYYY-MM-DD') && day <= moment(l.endDate).format('YYYY-MM-DD'));
           if (!hasAtt && !hasLeave) absentCount++;
         }
       });
@@ -373,30 +373,36 @@ const getEmployeePerformanceReport = async (req, res, next) => {
         employeeId: emp.employeeId,
         name: `${emp.firstName} ${emp.lastName}`,
         role: emp.role,
-        presentCount,
-        lateCount,
-        leaveCount,
+        presentCount, lateCount, 
+        leaveCount: myLeaves.reduce((sum, l) => sum + parseFloat(l.totalDaysRequested), 0), 
         absentCount,
         lateRate: presentCount > 0 ? Math.round((lateCount / presentCount) * 100) : 0
       };
     });
 
-    const perfectEmployees = report.filter(emp =>
-      emp.presentCount > 0 && emp.lateCount === 0 && emp.leaveCount === 0 && emp.absentCount === 0
-    );
+    const leaveSummaryByType = {};
+    allLeaves.forEach(l => {
+      const typeName = l.leaveType.typeName;
+      if (!leaveSummaryByType[typeName]) {
+        leaveSummaryByType[typeName] = { name: typeName, value: 0, color: l.leaveType.colorCode || "#3b82f6" };
+      }
+      leaveSummaryByType[typeName].value += parseFloat(l.totalDaysRequested);
+    });
 
     res.status(200).json({
       success: true,
       data: {
         individualReport: report,
         leaveChartData: Object.values(leaveSummaryByType),
-        perfectEmployees: perfectEmployees
+        pagination: {
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / limitNum),
+          currentPage: pageNum,
+          limit: limitNum
+        }
       }
     });
-  } catch (error) {
-    console.error("Report Error:", error);
-    next(error);
-  }
+  } catch (error) { next(error); }
 };
 
 module.exports = {
