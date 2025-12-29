@@ -17,6 +17,8 @@ router.get('/holiday', authorizeRole(['HR', 'Worker']), adminController.getHolid
 // สำหรับ Frontend Employees.js: เรียก /api/hr/leave-types
 router.get('/hr/leave-types', authorizeRole(['HR', 'Worker']), adminController.getLeaveTypes);
 
+router.get('/attendance-policy', authorizeRole(['HR', 'Worker']), adminController.getAttendancePolicy);
+
 // --- 🔒 2. เฉพาะ HR เท่านั้น ---
 router.use(authorizeRole(['HR'])); 
 
@@ -58,7 +60,6 @@ router.put('/quota/:quotaId', [ param('quotaId').isInt(), body('totalDays').isFl
 router.post('/holiday', [ body('holidayDate').isISO8601().toDate(), body('holidayName').notEmpty(), validate ], adminController.createHoliday);
 router.delete('/holiday/:holidayId', [ param('holidayId').isInt(), validate ], adminController.deleteHoliday);
 
-router.get('/attendance-policy', adminController.getAttendancePolicy);
 router.put('/attendance-policy', adminController.updateAttendancePolicy);
 
 module.exports = router;

@@ -1,15 +1,17 @@
 import React, { useMemo, useState, useEffect } from "react";
 import moment from "moment";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer
 } from "recharts";
-import { FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle, FiClock, FiFileText, FiTrendingUp, FiSave } from "react-icons/fi";
+import { 
+  FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle, 
+  FiClock, FiFileText, FiTrendingUp, FiSave 
+} from "react-icons/fi";
 import "./HRDashboard.css";
 import DailyDetailModal from "../components/DailyDetailModal";
 import Pagination from "../components/Pagination";
 import axiosClient from "../api/axiosClient";
-import { alertConfirm, alertError } from "../utils/sweetAlert";
+import { alertError } from "../utils/sweetAlert";
 import AuditLogPanel from "../components/AuditLogPanel";
 
 /* ===== Helpers ===== */
@@ -43,15 +45,14 @@ export default function HRDashboard() {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [monthLeaveMap, setMonthLeaveMap] = useState({});
-  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [specialHolidays, setSpecialHolidays] = useState([]);
 
   // Reports States
   const [rangeStart, setRangeStart] = useState(toISODate(new Date(viewYear, viewMonth, 1)));
   const [rangeEnd, setRangeEnd] = useState(toISODate(new Date(viewYear, viewMonth + 1, 0)));
   const [reportSummary, setReportSummary] = useState({ present: 0, leave: 0, late: 0, absent: 0, total: 0, lateRate: 0 });
   
-  // Reports Data
   const [employeeReport, setEmployeeReport] = useState([]);
   const [leaveChartData, setLeaveChartData] = useState([]);
   const [perfectEmployees, setPerfectEmployees] = useState([]);
@@ -66,35 +67,55 @@ export default function HRDashboard() {
   const todayStr = toISODate(new Date());
 
   /* ===== API Calls ===== */
-  const fetchMonthLeaves = async () => {
+  
+  // ✅ ปรับปรุงให้ดึงทั้งรายการลา และนโยบายวันหยุดพิเศษ
+  const fetchCalendarData = async () => {
     try {
       const start = toISODate(new Date(viewYear, viewMonth, 1));
       const end = toISODate(new Date(viewYear, viewMonth + 1, 0));
-      const res = await axiosClient.get(`/leave/admin/all?startDate=${start}&endDate=${end}`);
-      const approved = res.data.requests?.filter((r) => r.status === "Approved") || [];
+      
+      const [leaveRes, policyRes] = await Promise.all([
+        axiosClient.get(`/leave/admin/all?startDate=${start}&endDate=${end}`),
+        axiosClient.get(`/admin/attendance-policy`)
+      ]);
+
+      const approved = leaveRes.data.requests?.filter((r) => r.status === "Approved") || [];
+      const holidays = policyRes.data.policy?.specialHolidays || [];
+      setSpecialHolidays(holidays);
+
       const mapping = {};
 
+      // 1. ใส่ข้อมูลวันหยุดพิเศษก่อน (Priority สูงสุด)
+      holidays.forEach(hDate => {
+        const ds = moment(hDate).format("YYYY-MM-DD");
+        if (!mapping[ds]) mapping[ds] = [];
+        mapping[ds].push({
+          name: "Company Holiday",
+          isHoliday: true,
+          colorCode: "#64748b" // Slate-500
+        });
+      });
+
+      // 2. ใส่ข้อมูลการลาของพนักงาน
       approved.forEach((leave) => {
         let curr = moment(leave.startDate).startOf("day");
         const last = moment(leave.endDate).startOf("day");
-        
-        // 🔥 จุดสำคัญ: ดึงสีจาก leaveType มาใช้ (ถ้าไม่มีให้ใช้สีฟ้า Default)
         const typeColor = leave.leaveType?.colorCode || "#3b82f6";
-        const typeName = leave.leaveType?.typeName || "Leave";
 
         while (curr.isSameOrBefore(last, "day")) {
           const ds = curr.format("YYYY-MM-DD");
           if (!mapping[ds]) mapping[ds] = [];
           mapping[ds].push({
             name: `${leave.employee.firstName} ${leave.employee.lastName}`,
-            typeName: typeName,
-            colorCode: typeColor, // ✅ ส่งสีเข้าไปใน Object นี้
+            typeName: leave.leaveType?.typeName || "Leave",
+            colorCode: typeColor,
+            isHoliday: false
           });
           curr.add(1, "day");
         }
       });
       setMonthLeaveMap(mapping);
-    } catch (err) { console.error("Month Leaves Error:", err); }
+    } catch (err) { console.error("Calendar Data Error:", err); }
   };
 
   const fetchDailyRecords = async () => {
@@ -108,13 +129,6 @@ export default function HRDashboard() {
       setLeaveRequests(leaveRes.data.requests?.filter((r) => r.status === "Approved") || []);
     } catch (err) { console.error("Daily Records Error:", err);
     } finally { setLoading(false); }
-  };
-
-  const fetchChartData = async () => {
-    try {
-      const res = await axiosClient.get("/timerecord/stats/late-monthly");
-      setChartData(res.data.data || []);
-    } catch (err) { console.error("Stats Error:", err); }
   };
 
   const fetchReport = async () => {
@@ -137,10 +151,9 @@ export default function HRDashboard() {
       });
 
       setEmployeeReport(individualReport);
-      setLeaveChartData(leaveChartData); // ข้อมูลนี้ควรมีสี (color) ติดมาด้วยจาก Backend
+      setLeaveChartData(leaveChartData);
       setPerfectEmployees(perfectEmployees);
-    } catch (err) {
-      alertError("Error", "Unable to fetch report data.");
+    } catch (err) { alertError("Error", "Unable to fetch report data.");
     } finally { setLoading(false); }
   };
 
@@ -161,28 +174,24 @@ export default function HRDashboard() {
     link.remove();
   };
 
-  const handleStartDateChange = (e) => {
-    const newStart = e.target.value;
-    setRangeStart(newStart);
-    const endOfMonth = moment(newStart).endOf('month').format("YYYY-MM-DD");
-    setRangeEnd(endOfMonth);
-  };
-
   const openDailyDetail = async (dateStr) => {
     try {
       setLoading(true);
       const res = await axiosClient.get(`/timerecord/daily-detail?date=${dateStr}`);
-      setDailyData(res.data.data);
+      const isSpecial = specialHolidays.includes(dateStr);
+      const updatedData = { 
+        ...res.data.data, 
+        isSpecialHoliday: isSpecial 
+      };
+      setDailyData(updatedData);
       setSelectedDate(dateStr);
       setDailyModalOpen(true);
-    } catch (err) {
-      alertError("Error", "Unable to load data.");
+    } catch (err) { alertError("Error", "Unable to load data.");
     } finally { setLoading(false); }
   };
 
   useEffect(() => {
-    fetchMonthLeaves();
-    fetchChartData();
+    fetchCalendarData();
   }, [viewYear, viewMonth]);
 
   useEffect(() => {
@@ -205,7 +214,6 @@ export default function HRDashboard() {
       role: l.employee.role,
       checkIn: "--:--", checkOut: "--:--",
       status: `Leave (${l.leaveType.typeName})`,
-      // ถ้าอยากให้ Badge ในตารางมีสีด้วย ก็ดึง l.leaveType.colorCode มาใช้ตรงนี้ได้นะคะ
     }));
     return [...att, ...leave];
   }, [attendanceRecords, leaveRequests]);
@@ -215,34 +223,33 @@ export default function HRDashboard() {
       <header className="hr-header">
         <div>
           <h1 className="hr-title">Management Dashboard</h1>
-          <p className="hr-subtitle">Oversee employee attendance and leave requests</p>
+          <p className="hr-subtitle">Oversee employee attendance, leaves and company holidays</p>
         </div>
         <div className="hr-header-right">
           <div className="pill date-pill"><FiCalendar /> Selected: {moment(selectedDate).format("DD MMM YYYY")}</div>
         </div>
       </header>
 
-          <div className="hr-tabs">
-      {["overview", "reports", "audit"].map((t) => (
-        <button
-          key={t}
-          className={`btn small ${tab === t ? "primary" : "outline"}`}
-          onClick={() => setTab(t)}
-        >
-          {t === "overview" ? "Overview" : t === "reports" ? "Performance Reports" : "Audit Log"}
-        </button>
-      ))}
-    </div>
-
+      <div className="hr-tabs">
+        {["overview", "reports", "audit"].map((t) => (
+          <button
+            key={t}
+            className={`btn small ${tab === t ? "primary" : "outline"}`}
+            onClick={() => setTab(t)}
+          >
+            {t === "overview" ? "Overview" : t === "reports" ? "Performance Reports" : "Audit Log"}
+          </button>
+        ))}
+      </div>
 
       {tab === "overview" && (
         <>
           <section className="dashboard-section calendar-section">
             <div className="calendar-top">
               <div className="calendar-title-group">
-                <button className="nav-btn" onClick={() => setViewMonth(prev => prev === 0 ? 11 : prev - 1)}>‹</button>
+                <button className="nav-btn" onClick={() => setViewMonth(p => p === 0 ? 11 : p - 1)}>‹</button>
                 <h2 className="month-label">{moment(new Date(viewYear, viewMonth, 1)).format("MMMM YYYY")}</h2>
-                <button className="nav-btn" onClick={() => setViewMonth(prev => prev === 11 ? 0 : prev + 1)}>›</button>
+                <button className="nav-btn" onClick={() => setViewMonth(p => p === 11 ? 0 : p + 1)}>›</button>
               </div>
               <button className="btn outline small today-btn" onClick={() => setSelectedDate(todayStr)}>Go to Today</button>
             </div>
@@ -256,7 +263,7 @@ export default function HRDashboard() {
                   <React.Fragment key={wIdx}>
                     {week.map((d) => {
                       const iso = toISODate(d);
-                      const leaves = monthLeaveMap[iso] || [];
+                      const items = monthLeaveMap[iso] || [];
                       return (
                         <div
                           key={iso}
@@ -265,23 +272,22 @@ export default function HRDashboard() {
                         >
                           <div className="cal-date-row">
                             <span className="cal-date">{d.getDate()}</span>
-                            {leaves.length > 2 && (<span className="more-count-badge">+{leaves.length - 2}</span>
-                            )}
+                            {items.length > 2 && (<span className="more-count-badge">+{items.length - 2}</span>)}
                           </div>
                           <div className="cal-leave-list">
-                            {leaves.slice(0, 2).map((x, i) => (
+                            {items.slice(0, 2).map((x, i) => (
                               <div 
                                 key={i} 
-                                className="leave-pill" 
+                                className={`leave-pill ${x.isHoliday ? 'holiday-pill' : ''}`} 
                                 style={{ 
-                                  backgroundColor: x.colorCode, /* 🔥 ใช้สีจากฐานข้อมูล */
+                                  backgroundColor: x.colorCode,
                                   color: '#fff', 
-                                  // เพิ่มเงาให้ตัวหนังสืออ่านง่ายขึ้น
-                                  textShadow: '0 1px 2px rgba(0,0,0,0.2)' 
+                                  textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                                  fontWeight: x.isHoliday ? '700' : '400'
                                 }} 
-                                title={`${x.name} - ${x.typeName}`}
+                                title={x.isHoliday ? "Company Holiday" : `${x.name} - ${x.typeName}`}
                               >
-                                {x.name}
+                                {x.isHoliday ? "Holiday" : x.name}
                               </div>
                             ))}
                           </div>
@@ -299,7 +305,6 @@ export default function HRDashboard() {
               <h3>Daily Attendance Records</h3>
               <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}><FiRefreshCw className={loading ? "spin" : ""} /> Refresh</button>
             </div>
-            {/* ... (ส่วนตารางด้านล่างเหมือนเดิม) ... */}
             <div className="table-wrap">
               <table className="table">
                 <thead>
@@ -340,16 +345,14 @@ export default function HRDashboard() {
               <div className="reports-controls">
                 <div className="input-group">
                   <label>Start:</label>
-                  <input type="date" value={rangeStart} max={todayStr} onChange={handleStartDateChange} />
+                  <input type="date" value={rangeStart} max={todayStr} onChange={e => {setRangeStart(e.target.value); setRangeEnd(moment(e.target.value).endOf('month').format("YYYY-MM-DD"));}} />
                 </div>
                 <div className="input-group">
                   <label>End:</label>
                   <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} />
                 </div>
                 <button className="btn primary small" onClick={fetchReport} disabled={loading}>Run Report</button>
-                <button className="btn outline small" onClick={handleExportPerformance} disabled={employeeReport.length === 0}>
-                  <FiSave /> Export CSV
-                </button>
+                <button className="btn outline small" onClick={handleExportPerformance} disabled={employeeReport.length === 0}><FiSave /> Export CSV</button>
               </div>
             </div>
 
@@ -361,8 +364,7 @@ export default function HRDashboard() {
               <Card title="Late Rate" value={`${reportSummary.lateRate}%`} tone="amber" icon={<FiTrendingUp />} />
             </div>
 
-            {/* ... (ส่วนตาราง Reports เหมือนเดิม) ... */}
-             <div className="table-wrap" style={{ marginTop: 25 }}>
+            <div className="table-wrap" style={{ marginTop: 25 }}>
               <div className="table-header-title">Employee Performance Summary</div>
               <table className="table">
                 <thead>
@@ -398,14 +400,14 @@ export default function HRDashboard() {
 
             <div className="charts-container">
               <div className="report-card">
-                <h5 className="card-title">🏆 Top Performance (Perfect Attendance)</h5>
+                <h5 className="card-title">🏆 Top Performance</h5>
                 <div className="perfect-list">
                   {perfectEmployees.length > 0 ? perfectEmployees.map(emp => (
                     <div key={emp.employeeId} className="perfect-item">
                       <span className="fw-500">{emp.name}</span>
                       <span className="badge badge-ok">EXCELLENT</span>
                     </div>
-                  )) : <p className="empty-msg">No data available for this period.</p>}
+                  )) : <p className="empty-msg">No data available.</p>}
                 </div>
               </div>
 
@@ -416,10 +418,7 @@ export default function HRDashboard() {
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie data={leaveChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {leaveChartData.map((entry, index) => (
-                            /* 🔥 จุดสำคัญ: กราฟวงกลมก็ควรดึงสีมาแสดงด้วย */
-                            <Cell key={`cell-${index}`} fill={entry.color || "#3b82f6"} />
-                          ))}
+                          {leaveChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color || "#3b82f6"} />)}
                         </Pie>
                         <Tooltip />
                       </PieChart>
@@ -432,7 +431,6 @@ export default function HRDashboard() {
       )}
 
       {tab === "audit" && <AuditLogPanel />}
-
 
       <DailyDetailModal isOpen={dailyModalOpen} onClose={() => setDailyModalOpen(false)} date={selectedDate} data={dailyData} />
     </div>

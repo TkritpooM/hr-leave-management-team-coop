@@ -39,6 +39,8 @@ export default function WorkerCalendar() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDailyData, setSelectedDailyData] = useState(null);
 
+  const [specialHolidays, setSpecialHolidays] = useState([]);
+
   const weeks = useMemo(
     () => getMonthMatrix(viewYear, viewMonth),
     [viewYear, viewMonth]
@@ -50,21 +52,19 @@ export default function WorkerCalendar() {
   };
 
   const fetchMonthData = async () => {
-    setLoading(true);
-    try {
-      const [attRes, leaveRes] = await Promise.all([
-        axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader()),
-        axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
-      ]);
-
-      setAttendance(attRes.data.records || []);
-      setLeaves(leaveRes.data.requests || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  try {
+    const [attRes, leaveRes, policyRes] = await Promise.all([
+      axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader()),
+      axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
+      axios.get("http://localhost:8000/api/admin/attendance-policy", getAuthHeader()), // ✅ ดึงวันหยุด
+    ]);
+    setAttendance(attRes.data.records || []);
+    setLeaves(leaveRes.data.requests || []);
+    setSpecialHolidays(policyRes.data.policy?.specialHolidays || []); // ✅ เก็บวันหยุด
+  } catch (e) { console.error(e); }
+  finally { setLoading(false); }
+};
 
   useEffect(() => {
     fetchMonthData();
@@ -148,7 +148,15 @@ export default function WorkerCalendar() {
 
     let modalData = null;
 
-    if (leave) {
+    const isHoliday = specialHolidays.includes(isoDate);
+
+    if (isHoliday) {
+    modalData = {
+      type: "holiday",
+      status: "Company Holiday",
+      reason: "This is a pre-announced company non-working day.",
+    };
+  } else if (leave) {
       // ✅ leave
       modalData = {
         type: "leave",
@@ -268,6 +276,22 @@ export default function WorkerCalendar() {
                       {lv.leaveType}
                     </span>
                   ))}
+
+                  {specialHolidays.includes(iso) && (
+                    <span 
+                      className="wc-tag" 
+                      style={{ 
+                        backgroundColor: "#64748b", // สีเทาเข้มเพื่อให้ดูต่างจากการลา
+                        color: "#fff",
+                        fontSize: "10px",
+                        padding: "2px 4px",
+                        display: "block",
+                        marginTop: "2px"
+                      }}
+                    >
+                      Company Holiday
+                    </span>
+                  )}
                 </div>
               </div>
             );
