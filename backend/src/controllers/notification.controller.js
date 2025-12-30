@@ -4,6 +4,7 @@ const CustomError = require('../utils/customError');
 
 // ✅ AUDIT
 const { logAudit } = require("../utils/auditLogger");
+const { getClientIp } = require("../utils/requestMeta");
 const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
@@ -88,7 +89,7 @@ exports.markAsRead = async (req, res, next) => {
       oldValue: { isRead: false },
       newValue: { isRead: true },
       performedByEmployeeId: myId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'Marked as read' });
@@ -119,7 +120,7 @@ exports.markAllAsRead = async (req, res, next) => {
       oldValue: null,
       newValue: { employeeId: myId },
       performedByEmployeeId: myId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'อ่านการแจ้งเตือนทั้งหมดแล้ว' });
@@ -144,7 +145,7 @@ exports.clearAll = async (req, res, next) => {
       oldValue: null,
       newValue: { employeeId: myId },
       performedByEmployeeId: myId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'All notifications cleared' });
@@ -177,7 +178,7 @@ exports.deleteNoti = async (req, res, next) => {
       oldValue: null,
       newValue: null,
       performedByEmployeeId: myId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.json({ success: true, message: 'ลบการแจ้งเตือนสำเร็จ' });

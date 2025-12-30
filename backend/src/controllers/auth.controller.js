@@ -7,6 +7,7 @@ const CustomError = require('../utils/customError');
 
 // ✅ AUDIT
 const { logAudit } = require("../utils/auditLogger");
+const { getClientIp } = require("../utils/requestMeta");
 const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
@@ -58,7 +59,7 @@ const register = async (req, res, next) => {
         lastName: employee.lastName,
       },
       performedByEmployeeId: employee.employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json({
@@ -115,7 +116,7 @@ const login = async (req, res, next) => {
       oldValue: null,
       newValue: { role: employee.role },
       performedByEmployeeId: employee.employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({
@@ -209,7 +210,7 @@ const updateProfile = async (req, res, next) => {
         passwordChanged,
       },
       performedByEmployeeId: employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({ success: true, message: "อัปเดตข้อมูลสำเร็จ", user: updatedUser });

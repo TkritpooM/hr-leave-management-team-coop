@@ -1,7 +1,25 @@
 import axiosClient from "./axiosClient";
 
-// axiosClient baseURL = http://localhost:8000/api (มี /api อยู่แล้ว)
-export const getAuditLogs = async () => {
-  const { data } = await axiosClient.get("/audit");
+export const getAuditLogs = async ({
+  q = "",
+  category = "All",
+  action = "",
+  dateFrom = "",
+  dateTo = "",
+  page = 1,
+  pageSize = 10,
+} = {}) => {
+  const { data } = await axiosClient.get("/audit", {
+    params: {
+      q,
+      category,
+      action,
+      dateFrom,
+      dateTo,
+      page,
+      pageSize,
+    },
+  });
+
   return data;
 };

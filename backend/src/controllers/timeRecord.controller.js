@@ -5,6 +5,7 @@ const moment = require('moment-timezone');
 
 // ✅ AUDIT
 const { logAudit } = require("../utils/auditLogger");
+const { getClientIp } = require("../utils/requestMeta");
 const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
@@ -27,7 +28,7 @@ const handleCheckIn = async (req, res, next) => {
         note: record.note || null,
       },
       performedByEmployeeId: employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     const message = record.isLate ? 'Check-in successful, but recorded as LATE.' : 'Check-in successful.';
@@ -51,7 +52,7 @@ const handleCheckOut = async (req, res, next) => {
         checkOutTime: record.checkOutTime,
       },
       performedByEmployeeId: employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({ success: true, message: 'Check-out successful.', record });
@@ -187,7 +188,7 @@ const exportAttendanceCSV = async (req, res, next) => {
       oldValue: null,
       newValue: { rows: records.length },
       performedByEmployeeId: Number(req.user.employeeId),
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.header('Content-Type', 'text/csv');

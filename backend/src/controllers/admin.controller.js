@@ -5,6 +5,7 @@ const CustomError = require('../utils/customError');
 
 // ✅ AUDIT
 const { logAudit } = require("../utils/auditLogger");
+const { getClientIp } = require("../utils/requestMeta");
 const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
@@ -94,7 +95,7 @@ const updateEmployeeQuotaBulk = async (req, res, next) => {
       oldValue: oldQuotas.map(q => ({ leaveTypeId: q.leaveTypeId, totalDays: Number(q.totalDays) })),
       newValue: newQuotas.map(q => ({ leaveTypeId: q.leaveTypeId, totalDays: Number(q.totalDays) })),
       performedByEmployeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({ success: true, message: "Quotas updated successfully" });

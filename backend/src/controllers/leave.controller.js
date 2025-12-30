@@ -10,6 +10,7 @@ const moment = require('moment-timezone');
 
 // ✅ AUDIT
 const { logAudit } = require("../utils/auditLogger");
+const { getClientIp } = require("../utils/requestMeta");
 const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
@@ -109,7 +110,7 @@ const requestLeave = async (req, res, next) => {
         status: "Pending",
       },
       performedByEmployeeId: employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(201).json({
@@ -220,7 +221,7 @@ const cancelLeaveRequest = async (req, res, next) => {
       oldValue: oldSnapshot,
       newValue: { status: "Cancelled", hasAttachment: false },
       performedByEmployeeId: employeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({ success: true, message: 'Leave request cancelled and attachment removed.' });
@@ -342,7 +343,7 @@ const handleApproval = async (req, res, next) => {
         approvalDate: result.updatedRequest.approvalDate,
       },
       performedByEmployeeId: hrId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({
@@ -464,7 +465,7 @@ const deleteLeaveRequest = async (req, res, next) => {
       oldValue: oldSnapshot,
       newValue: null,
       performedByEmployeeId,
-      ipAddress: req.ip,
+      ipAddress: getClientIp(req),
     });
 
     res.status(200).json({ success: true, message: 'Request and attachment deleted successfully.' });
