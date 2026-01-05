@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import "./HRAttendancePolicy.css";
 import { alertConfirm, alertSuccess, alertError } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { enUS } from 'date-fns/locale';
 
 const DAYS = [
   { key: "mon", label: "Mon" },
@@ -246,18 +249,16 @@ export default function HRAttendancePolicy() {
         {/* 3. Special Holidays Section (ตำแหน่งเดิมของ Shift) */}
         <section className="hrp-card">
           <h3 className="hrp-card-title">Special Holidays</h3>
-          <p className="hrp-sub2">Add one-off holidays (YYYY-MM-DD) that should be treated as non-working days.</p>
-
           <div className="hrp-holiday-row">
-            <input
+            <DatePicker
+              selected={holidayInput ? new Date(holidayInput) : null}
+              onChange={(date) => setHolidayInput(date.toISOString().split('T')[0])}
+              dateFormat="yyyy-MM-dd"
+              locale={enUS}
+              placeholderText="Select Holiday Date"
               className="hrp-holiday-input"
-              type="date" // ปรับเป็น type date เพื่อให้เลือกง่ายขึ้น
-              value={holidayInput}
-              onChange={(e) => setHolidayInput(e.target.value)}
             />
-            <button className="btn outline" type="button" onClick={addHoliday}>
-              Add
-            </button>
+            <button className="btn outline" type="button" onClick={addHoliday}>Add</button>
           </div>
 
           {(!policy.specialHolidays || policy.specialHolidays.length === 0) ? (

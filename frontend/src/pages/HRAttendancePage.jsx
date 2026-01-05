@@ -5,6 +5,10 @@ import moment from "moment";
 import { FiClock, FiPlusCircle, FiCalendar } from "react-icons/fi";
 import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { enUS } from 'date-fns/locale';
+
 // Helper Functions
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function num(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
@@ -401,7 +405,7 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
-      {/* 🔥 Modal: Request Leave (ปรับให้เหมือน Worker) */}
+      {/* 🔥 Modal: Request Leave (ปรับให้เป็น DatePicker ภาษาอังกฤษ) */}
       {isLeaveModalOpen && (
         <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -426,11 +430,41 @@ export default function HRAttendancePage() {
               </select>
 
               <div className="date-row">
-                <label>Start Date <input type="date" name="startDate" min={new Date().toISOString().split("T")[0]} value={leaveForm.startDate} onChange={handleLeaveChange} required /></label>
-                <label>End Date <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveChange} min={leaveForm.startDate || new Date().toISOString().split("T")[0]} required /></label>
+                <label>
+                  Start Date
+                  <DatePicker
+                    selected={leaveForm.startDate ? new Date(leaveForm.startDate) : null}
+                    onChange={(date) => {
+                      const dStr = moment(date).format("YYYY-MM-DD");
+                      handleLeaveChange({ target: { name: "startDate", value: dStr } });
+                    }}
+                    minDate={new Date()}
+                    dateFormat="yyyy-MM-dd"
+                    locale={enUS}
+                    placeholderText="YYYY-MM-DD"
+                    className="wa-datepicker-input"
+                    required
+                  />
+                </label>
+                <label>
+                  End Date
+                  <DatePicker
+                    selected={leaveForm.endDate ? new Date(leaveForm.endDate) : null}
+                    onChange={(date) => {
+                      const dStr = moment(date).format("YYYY-MM-DD");
+                      handleLeaveChange({ target: { name: "endDate", value: dStr } });
+                    }}
+                    minDate={leaveForm.startDate ? new Date(leaveForm.startDate) : new Date()}
+                    dateFormat="yyyy-MM-dd"
+                    locale={enUS}
+                    placeholderText="YYYY-MM-DD"
+                    className="wa-datepicker-input"
+                    required
+                  />
+                </label>
               </div>
 
-              {/* 🔥 กล่องสรุปวันหยุด Real-time (เหมือน Worker) */}
+              {/* 🔥 กล่องสรุปวันหยุด Real-time */}
               {(leaveForm.startDate && leaveForm.endDate) && (
                 <div className="leave-preview-info" style={{
                   gridColumn: '1 / -1', background: '#f0f9ff', border: '1px solid #bae6fd',

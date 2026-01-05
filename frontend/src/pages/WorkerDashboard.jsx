@@ -5,6 +5,10 @@ import { FiClock, FiPlusCircle, FiCalendar } from "react-icons/fi";
 import "./WorkerDashboard.css";
 import { alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { enUS } from 'date-fns/locale';
+
 // Helper Functions
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -185,6 +189,13 @@ export default function WorkerDashboard() {
     } catch (err) {
       alertError("Failed", err.response?.data?.message || "Unable to check out.");
     }
+  };
+
+  // Helper สำหรับแปลง Date Object เป็น YYYY-MM-DD (ใช้ใน handleLeaveChange)
+  const toISODate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
 
   const handleLeaveChange = (e) => {
@@ -420,24 +431,34 @@ export default function WorkerDashboard() {
               <div className="date-row">
                 <label>
                   Start Date
-                  <input
-                    type="date"
-                    name="startDate"
-                    min={new Date().toISOString().split("T")[0]}
-                    value={leaveForm.startDate}
-                    onChange={handleLeaveChange}
+                  <DatePicker
+                    selected={leaveForm.startDate ? new Date(leaveForm.startDate) : null}
+                    onChange={(date) => {
+                      const dStr = toISODate(date);
+                      handleLeaveChange({ target: { name: "startDate", value: dStr } });
+                    }}
+                    minDate={new Date()}
+                    dateFormat="yyyy-MM-dd"
+                    locale={enUS}
+                    placeholderText="YYYY-MM-DD"
+                    className="wa-datepicker-input"
                     required
                   />
                 </label>
 
                 <label>
                   End Date
-                  <input
-                    type="date"
-                    name="endDate"
-                    value={leaveForm.endDate}
-                    onChange={handleLeaveChange}
-                    min={leaveForm.startDate || new Date().toISOString().split("T")[0]}
+                  <DatePicker
+                    selected={leaveForm.endDate ? new Date(leaveForm.endDate) : null}
+                    onChange={(date) => {
+                      const dStr = toISODate(date);
+                      handleLeaveChange({ target: { name: "endDate", value: dStr } });
+                    }}
+                    minDate={leaveForm.startDate ? new Date(leaveForm.startDate) : new Date()}
+                    dateFormat="yyyy-MM-dd"
+                    locale={enUS}
+                    placeholderText="YYYY-MM-DD"
+                    className="wa-datepicker-input"
                     required
                   />
                 </label>

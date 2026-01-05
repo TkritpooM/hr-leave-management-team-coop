@@ -5,6 +5,10 @@ import Pagination from "../components/Pagination";
 import { getMyTimeRecords, getMyLateSummary } from "../api/timeRecordService";
 import { alertError, alertSuccess } from "../utils/sweetAlert";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { enUS } from 'date-fns/locale';
+
 // Helper: Format date to YYYY-MM-DD
 const pad2 = (n) => String(n).padStart(2, "0");
 const toYMD = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
@@ -151,22 +155,26 @@ export default function WorkerAttendancePage() {
         <div className="wa-controls">
           <div className="wa-control">
             <label>Start Date</label>
-            <input
-              type="date"
-              value={range.start}
-              max={range.end}
-              onChange={(e) => setRange((p) => ({ ...p, start: e.target.value }))}
+            <DatePicker
+              selected={new Date(range.start)}
+              onChange={(date) => setRange((p) => ({ ...p, start: toYMD(date) }))}
+              dateFormat="yyyy-MM-dd"
+              locale={enUS}
+              maxDate={new Date(range.end)}
+              className="wa-datepicker-input"
             />
           </div>
 
           <div className="wa-control">
             <label>End Date</label>
-            <input
-              type="date"
-              value={range.end}
-              min={range.start}
-              max={toYMD(today)}
-              onChange={(e) => setRange((p) => ({ ...p, end: e.target.value }))}
+            <DatePicker
+              selected={new Date(range.end)}
+              onChange={(date) => setRange((p) => ({ ...p, end: toYMD(date) }))}
+              dateFormat="yyyy-MM-dd"
+              locale={enUS}
+              minDate={new Date(range.start)}
+              maxDate={today}
+              className="wa-datepicker-input"
             />
           </div>
 
