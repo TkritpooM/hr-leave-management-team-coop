@@ -19,6 +19,10 @@
   "license": "ISC",
   "private": true,
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "date-fns": "^4.1.0",
+    "i18next": "^25.7.3",
+    "react-datepicker": "^9.1.0",
+    "react-i18next": "^16.5.0"
   }
 }
