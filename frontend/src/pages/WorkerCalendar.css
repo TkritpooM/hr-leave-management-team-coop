@@ -44,6 +44,13 @@
   border: 1px solid rgba(255,255,255,.12);
   background: var(--tint);
 }
+
+.cal-cell.non-working {
+    background-color: #f3f4f6; /* สีเทาจางๆ */
+    color: #9ca3af; /* ตัวหนังสือสีจาง */
+    pointer-events: none; /* (Optional) ถ้าไม่อยากให้คลิกได้ */
+}
+
 .wc-tag.ok{ border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.10); color:#bbf7d0; }
 .wc-tag.late{ border-color: rgba(220,38,38,.22); background: rgba(220,38,38,.08); color: rgba(127,29,29,.92); }
 .wc-tag.leave{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); color:#bfdbfe; }

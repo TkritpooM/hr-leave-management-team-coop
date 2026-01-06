@@ -276,6 +276,13 @@
   height: fit-content;
 }
 
+/* สีเทาสำหรับวันหยุด / วันที่ไม่ใช่วันทำงาน */
+.cal-cell.non-working {
+    background-color: #f3f4f6; /* สีเทาจางๆ */
+    color: #9ca3af; /* ตัวหนังสือสีจาง */
+    pointer-events: none; /* (Optional) ถ้าไม่อยากให้คลิกได้ */
+}
+
 .leave-pill {
   border-radius: 6px;
   padding: 2px 8px;

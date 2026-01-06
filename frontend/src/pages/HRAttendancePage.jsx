@@ -1,3 +1,4 @@
+// src/pages/HRAttendancePage.jsx
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import "./HRAttendancePage.css";
@@ -13,6 +14,13 @@ import { enUS } from 'date-fns/locale';
 function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
 function num(v) { const x = Number(v); return Number.isFinite(x) ? x : 0; }
 const normStatus = (s) => String(s || "").trim().toLowerCase();
+
+// 🔥 Helper แปลงวันทำงานจาก "mon,tue" -> [1, 2]
+const parseWorkingDays = (str) => {
+  if (!str) return [1, 2, 3, 4, 5]; // Default Mon-Fri
+  const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+  return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
+};
 
 // 🔥 ปรับปรุง QuotaCard ให้แสดงยอดทบสะสมเหมือนของ Worker
 function QuotaCard({ title, usedDays, totalDays, carriedOverDays }) {
@@ -75,17 +83,14 @@ export default function HRAttendancePage() {
   const [lateSummary, setLateSummary] = useState({ lateCount: 0, lateLimit: 5 });
   const [policy, setPolicy] = useState({ endTime: "18:00" });
 
-  const fetchPolicy = async () => {
-    try {
-      const res = await axios.get("http://localhost:8000/api/admin/attendance-policy", getAuthHeader());
-      if (res.data.policy) setPolicy(res.data.policy);
-    } catch (err) { console.error("Fetch policy error", err); }
-  };
+  // 🔥 State สำหรับเก็บวันทำงาน (Array ตัวเลข) และวันหยุดพิเศษ
+  const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]); 
+  const [specialHolidays, setSpecialHolidays] = useState([]);
 
   // Leave modal & Preview
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [previewDays, setPreviewDays] = useState(0); // 🔥 สำหรับแสดงจำนวนวันลาจริง
+  const [previewDays, setPreviewDays] = useState(0); 
   const [leaveForm, setLeaveForm] = useState({
     leaveTypeId: "",
     startDate: "",
@@ -96,6 +101,20 @@ export default function HRAttendancePage() {
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return { headers: { Authorization: `Bearer ${token}` } };
+  };
+
+  const fetchPolicy = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/admin/attendance-policy", getAuthHeader());
+      if (res.data.policy) {
+          setPolicy(res.data.policy);
+          // 🔥 แปลงค่าวันทำงานและวันหยุดพิเศษ
+          if (res.data.policy.workingDays) {
+              setWorkingDays(parseWorkingDays(res.data.policy.workingDays));
+          }
+          setSpecialHolidays(res.data.policy.specialHolidays || []);
+      }
+    } catch (err) { console.error("Fetch policy error", err); }
   };
 
   // 1) Attendance Data
@@ -176,7 +195,6 @@ export default function HRAttendancePage() {
 
   const handleCheckIn = async () => {
     try {
-      // เดิม: /checkin -> แก้เป็น: /check-in
       await axios.post("http://localhost:8000/api/timerecord/check-in", {}, getAuthHeader());
       await alertSuccess("Success", "Check-in successful");
       fetchAttendanceData();
@@ -185,25 +203,17 @@ export default function HRAttendancePage() {
   };
 
   const handleCheckOut = async () => {
-    // 1. ตรวจสอบว่ามีข้อมูล policy หรือยัง (ดึงมาจาก DB แล้ว)
     if (!policy || !policy.endTime) {
       return alertError("Error", "Unable to load attendance policy.");
     }
-
-    // 2. คำนวณเวลาเลิกงานจาก Policy ในวันนี้
     const [pEndHour, pEndMin] = policy.endTime.split(':').map(Number);
-    const nowMoment = moment(); // เวลาปัจจุบัน
+    const nowMoment = moment(); 
     const endMoment = moment().hour(pEndHour).minute(pEndMin).second(0).millisecond(0);
 
-    // 3. 🔥 ตรวจสอบเงื่อนไข: ถ้าเวลาปัจจุบัน "ยังไม่ถึง" เวลาเลิกงาน
     if (nowMoment.isBefore(endMoment)) {
-      return alertError(
-        "Not time to check out yet", 
-        `Policy allows check-out starting from ${policy.endTime}.`
-      );
+      return alertError("Not time to check out yet", `Policy allows check-out starting from ${policy.endTime}.`);
     }
 
-    // 4. ถ้าผ่านเงื่อนไข (ถึงเวลาแล้ว) ให้ยิง API ตามปกติ
     try {
       await axios.post("http://localhost:8000/api/timerecord/check-out", {}, getAuthHeader());
       await alertSuccess("Success", "Check-out successful");
@@ -229,33 +239,15 @@ export default function HRAttendancePage() {
     const { name, value } = e.target;
     setLeaveForm(prev => {
       const newState = { ...prev, [name]: value };
-
-      // 🛡️ Logic 1: เมื่อเลือก Start Date ใหม่
       if (name === "startDate") {
-        // ถ้าวันจบที่มีอยู่ (EndDate) ดันมาก่อนวันเริ่มที่เพิ่งเลือกใหม่
-        if (prev.endDate && value > prev.endDate) {
-          newState.endDate = value; // ปรับวันจบให้เท่ากับวันเริ่มทันที
-        }
-        // ถ้ายังไม่เคยเลือกวันจบเลย ให้ default เป็นวันเดียวกัน
-        if (!prev.endDate) {
-          newState.endDate = value;
-        }
+        if (prev.endDate && value > prev.endDate) newState.endDate = value; 
+        if (!prev.endDate) newState.endDate = value;
       }
-
-      // 🛡️ Logic 2: เมื่อพยายามเลือก End Date
       if (name === "endDate") {
-        // ถ้าค่าที่เลือกมา ดันน้อยกว่าวันเริ่ม
-        if (prev.startDate && value < prev.startDate) {
-          newState.endDate = prev.startDate; // บังคับให้เป็นวันเดียวกับวันเริ่ม
-        }
+        if (prev.startDate && value < prev.startDate) newState.endDate = prev.startDate; 
       }
-      
       return newState;
     });
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) setSelectedFile(e.target.files[0]);
   };
 
   const handleSubmitLeave = async (e) => {
@@ -287,6 +279,21 @@ export default function HRAttendancePage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const isBeforeEndTime = moment().isBefore(moment().hour(policy.endTime.split(':')[0]).minute(policy.endTime.split(':')[1]));
+
+  // 🔥 Helper Function: เช็คว่าเป็นวันทำงานหรือไม่ (ใช้ใน DatePicker filterDate)
+  const isWorkingDate = (date) => {
+    const day = date.getDay(); // 0-6
+    const dateStr = moment(date).format("YYYY-MM-DD");
+    
+    // 1. เช็คว่าเป็นวันทำงานตาม Policy ไหม?
+    const isWorkDay = workingDays.includes(day);
+    
+    // 2. เช็คว่าเป็นวันหยุดพิเศษไหม?
+    const isSpecialHoliday = specialHolidays.includes(dateStr);
+
+    // ต้องเป็นวันทำงาน และ ไม่ใช่วันหยุดพิเศษ ถึงจะเลือกได้
+    return isWorkDay && !isSpecialHoliday;
+  };
 
   return (
     <div className="page-card">
@@ -340,7 +347,7 @@ export default function HRAttendancePage() {
               title={q.leaveType?.typeName || "Leave"}
               usedDays={q.usedDays}
               totalDays={q.totalDays}
-              carriedOverDays={q.carriedOverDays} // 🔥 ส่งค่าทบยอด
+              carriedOverDays={q.carriedOverDays} 
             />
           ))
         ) : (
@@ -348,7 +355,6 @@ export default function HRAttendancePage() {
         )}
       </section>
 
-      {/* --- Section: Time History (เดิม) --- */}
       <section className="history-section">
         <h2>Your Personal Time History</h2>
         <div className="history-table-wrapper">
@@ -374,7 +380,6 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
-      {/* --- Section: Leave History (เดิม) --- */}
       <section className="history-section" style={{ marginTop: '30px' }}>
         <h2>Your Personal Leave History</h2>
         <div className="history-table-wrapper">
@@ -405,7 +410,7 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
-      {/* 🔥 Modal: Request Leave (ปรับให้เป็น DatePicker ภาษาอังกฤษ) */}
+      {/* 🔥 Modal: Request Leave (Datepicker with Filter) */}
       {isLeaveModalOpen && (
         <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -439,6 +444,7 @@ export default function HRAttendancePage() {
                       handleLeaveChange({ target: { name: "startDate", value: dStr } });
                     }}
                     minDate={new Date()}
+                    filterDate={isWorkingDate} // 🔥 บล็อกวันที่ไม่ใช่วันทำงาน
                     dateFormat="yyyy-MM-dd"
                     locale={enUS}
                     placeholderText="YYYY-MM-DD"
@@ -455,6 +461,7 @@ export default function HRAttendancePage() {
                       handleLeaveChange({ target: { name: "endDate", value: dStr } });
                     }}
                     minDate={leaveForm.startDate ? new Date(leaveForm.startDate) : new Date()}
+                    filterDate={isWorkingDate} // 🔥 บล็อกวันที่ไม่ใช่วันทำงาน
                     dateFormat="yyyy-MM-dd"
                     locale={enUS}
                     placeholderText="YYYY-MM-DD"
@@ -464,7 +471,6 @@ export default function HRAttendancePage() {
                 </label>
               </div>
 
-              {/* 🔥 กล่องสรุปวันหยุด Real-time */}
               {(leaveForm.startDate && leaveForm.endDate) && (
                 <div className="leave-preview-info" style={{
                   gridColumn: '1 / -1', background: '#f0f9ff', border: '1px solid #bae6fd',
@@ -480,22 +486,10 @@ export default function HRAttendancePage() {
               <label className="full">Detail<textarea name="detail" rows="3" value={leaveForm.detail} onChange={handleLeaveChange} placeholder="Reason." /></label>
               <label className="full">
                 <span className="field-label">ATTACHMENT (OPTIONAL)</span>
-
                 <div className="file-upload">
-                  <input
-                    type="file"
-                    id="attachment"
-                    hidden
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                  />
-
-                  <label htmlFor="attachment" className="file-upload-btn">
-                    Choose file
-                  </label>
-
-                  <span className={`file-upload-name ${selectedFile ? "active" : ""}`}>
-                    {selectedFile ? selectedFile.name : "No file selected"}
-                  </span>
+                  <input type="file" id="attachment" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
+                  <label htmlFor="attachment" className="file-upload-btn">Choose file</label>
+                  <span className={`file-upload-name ${selectedFile ? "active" : ""}`}>{selectedFile ? selectedFile.name : "No file selected"}</span>
                 </div>
               </label>
               <div className="modal-actions">

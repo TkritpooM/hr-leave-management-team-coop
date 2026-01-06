@@ -26,6 +26,13 @@ function getMonthMatrix(year, monthIndex) {
   return weeks;
 }
 
+// 🔥 เพิ่ม Helper Function แปลง "mon,tue" -> [1, 2]
+const parseWorkingDays = (str) => {
+  if (!str) return [1, 2, 3, 4, 5]; // Default Mon-Fri
+  const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+  return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
+};
+
 export default function WorkerCalendar() {
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
@@ -40,6 +47,9 @@ export default function WorkerCalendar() {
   const [selectedDailyData, setSelectedDailyData] = useState(null);
 
   const [specialHolidays, setSpecialHolidays] = useState([]);
+  
+  // 🔥 State เก็บวันทำงาน (Array ตัวเลข)
+  const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]); 
 
   const weeks = useMemo(
     () => getMonthMatrix(viewYear, viewMonth),
@@ -52,19 +62,30 @@ export default function WorkerCalendar() {
   };
 
   const fetchMonthData = async () => {
-  setLoading(true);
-  try {
-    const [attRes, leaveRes, policyRes] = await Promise.all([
-      axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader()),
-      axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
-      axios.get("http://localhost:8000/api/admin/attendance-policy", getAuthHeader()), // ✅ ดึงวันหยุด
-    ]);
-    setAttendance(attRes.data.records || []);
-    setLeaves(leaveRes.data.requests || []);
-    setSpecialHolidays(policyRes.data.policy?.specialHolidays || []); // ✅ เก็บวันหยุด
-  } catch (e) { console.error(e); }
-  finally { setLoading(false); }
-};
+    setLoading(true);
+    try {
+      const [attRes, leaveRes, policyRes] = await Promise.all([
+        axios.get("http://localhost:8000/api/timerecord/my", getAuthHeader()),
+        axios.get("http://localhost:8000/api/leave/my", getAuthHeader()),
+        axios.get("http://localhost:8000/api/admin/attendance-policy", getAuthHeader()),
+      ]);
+
+      setAttendance(attRes.data.records || []);
+      setLeaves(leaveRes.data.requests || []);
+      
+      const policy = policyRes.data.policy;
+
+      // 🔥 เรียกใช้ฟังก์ชันแปลงค่าจาก String เป็น Array
+      if (policy?.workingDays) {
+          const days = parseWorkingDays(policy.workingDays);
+          setWorkingDays(days);
+      }
+      
+      setSpecialHolidays(policy?.specialHolidays || []);
+
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
   useEffect(() => {
     fetchMonthData();
@@ -81,11 +102,11 @@ export default function WorkerCalendar() {
     return map;
   }, [attendance]);
 
-  // map leaves by date range (✅ เพิ่ม approvedBy/approvalDate)
+  // map leaves by date range
   const leaveByDate = useMemo(() => {
     const map = {};
     leaves
-      .filter((l) => l.status !== "Rejected")
+      .filter((l) => l.status !== "Rejected" && l.status !== "Cancelled")
       .forEach((l) => {
         let cur = moment(l.startDate).startOf("day");
         const end = moment(l.endDate).startOf("day");
@@ -106,8 +127,6 @@ export default function WorkerCalendar() {
             reason: l.reason || "-",
             startDate: l.startDate,
             endDate: l.endDate,
-
-            // ✅ NEW: ใครอนุมัติ + เวลาอนุมัติ (ต้องให้ backend ส่ง approvedByHR มาด้วย)
             approvedByHR: l.approvedByHR || null,
             approvedByName,
             approvalDate: l.approvalDate || null,
@@ -149,20 +168,20 @@ export default function WorkerCalendar() {
     const todayStr = toISODate(new Date());
     const isFuture = isoDate > todayStr;
     const dayOfWeek = moment(isoDate).day(); // 0 = Sun, 6 = Sat
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    // 🔥 เช็ควันทำงานจาก State ที่แปลงค่ามาแล้ว
+    const isWorkingDay = workingDays.includes(dayOfWeek); 
     const isHoliday = specialHolidays.includes(isoDate);
 
     let modalData = null;
 
     if (isHoliday) {
-      // ✅ Priority 1: Company Holiday (สูงสุดตามเดิม)
       modalData = {
         type: "holiday",
         status: "Company Holiday",
         reason: "This is a pre-announced company non-working day.",
       };
     } else if (leave) {
-      // ✅ Priority 2: Approved Leave (ทับวันหยุดปกติเสมอ)
       modalData = {
         type: "leave",
         status: leave.status,
@@ -175,22 +194,20 @@ export default function WorkerCalendar() {
         approvalDate: leave.approvalDate || null,
         reason: leave.reason,
       };
-    } else if (isWeekend) {
-      // ✅ Priority 3: Weekend (ย้ายขึ้นมาเพื่อรองรับวันหยุดเสาร์-อาทิตย์ทุกช่วงเวลา)
+    } else if (!isWorkingDay) {
+      // 🔥 วันหยุดประจำสัปดาห์ (ตาม Setting)
       modalData = {
         type: "weekend",
-        status: "Weekend",
-        reason: "Weekly non-working day (Saturday/Sunday).",
+        status: "Non-Working Day",
+        reason: "Off-day according to company schedule.",
       };
     } else if (isFuture) {
-      // ✅ Priority 4: Future Dates (สำหรับวันธรรมดาในอนาคต)
       modalData = {
         type: "future",
         status: "Upcoming Date",
-        reason: "This date has not arrived yet. Attendance cannot be recorded in advance.",
+        reason: "This date has not arrived yet.",
       };
     } else if (att) {
-      // ✅ Priority 5: Attendance (ข้อมูลอดีตที่บันทึกไว้)
       modalData = {
         type: "attendance",
         status: att.isLate ? "Late" : "Normal",
@@ -200,12 +217,11 @@ export default function WorkerCalendar() {
         reason: "-",
       };
     } else {
-      // ✅ Priority 6: No Data (สำหรับวันทำงานในอดีตที่ไม่มีข้อมูล)
       modalData = {
         type: "nodata",
         status: "No Data",
         employeeName: "You",
-        reason: "No attendance or leave record found for this past date.",
+        reason: "No attendance or leave record found.",
       };
     }
 
@@ -223,15 +239,9 @@ export default function WorkerCalendar() {
           </p>
         </div>
         <div className="wc-top-actions">
-          <button className="nav-btn" onClick={goPrevMonth} type="button">
-            ‹
-          </button>
-          <div className="month-label">
-            {monthName} {viewYear}
-          </div>
-          <button className="nav-btn" onClick={goNextMonth} type="button">
-            ›
-          </button>
+          <button className="nav-btn" onClick={goPrevMonth} type="button">‹</button>
+          <div className="month-label">{monthName} {viewYear}</div>
+          <button className="nav-btn" onClick={goNextMonth} type="button">›</button>
           <button
             className="btn outline small"
             onClick={() => handleDateClick(toISODate(new Date()))}
@@ -245,9 +255,7 @@ export default function WorkerCalendar() {
       <div className="calendar">
         <div className="calendar-head">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div className="cal-cell head" key={d}>
-              {d}
-            </div>
+            <div className="cal-cell head" key={d}>{d}</div>
           ))}
         </div>
 
@@ -258,12 +266,19 @@ export default function WorkerCalendar() {
             const att = attByDate[iso];
             const lvs = leaveByDate[iso] || [];
 
+            // 🔥 Logic เช็ควันทำงานเพื่อใส่สีเทา
+            const dayOfWeek = d.getDay();
+            const isWorkingDay = workingDays.includes(dayOfWeek);
+
+            let cellClass = "cal-cell";
+            if (!inMonth) cellClass += " muted";
+            if (!isWorkingDay) cellClass += " non-working"; // ใส่ class สีเทา
+            if (iso === selectedDate) cellClass += " selected";
+
             return (
               <div
                 key={iso}
-                className={`cal-cell ${!inMonth ? "muted" : ""} ${
-                  iso === selectedDate ? "selected" : ""
-                }`}
+                className={cellClass}
                 onClick={() => handleDateClick(iso)}
               >
                 <div className="cal-date-row">
@@ -298,7 +313,7 @@ export default function WorkerCalendar() {
                     <span 
                       className="wc-tag" 
                       style={{ 
-                        backgroundColor: "#64748b", // สีเทาเข้มเพื่อให้ดูต่างจากการลา
+                        backgroundColor: "#64748b",
                         color: "#fff",
                         fontSize: "10px",
                         padding: "2px 4px",

@@ -1,3 +1,4 @@
+// src/pages/HRDashboard.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import moment from "moment";
 import {
@@ -35,6 +36,13 @@ function getMonthMatrix(year, monthIndex) {
   return weeks;
 }
 
+// 🔥 เพิ่ม Helper Function แปลง "mon,tue" -> [1, 2]
+const parseWorkingDays = (str) => {
+  if (!str) return [1, 2, 3, 4, 5]; // Default Mon-Fri
+  const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+  return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
+};
+
 export default function HRDashboard() {
   const [tab, setTab] = useState("overview");
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
@@ -47,6 +55,9 @@ export default function HRDashboard() {
   const [monthLeaveMap, setMonthLeaveMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [specialHolidays, setSpecialHolidays] = useState([]);
+  
+  // 🔥 ใช้ State เก็บวันทำงาน (Default: จ-ศ ไว้ก่อน แล้วรอ API มาทับ)
+  const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]);
 
   // Reports States
   const [rangeStart, setRangeStart] = useState(toISODate(new Date(viewYear, viewMonth, 1)));
@@ -71,7 +82,7 @@ export default function HRDashboard() {
 
   /* ===== API Calls ===== */
   
-  // ✅ ปรับปรุงให้ดึงทั้งรายการลา และนโยบายวันหยุดพิเศษ
+  // ✅ ดึงข้อมูลปฏิทิน (รายการลา + วันหยุดพิเศษ + วันทำงาน)
   const fetchCalendarData = async () => {
     try {
       const start = toISODate(new Date(viewYear, viewMonth, 1));
@@ -84,6 +95,12 @@ export default function HRDashboard() {
 
       const approved = leaveRes.data.requests?.filter((r) => r.status === "Approved") || [];
       const holidays = policyRes.data.policy?.specialHolidays || [];
+      
+      // 🔥 อัปเดต State วันทำงาน โดยแปลงจาก String -> Array
+      if (policyRes.data.policy?.workingDays) {
+          const days = parseWorkingDays(policyRes.data.policy.workingDays);
+          setWorkingDays(days);
+      }
       setSpecialHolidays(holidays);
 
       const mapping = {};
@@ -180,10 +197,6 @@ export default function HRDashboard() {
     link.remove();
   };
 
-  useEffect(() => {
-    if (employeeReport.length > 0) fetchReport(1);
-  }, [reportPageSize]);
-
   const openDailyDetail = async (dateStr) => {
     try {
       setLoading(true);
@@ -278,10 +291,20 @@ export default function HRDashboard() {
                     {week.map((d) => {
                       const iso = toISODate(d);
                       const items = monthLeaveMap[iso] || [];
+                      
+                      // 🔥 Logic เช็ควันทำงานจาก State (ที่แปลงค่าเรียบร้อยแล้ว)
+                      const dayOfWeek = d.getDay();
+                      const isWorkingDay = workingDays.includes(dayOfWeek);
+
+                      let cellClass = "cal-cell";
+                      if (d.getMonth() !== viewMonth) cellClass += " muted";
+                      if (!isWorkingDay) cellClass += " non-working"; // ใส่ class สีเทา
+                      if (iso === selectedDate) cellClass += " selected";
+
                       return (
                         <div
                           key={iso}
-                          className={`cal-cell ${d.getMonth() !== viewMonth ? "muted" : ""} ${iso === selectedDate ? "selected" : ""}`}
+                          className={cellClass}
                           onClick={() => openDailyDetail(iso)}
                         >
                           <div className="cal-date-row">

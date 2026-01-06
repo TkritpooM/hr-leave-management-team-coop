@@ -24,9 +24,44 @@ const requestLeave = async (req, res, next) => {
     const { startDate, endDate, leaveTypeId, startDuration, endDuration, reason } = req.body;
     const attachmentUrl = req.file ? req.file.filename : null;
 
-    // 1. Validations
+    // 1. Validations (Basic)
     await leaveService.checkLeaveGapPolicy(employeeId, startDate);
     await leaveService.checkLeaveOverlap(employeeId, startDate, endDate);
+    
+    // 🔥 FIX: ดึง Setting จาก Database และแปลงค่า
+    const policy = await prisma.attendancePolicy.findFirst(); 
+    
+    // Default เป็น จันทร์-ศุกร์ (1-5) ไว้ก่อนเผื่อไม่มี Policy
+    let activeWorkDays = [1, 2, 3, 4, 5]; 
+
+    // 🔥 ถ้ามีข้อมูลใน DB ให้แปลงจาก String "mon,tue,..." เป็น Array ตัวเลข [1, 2, ...]
+    if (policy && policy.workingDays) {
+        const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+        activeWorkDays = policy.workingDays
+            .split(',') // ตัดคำด้วย comma
+            .map(d => dayMap[d.trim().toLowerCase()]) // แปลงเป็นตัวเลข
+            .filter(n => n !== undefined); // กรองค่าที่อาจจะ undefined ออก
+    }
+
+    // 🔥 Loop เช็ควันหยุดตามค่า activeWorkDays ที่แปลงแล้ว
+    const startM = moment(startDate);
+    const endM = moment(endDate);
+    let curr = startM.clone();
+
+    while (curr.isSameOrBefore(endM, 'day')) {
+      const dayOfWeek = curr.day(); // 0=Sun, 1=Mon, ...
+      
+      // ถ้าวันที่ขอลา ไม่อยู่ในลิสต์วันทำงานที่ตั้งค่าไว้
+      if (!activeWorkDays.includes(dayOfWeek)) {
+         return res.status(200).json({ 
+            success: false, 
+            message: `Cannot request leave on ${curr.format('dddd, DD MMM')} because it is a non-working day.` 
+         });
+      }
+      curr.add(1, 'days');
+    }
+    // -----------------------------------------------------
+
     const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
 
     if (totalDaysRequested <= 0) {
@@ -134,18 +169,17 @@ const getMyRequests = async (req, res, next) => {
     const employeeId = parseInt(req.user.employeeId);
     const requests = await prisma.leaveRequest.findMany({
       where: { employeeId },
-                include: {
-            leaveType: true,
-
-            // ✅ เพิ่มคนที่อนุมัติ (HR)
-            approvedByHR: {
-                select: {
-                employeeId: true,
-                firstName: true,
-                lastName: true,
-                },
-            },
-            },
+      include: {
+        leaveType: true,
+        // ✅ เพิ่มคนที่อนุมัติ (HR)
+        approvedByHR: {
+          select: {
+            employeeId: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
       orderBy: { requestedAt: 'desc' }
     });
 
