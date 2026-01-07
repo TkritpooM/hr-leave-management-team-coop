@@ -46,7 +46,7 @@ const parseWorkingDays = (str) => {
 
 export default function HRDashboard() {
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [tab, setTab] = useState("overview");
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
