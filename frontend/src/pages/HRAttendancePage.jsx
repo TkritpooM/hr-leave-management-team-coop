@@ -75,7 +75,7 @@ function QuotaCard({ title, usedDays, totalDays, carriedOverDays, t }) {
 }
 
 export default function HRAttendancePage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [now, setNow] = useState(new Date());
   const [checkedInAt, setCheckedInAt] = useState(null);
   const [checkedOutAt, setCheckedOutAt] = useState(null);

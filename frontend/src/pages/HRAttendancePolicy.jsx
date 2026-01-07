@@ -4,8 +4,14 @@ import { alertConfirm, alertSuccess, alertError } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { enUS } from "date-fns/locale";
+import { enUS, th } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
+
+const clampInt = (v, min, max) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+};
 
 const defaultPolicy = {
   startTime: "09:00",
@@ -16,16 +22,9 @@ const defaultPolicy = {
   leaveGapDays: 0,
 };
 
-const clampInt = (v, min, max) => {
-  const n = Number(v);
-  if (!Number.isFinite(n)) return min;
-  return Math.max(min, Math.min(max, Math.trunc(n)));
-};
-
 export default function HRAttendancePolicy() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
-  // ✅ DAYS ต้องอยู่ใน component เพราะต้องใช้ t()
   const DAYS = useMemo(
     () => [
       { key: "mon", label: t("days.mon") },
@@ -49,15 +48,16 @@ export default function HRAttendancePolicy() {
         const res = await axiosClient.get("/admin/attendance-policy");
         const data = res.data.policy;
 
-        const daysArr = data.workingDays ? data.workingDays.split(",") : [];
+        // แปลง "mon,tue" จาก DB เป็น Object {mon: true, tue: true}
+        const daysArr = data?.workingDays ? String(data.workingDays).split(",") : [];
         const daysObj = {};
         DAYS.forEach((d) => (daysObj[d.key] = daysArr.includes(d.key)));
 
         setPolicy({
           ...data,
           workingDays: daysObj,
-          specialHolidays: data.specialHolidays || [],
-          leaveGapDays: data.leaveGapDays || 0,
+          specialHolidays: data?.specialHolidays || [],
+          leaveGapDays: data?.leaveGapDays || 0,
         });
       } catch (err) {
         console.error("Load policy error", err);
@@ -81,8 +81,7 @@ export default function HRAttendancePolicy() {
 
     try {
       setSaving(true);
-
-      const daysStr = Object.keys(policy.workingDays || {})
+      const daysStr = Object.keys(policy.workingDays)
         .filter((key) => policy.workingDays[key])
         .join(",");
 
@@ -119,7 +118,6 @@ export default function HRAttendancePolicy() {
         workingDays: daysStr,
         specialHolidays: [],
       });
-
       setPolicy(defaultPolicy);
       await alertSuccess(t("common.reset"), t("attendancePolicy.resetSuccess"));
     } catch (e) {
@@ -140,11 +138,10 @@ export default function HRAttendancePolicy() {
   };
 
   const removeHoliday = (d) => {
-    setPolicy((p) => ({
-      ...p,
-      specialHolidays: (p.specialHolidays || []).filter((x) => x !== d),
-    }));
+    setPolicy((p) => ({ ...p, specialHolidays: (p.specialHolidays || []).filter((x) => x !== d) }));
   };
+
+  const datePickerLocale = i18n.language?.startsWith("th") ? th : enUS;
 
   return (
     <div className="page-card hr-policy">
@@ -200,9 +197,8 @@ export default function HRAttendancePolicy() {
                 onChange={(e) => setPolicy((p) => ({ ...p, graceMinutes: clampInt(e.target.value, 0, 180) }))}
               />
             </div>
-
             <div className="hrp-field" style={{ opacity: 0, pointerEvents: "none" }}>
-              <label>{t("common.space")}</label>
+              <label>Space</label>
               <input type="text" readOnly />
             </div>
           </div>
@@ -211,7 +207,6 @@ export default function HRAttendancePolicy() {
 
           <div className="hrp-field">
             <label>{t("attendancePolicy.workingDays")}</label>
-
             <div className="hrp-days">
               {DAYS.map((d) => (
                 <label className="hrp-day" key={d.key}>
@@ -243,7 +238,6 @@ export default function HRAttendancePolicy() {
 
           <div className="hrp-field" style={{ marginTop: "20px" }}>
             <label>{t("attendancePolicy.leaveGapLabel")}</label>
-
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <input
                 type="number"
@@ -270,20 +264,16 @@ export default function HRAttendancePolicy() {
 
           <div className="hrp-holiday-row">
             <DatePicker
-              selected={holidayInput ? new Date(`${holidayInput}T00:00:00`) : null}
+              selected={holidayInput ? new Date(holidayInput) : null}
               onChange={(date) => {
-                if (!date) {
-                  setHolidayInput("");
-                  return;
-                }
+                if (!date) return;
                 setHolidayInput(date.toISOString().split("T")[0]);
               }}
               dateFormat="yyyy-MM-dd"
-              locale={enUS}
+              locale={datePickerLocale}
               placeholderText={t("attendancePolicy.selectHolidayDate")}
               className="hrp-holiday-input"
             />
-
             <button className="btn outline" type="button" onClick={addHoliday}>
               {t("common.add")}
             </button>
