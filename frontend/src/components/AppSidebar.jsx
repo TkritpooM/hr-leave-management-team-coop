@@ -15,7 +15,8 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
-  FiSettings
+  FiSettings,
+  FiGlobe
 } from "react-icons/fi";
 
 const MENUS = {
@@ -55,11 +56,7 @@ const MENUS = {
 };
 
 const safeJSON = (v, fallback = {}) => {
-  try {
-    return JSON.parse(v);
-  } catch {
-    return fallback;
-  }
+  try { return JSON.parse(v); } catch { return fallback; }
 };
 
 export default function AppSidebar() {
@@ -75,11 +72,9 @@ export default function AppSidebar() {
   const fullName = `${user.firstName || user.first_name || t("common.user")} ${user.lastName || user.last_name || ""}`.trim();
   const initials = (fullName || "U").charAt(0).toUpperCase();
 
-  // Mobile drawer
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // unread badge
   const [unread, setUnread] = useState(() => Number(localStorage.getItem(notificationKey) || "0") || 0);
+
   useEffect(() => {
     const tick = () => {
       const n = Number(localStorage.getItem(notificationKey) || "0");
@@ -93,10 +88,8 @@ export default function AppSidebar() {
     };
   }, [notificationKey]);
 
-  // close mobile drawer on route change
   useEffect(() => {
     if (mobileOpen) setMobileOpen(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   const logout = () => {
@@ -106,9 +99,7 @@ export default function AppSidebar() {
   };
 
   const currentLang = (i18n.language || "en").startsWith("th") ? "th" : "en";
-  const toggleLang = () => {
-    i18n.changeLanguage(currentLang === "en" ? "th" : "en");
-  };
+  const setLang = (lang) => i18n.changeLanguage(lang);
 
   return (
     <>
@@ -116,52 +107,76 @@ export default function AppSidebar() {
         className="sb-mobile-toggle"
         type="button"
         onClick={() => setMobileOpen((v) => !v)}
-        aria-label={t("sidebar.toggleSidebar")}
-        title={t("sidebar.toggleSidebar")}
       >
         {mobileOpen ? <FiX /> : <FiMenu />}
       </button>
 
       {mobileOpen && <div className="sb-overlay" onClick={() => setMobileOpen(false)} />}
 
-      <aside className={`sb ${mobileOpen ? "sb-mobile-open" : ""}`} aria-label={t("sidebar.toggleSidebar")}>
+      <aside className={`sb ${mobileOpen ? "sb-mobile-open" : ""}`}>
         <div className="sb-top">
           <div className="sb-profile">
             <div className="sb-avatar">{initials}</div>
-
             <div className="sb-profile-info">
               <div className="sb-name">{fullName}</div>
               <div className="sb-role">{t(`common.role.${role}`)}</div>
             </div>
-
             <button
               className="sb-bell"
               type="button"
-              title={t("common.notifications")}
               onClick={() => navigate(`/${role.toLowerCase()}/notifications`)}
             >
               <FiBell />
               {unread > 0 && <span className="sb-badge">{unread > 99 ? "99+" : unread}</span>}
             </button>
           </div>
+        </div>
 
-          {/* simple language toggle (theme-safe, no new CSS needed) */}
-          <div style={{ padding: "0 14px 12px", display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ fontSize: 11, opacity: 0.75 }}>{t("common.language")}</div>
-            <button
-              type="button"
-              onClick={toggleLang}
-              className="sb-logout"
+        {/* --- Language Toggle Pill --- */}
+        <div className="sb-lang-container" style={{ padding: "10px 14px" }}>
+          <div className="sb-lang-pill" style={{ 
+            display: "flex", 
+            background: "#f1f5f9", 
+            borderRadius: "12px", 
+            padding: "4px",
+            position: "relative",
+            transition: "all 0.3s ease"
+          }}>
+            <button 
+              onClick={() => setLang("th")}
               style={{
-                marginLeft: "auto",
-                padding: "6px 10px",
-                borderRadius: 999,
-                fontSize: 12,
-                width: "auto"
+                flex: 1,
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "11px",
+                fontWeight: "800",
+                padding: "6px 0",
+                cursor: "pointer",
+                background: currentLang === "th" ? "#ffffff" : "transparent",
+                color: currentLang === "th" ? "#0f172a" : "#64748b",
+                boxShadow: currentLang === "th" ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
+                transition: "all 0.2s"
               }}
-              title={`${t("common.language")}: ${currentLang === "en" ? t("common.english") : t("common.thai")}`}
             >
-              {currentLang === "en" ? "EN" : "TH"}
+              TH
+            </button>
+            <button 
+              onClick={() => setLang("en")}
+              style={{
+                flex: 1,
+                border: "none",
+                borderRadius: "8px",
+                fontSize: "11px",
+                fontWeight: "800",
+                padding: "6px 0",
+                cursor: "pointer",
+                background: currentLang === "en" ? "#ffffff" : "transparent",
+                color: currentLang === "en" ? "#0f172a" : "#64748b",
+                boxShadow: currentLang === "en" ? "0 2px 4px rgba(0,0,0,0.05)" : "none",
+                transition: "all 0.2s"
+              }}
+            >
+              EN
             </button>
           </div>
         </div>
@@ -170,11 +185,8 @@ export default function AppSidebar() {
           {sections.map((sec) => (
             <div className="sb-section" key={sec.sectionKey}>
               <div className="sb-section-label">{t(sec.sectionKey)}</div>
-
               {sec.items.map((item) => {
-                const showBadge = item.badgeKey === notificationKey;
-                const badgeCount = showBadge ? unread : 0;
-
+                const badgeCount = item.badgeKey === notificationKey ? unread : 0;
                 return (
                   <NavLink key={item.to} to={item.to} className={({ isActive }) => `sb-item ${isActive ? "active" : ""}`}>
                     <span className="sb-item-ico">

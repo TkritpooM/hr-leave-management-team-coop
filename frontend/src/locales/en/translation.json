@@ -570,5 +570,8 @@
     "resetDesc": "Reset policy to default values?",
     "resetSuccess": "Policy reset successfully.",
     "resetFail": "Failed to reset policy."
+  },
+  "units": {
+    "days": "days"
   }
 }

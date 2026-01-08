@@ -9,7 +9,7 @@ import "./AuditLogPanel.css";
 import { useTranslation } from "react-i18next";
 
 // --- Constants ---
-const ACTION_LABEL_KEYS = {
+const ACTION_LABELS = {
   LEAVE_REQUEST_CREATE: "audit.leaveRequested",
   LEAVE_REQUEST_CANCEL: "audit.leaveCancelled",
   LEAVE_REQUEST_APPROVE: "audit.leaveApproved",
@@ -41,7 +41,7 @@ const ACTION_LABEL_KEYS = {
   NOTIFICATION_DELETE_ONE: "audit.notificationDelete",
 };
 
-const CATEGORY_LABEL_KEYS = {
+const CATEGORY_LABELS = {
   Leave: "audit.category.leave",
   Attendance: "audit.category.attendance",
   Quota: "audit.category.quota",
@@ -142,8 +142,8 @@ export default function AuditLogPanel() {
     const cat = getCategoryByAction(log?.action);
     return {
       ...log,
-      __actLabel: t(ACTION_LABEL_KEYS[log?.action] || log?.action),
-      __catLabel: t(CATEGORY_LABEL_KEYS[cat] || cat),
+      __actLabel: t(ACTION_LABELS[log?.action] || log?.action),
+      __catLabel: t(CATEGORY_LABELS[cat] || cat),
       __user: log?.performer ? `${log.performer.firstName} ${log.performer.lastName}`.trim() : "-",
       __summary: parseEntityText(log)
     };
@@ -254,7 +254,7 @@ export default function AuditLogPanel() {
           <div className="audit-modal-content" onClick={e => e.stopPropagation()} style={{ background: "white", width: "min(960px, 95vw)", borderRadius: "18px", overflow: "hidden", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 800 }}>{t(ACTION_LABEL_KEYS[selected.action] || selected.action)}</h3>
+                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 800 }}>{t(ACTION_LABELS[selected.action] || selected.action)}</h3>
                 <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>{moment(selected.createdAt).format("DD MMM YYYY, HH:mm:ss")}</div>
               </div>
               <button className="btn outline small" onClick={() => setSelected(null)}><FiX />{t("Close")}</button>
