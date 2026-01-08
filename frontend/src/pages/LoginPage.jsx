@@ -70,7 +70,7 @@ export default function LoginPage() {
 
       goAfterLogin(user?.role);
     } catch (err) {
-      console.error(t("Login Error:"), err);
+      console.error("Login Error:", err);
 
       const msg =
         err?.response?.data?.message ||
@@ -157,15 +157,15 @@ export default function LoginPage() {
           <div className="list">
             <div className="row">
               <span className="label">{t("auth.login.hr")}</span>
-              <code>{t("hr.manager@company.com")}</code>
+              <code>{"hr.manager@company.com"}</code>
             </div>
             <div className="row">
               <span className="label">{t("auth.login.worker")}</span>
-              <code>{t("worker.a@company.com")}</code>
+              <code>{"worker.a@company.com"}</code>
             </div>
             <div className="row">
               <span className="label">{t("auth.login.password")}</span>
-              <code>{t("Password123")}</code>
+              <code>{"Password123"}</code>
             </div>
           </div>
         </div>

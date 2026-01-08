@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 import {
   FiBell,
   FiTrash2,
@@ -13,296 +12,369 @@ import "./WorkerNotifications.css";
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import QuickActionModal from "../components/QuickActionModal";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-
-const api = axios.create({ baseURL: "http://localhost:8000" });
-const getAuthHeader = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-});
+import moment from "moment";
+import "moment/locale/th";
+import axiosClient from "../api/axiosClient";
 
 const LAST_SEEN_KEY = "worker_notifications_last_seen";
 const SIDEBAR_UNREAD_KEY = "worker_unread_notifications";
 
 export default function WorkerNotifications() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+
+  const mLocale = useMemo(() => {
+    const lng = (i18n.resolvedLanguage || i18n.language || "en")
+      .toLowerCase()
+      .trim();
+    return lng.startsWith("th") ? "th" : "en";
+  }, [i18n.resolvedLanguage, i18n.language]);
+
+  useEffect(() => {
+    moment.locale(mLocale);
+  }, [mLocale]);
 
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Modal States
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
 
   const setSidebarUnreadZero = () => {
-    localStorage.setItem(SIDEBAR_UNREAD_KEY, "0");
-    window.dispatchEvent(new Event("storage"));
+    try {
+      localStorage.setItem(SIDEBAR_UNREAD_KEY, "0");
+      window.dispatchEvent(new Event("worker_unread_notifications_updated"));
+    } catch (_) {}
+  };
+
+  const safeTs = (ts) => {
+    if (!ts) return 0;
+    const d = new Date(ts);
+    const ms = d.getTime();
+    return Number.isFinite(ms) ? ms : 0;
+  };
+
+  const normalizeForModal = (n) => {
+    // ✅ backend notification uses notificationType / relatedRequestId / relatedProfileRequestId
+    const notiType = String(n?.notificationType || n?.type || "").toLowerCase();
+
+    // ---- PROFILE ----
+    const profileId = n?.relatedProfileRequestId || n?.profileUpdateRequest?.requestId;
+    if (profileId || notiType.includes("profile")) {
+      // backend include: employee.profileUpdateRequests (all)
+      const req =
+        n?.profileUpdateRequest ||
+        n?.employee?.profileUpdateRequests?.find((r) => Number(r.requestId) === Number(profileId));
+
+      return {
+        type: "PROFILE",
+        requestId: req?.requestId ?? profileId, // ✅ important
+        profileRequestId: req?.requestId ?? profileId,
+        status: req?.status ?? n?.status ?? "Pending",
+        oldName: req ? `${req.oldFirstName || ""} ${req.oldLastName || ""}`.trim() : n?.oldName,
+        newName: req ? `${req.newFirstName || ""} ${req.newLastName || ""}`.trim() : n?.newName,
+        reason: req?.reason ?? n?.reason,
+        attachmentUrl: req?.attachmentUrl ?? n?.attachmentUrl,
+        approvedByHR: req?.approvedByHR ?? n?.approvedByHR,
+        // keep original for reference
+        notificationId: n?.notificationId,
+        message: n?.message,
+        createdAt: n?.createdAt,
+      };
+    }
+
+    // ---- LEAVE ----
+    const leaveId = n?.relatedRequestId || n?.relatedRequest?.requestId;
+    if (leaveId || notiType.includes("leave") || notiType.includes("approval") || notiType.includes("rejection")) {
+      const req = n?.relatedRequest;
+      return {
+        type: "LEAVE",
+        requestId: req?.requestId ?? leaveId, // ✅ important
+        leaveRequestId: req?.requestId ?? leaveId,
+        status: req?.status ?? n?.status ?? "Pending",
+        employeeName:
+          req?.employeeName ||
+          (req?.employee ? `${req.employee.firstName || ""} ${req.employee.lastName || ""}`.trim() : n?.employeeName),
+        leaveType: req?.leaveType?.typeName ?? n?.leaveType,
+        startDate: req?.startDate ?? n?.startDate,
+        endDate: req?.endDate ?? n?.endDate,
+        reason: req?.reason ?? n?.reason,
+        attachmentUrl: req?.attachmentUrl ?? n?.attachmentUrl,
+        approvedByHR: req?.approvedByHR ?? n?.approvedByHR,
+        notificationId: n?.notificationId,
+        message: n?.message,
+        createdAt: n?.createdAt,
+      };
+    }
+
+    // ---- fallback: just view only ----
+    return {
+      type: "GENERAL",
+      isReadOnly: true,
+      message: n?.message,
+      createdAt: n?.createdAt,
+      notificationId: n?.notificationId,
+    };
   };
 
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const lastSeen = Number(localStorage.getItem(LAST_SEEN_KEY)) || 0;
-      const res = await api.get("/api/notifications/my", getAuthHeader());
-      const fetched = res.data.notifications || [];
 
-      const mapped = fetched.map((n) => ({
-        ...n,
-        _isNewSinceLastSeen: new Date(n.createdAt).getTime() > lastSeen,
-      }));
+      const lastSeen = Number(localStorage.getItem(LAST_SEEN_KEY) || "0");
 
-      setNotifications(mapped);
+      // ✅ Backend: GET /api/notifications/my
+      const res = await axiosClient.get("/notifications/my");
+      const fetched = res.data?.notifications || res.data || [];
+
+      setNotifications(
+        fetched.map((n) => {
+          const ts = n.createdAt || n.timestamp;
+          return {
+            ...n,
+            _ts: ts,
+            _isNewSinceLastSeen: safeTs(ts) > lastSeen,
+          };
+        })
+      );
+
       setSidebarUnreadZero();
       localStorage.setItem(LAST_SEEN_KEY, String(Date.now()));
     } catch (err) {
-      alertError(t("Error"), t("Failed to load notifications."));
+      alertError(
+        t("common.error", "Error"),
+        err?.response?.data?.message ||
+          t("pages.workerNotifications.alert.loadFailed", "Failed to load notifications.")
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle clicking a notification
-  const handleNotiClick = (noti) => {
-    if (!noti.isRead) markAsRead(noti.notificationId);
-
-    // 1. ตรวจสอบว่าเป็นเรื่อง Profile Update หรือไม่ (เช็คจาก Message)
-    if (noti.message?.toLowerCase().includes("profile update")) {
-    
-      // ✅ STEP A: ดึงเลข ID ออกจากข้อความแจ้งเตือน (เช่นจาก "ID: 15")
-      const matchId = noti.message.match(/ID: (\d+)/);
-      const targetId = matchId ? Number(matchId[1]) : null;
-
-      // ✅ STEP B: ค้นหาคำร้องจากรายการทั้งหมดที่ Backend ส่งมา ให้ตรงกับ ID ที่ได้
-      const allRequests = noti.employee?.profileUpdateRequests || [];
-      const profileReq = targetId 
-        ? allRequests.find(r => Number(r.requestId) === targetId) // หาใบที่ ID ตรงกัน
-        : allRequests[0]; // ถ้าหา ID ในข้อความไม่เจอ ให้ใช้ใบแจ้งเตือนล่าสุดแทน
-
-      if (profileReq) {
-        setSelectedRequest({
-          type: 'PROFILE',
-          requestId: profileReq.requestId,
-          // ✅ ตอนนี้ status จะตรงตามใบจริง (Approved หรือ Rejected)
-          status: profileReq.status, 
-          oldName: `${profileReq.oldFirstName} ${profileReq.oldLastName}`,
-          newName: `${profileReq.newFirstName} ${profileReq.newLastName}`,
-          reason: profileReq.reason || t("Requested via profile settings"),
-          attachmentUrl: profileReq.attachmentUrl,
-          isReadOnly: true,
-        });
-        setIsModalOpen(true);
-      }
-      return; // จบการทำงาน
-    }
-
-    // 2. กรณีใบลา (Logic เดิมของคุณ - ไม่ต้องลบ)
-    if (noti.relatedRequestId && noti.relatedRequest) {
-      const rr = noti.relatedRequest;
-      setSelectedRequest({
-        type: 'LEAVE', // ✅ เพิ่ม Flag
-        requestId: noti.relatedRequestId,
-        employeeName: t("Your Request"),
-        leaveType: rr.leaveType?.typeName || "Unknown",
-        startDate: rr.startDate,
-        endDate: rr.endDate,
-        reason: rr?.reason || t("No reason provided."),
-        status: rr.status,
-        attachmentUrl: rr.attachmentUrl,
-        isReadOnly: true,
-        approvedByHR: rr.approvedByHR,
-        approvalDate: rr.approvalDate,
-      });
-      setIsModalOpen(true);
-    }
-  };
-
   useEffect(() => {
-    setSidebarUnreadZero();
     fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const total = notifications.length;
-  const startIdx = (page - 1) * pageSize;
-  const pagedNotifications = useMemo(
-    () => notifications.slice(startIdx, startIdx + pageSize),
-    [notifications, startIdx, pageSize]
-  );
-
-  const markAsRead = async (id) => {
-    try {
-      await api.put(`/api/notifications/${id}/read`, {}, getAuthHeader());
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.notificationId === id ? { ...n, isRead: true } : n
-        )
-      );
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await api.put("/api/notifications/mark-all-read", {}, getAuthHeader());
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      await alertSuccess(t("Success"), t("All notifications marked as read."));
-      setSidebarUnreadZero();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const deleteNoti = async (id) => {
-    if (
-      !(await alertConfirm(t("Delete Notification"), t("Are you sure you want to delete this?"),
-        "Delete"
-      ))
-    )
-      return;
-
-    try {
-      await api.delete(`/api/notifications/${id}`, getAuthHeader());
-      setNotifications((prev) =>
-        prev.filter((n) => n.notificationId !== id)
-      );
-    } catch (err) {
-      alertError(t("Error"), t("Failed to delete notification."));
-    }
-  };
-
   const handleClearAll = async () => {
-    if (!(await alertConfirm(t("Clear All"), t("Delete all notifications?"), t("Clear All"))))
-      return;
+    const ok = await alertConfirm(
+      t("pages.workerNotifications.alert.clearAllTitle", "Clear all notifications?"),
+      t(
+        "pages.workerNotifications.alert.clearAllText",
+        "This will remove all notifications. This action cannot be undone."
+      ),
+      t("common.confirm", "Confirm")
+    );
+    if (!ok) return;
 
     try {
-      await api.delete("/api/notifications/clear-all", getAuthHeader());
+      // ✅ Backend: DELETE /api/notifications/clear  (ไม่ใช่ clear-all)
+      await axiosClient.delete("/notifications/clear");
+      await alertSuccess(
+        t("common.success", "Success"),
+        t("pages.workerNotifications.alert.cleared", "Cleared all notifications.")
+      );
       setNotifications([]);
-      await alertSuccess(t("Success"), t("All notifications cleared."));
       setSidebarUnreadZero();
+      setPage(1);
     } catch (err) {
-      alertError(t("Error"), t("Failed to clear notifications."));
+      alertError(
+        t("common.error", "Error"),
+        err?.response?.data?.message ||
+          t("pages.workerNotifications.alert.clearFailed", "Failed to clear notifications.")
+      );
     }
   };
 
-  const getTitle = (type, message) => {
-    if (message?.includes("profile update") || message?.includes("change name")) {
-      return t("Profile Update Update");
+  const handleMarkAllRead = async () => {
+    try {
+      await axiosClient.put("/notifications/mark-all-read");
+      await alertSuccess(
+        t("common.success", "Success"),
+        t("pages.workerNotifications.alert.markedRead", "Marked all as read.")
+      );
+      fetchNotifications();
+    } catch (err) {
+      alertError(
+        t("common.error", "Error"),
+        err?.response?.data?.message ||
+          t("pages.workerNotifications.alert.markReadFailed", "Failed to mark all as read.")
+      );
     }
-    if (type === "NewRequest") return t("New Request Submitted");
-    if (type === "Approved") return t("Leave Request Approved");
-    if (type === "Rejected") return t("Leave Request Rejected");
-    return t("System Notification");
+  };
+
+  const openQuick = (n) => {
+    // ✅ สำคัญ: ส่งข้อมูลที่มี requestId เข้า modal
+    setSelected(normalizeForModal(n));
+    setQuickOpen(true);
+  };
+
+  const closeQuick = () => {
+    setQuickOpen(false);
+    setSelected(null);
+  };
+
+  const pagedNotifications = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return notifications.slice(start, start + pageSize);
+  }, [notifications, page, pageSize]);
+
+  const renderTypeIcon = (typeOrNotiType) => {
+    const key = String(typeOrNotiType || "").toLowerCase();
+    if (key.includes("late")) return <FiAlertCircle />;
+    if (key.includes("leave") || key.includes("approval") || key.includes("rejection")) return <FiInfo />;
+    if (key.includes("profile")) return <FiInfo />;
+    return <FiBell />;
+  };
+
+  const renderTypeLabel = (typeOrNotiType) => {
+    const key = String(typeOrNotiType || "").toLowerCase();
+    if (key.includes("late"))
+      return t("pages.workerNotifications.type.lateWarning", "Late Warning");
+    if (key.includes("profile"))
+      return t("pages.workerNotifications.type.profile", "Profile");
+    if (key.includes("leave") || key.includes("approval") || key.includes("rejection"))
+      return t("pages.workerNotifications.type.leave", "Leave");
+    return t("pages.workerNotifications.type.general", "General");
+  };
+
+  const renderTime = (ts) => {
+    if (!ts) return "-";
+    const d = new Date(ts);
+    if (!Number.isFinite(d.getTime())) return "-";
+    return moment(d).locale(mLocale).format("DD MMM YYYY, HH:mm");
   };
 
   return (
-    <div className="page-card wn">
-      <div className="wn-head">
+    <div className="page-card">
+      <div className="worker-header" style={{ marginBottom: 10 }}>
         <div>
-          <h2 className="wn-title">{t("Notifications")}</h2>
-          <p className="wn-sub">
-            Your personal activity and leave updates (Page {page})
+          <h1 className="worker-title">
+            {t("pages.workerNotifications.title", "Notifications")}
+          </h1>
+          <p className="worker-datetime">
+            {t("pages.workerNotifications.subtitle", "Updates, alerts, and actions for you.")}
           </p>
         </div>
 
-        <div className="wn-actions">
-          <button className="emp-btn emp-btn-outline small" onClick={fetchNotifications}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            className="btn outline"
+            onClick={fetchNotifications}
+            disabled={loading}
+            title={t("pages.workerNotifications.refresh", "Refresh")}
+          >
             <FiRefreshCw className={loading ? "spin" : ""} />
+            <span style={{ marginLeft: 6 }}>{t("pages.workerNotifications.refresh", "Refresh")}</span>
           </button>
-          <button
-            className="emp-btn emp-btn-outline small"
-            onClick={handleClearAll}
-            disabled={notifications.length === 0}
-          >
-            <FiTrash2 />{t("Clear All")}</button>
-          <button
-            className="emp-btn emp-btn-primary small"
-            onClick={markAllAsRead}
-            disabled={notifications.length === 0}
-          >
-            <FiCheck />{t("Mark all read")}</button>
+
+          <button className="btn outline" onClick={handleMarkAllRead} disabled={notifications.length === 0}>
+            <FiCheckCircle />
+            <span style={{ marginLeft: 6 }}>{t("pages.workerNotifications.markAllRead", "Mark all read")}</span>
+          </button>
+
+          <button className="btn danger" onClick={handleClearAll} disabled={notifications.length === 0}>
+            <FiTrash2 />
+            <span style={{ marginLeft: 6 }}>{t("pages.workerNotifications.clearAll", "Clear All")}</span>
+          </button>
         </div>
       </div>
 
-      <div className="wn-list">
-        {loading ? (
-            <div className="wn-empty">
-              <FiRefreshCw className="spin" size={24} />
-              <p>{t("Loading...")}</p>
-            </div>
-          ) : pagedNotifications.length === 0 ? (
-            <div className="wn-empty">
-              <FiBell style={{ opacity: 0.5 }} size={32} />
-              <p>{t("No notifications found.")}</p>
-            </div>
-          ) : (
-          pagedNotifications.map((n) => (
-            <div
-              key={n.notificationId}
-              className={`wn-item ${
-                n.notificationType === "Approved"
-                  ? "ok"
-                  : n.notificationType === "Rejected"
-                  ? "danger"
-                  : "info"
-              } ${n.isRead ? "read" : "unread"}`}
-              onClick={() => handleNotiClick(n)}
-            >
-              <div className="wn-row">
-                <div className="noti-icon-box">
-                 {n.notificationType === "Approved" ? (
-                  <FiCheckCircle className="noti-ico ok" />
-                ) : n.notificationType === "Rejected" ? (
-                  <FiAlertCircle className="noti-ico danger" />
-                ) : (
-                  <FiInfo className="noti-ico info" />
-                )}
-                </div>
+      <div className="history-table-wrapper">
+        <table className="history-table">
+          <thead>
+            <tr>
+              <th>{t("pages.workerNotifications.table.type", "Type")}</th>
+              <th>{t("pages.workerNotifications.table.message", "Message")}</th>
+              <th>{t("pages.workerNotifications.table.time", "Time")}</th>
+              <th style={{ textAlign: "center" }}>
+                {t("pages.workerNotifications.table.action", "Action")}
+              </th>
+            </tr>
+          </thead>
 
-                <div className="wn-body">
-                  <div className="wn-item-title">
-                    {getTitle(n.notificationType, n.message)}
-                    {n._isNewSinceLastSeen && <span className="badge-new">{t("NEW")}</span>}
-                  </div>
-                  <div className="wn-item-msg">{n.message}</div>
-                  <div className="wn-item-time">
-                    {new Date(n.createdAt).toLocaleString("en-GB")}
-                  </div>
-                </div>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="empty">{t("common.loading", "Loading...")}</td>
+              </tr>
+            ) : pagedNotifications.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="empty">
+                  {t("pages.workerNotifications.noNotificationsFound", "No notifications found.")}
+                </td>
+              </tr>
+            ) : (
+              pagedNotifications.map((n) => (
+                <tr key={n.notificationId || n.id || `${n.notificationType}-${n._ts || "x"}`}>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ opacity: 0.9 }}>{renderTypeIcon(n.notificationType || n.type)}</span>
+                      <span style={{ fontWeight: 700 }}>
+                        {renderTypeLabel(n.notificationType || n.type)}
+                      </span>
 
-                <button
-                  className="delete-btn-icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteNoti(n.notificationId);
-                  }}
-                >
-                  <FiTrash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+                      {n._isNewSinceLastSeen && (
+                        <span
+                          className="badge badge-ok"
+                          style={{ marginLeft: 6, fontSize: 11, padding: "2px 8px", borderRadius: 999 }}
+                        >
+                          {t("pages.workerNotifications.badge.new", "NEW")}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+
+                  <td style={{ color: "#334155" }}>{n.message || "-"}</td>
+
+                  <td style={{ color: "#64748b" }}>{renderTime(n.createdAt || n.timestamp)}</td>
+
+                  <td style={{ textAlign: "center" }}>
+                    <button className="btn outline small" onClick={() => openQuick(n)}>
+                      <FiCheck />
+                      <span style={{ marginLeft: 6 }}>{t("pages.workerNotifications.view", "View")}</span>
+                    </button>
+
+                    {!!n.link && (
+                      <button
+                        className="btn outline small"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => navigate(n.link)}
+                      >
+                        {t("pages.workerNotifications.open", "Open")}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {!loading && notifications.length > 0 && (
-        <div className="wn-footer">
-          <Pagination
-            total={total}
-            page={page}
-            pageSize={pageSize}
-            onPageChange={setPage}
-            onPageSizeChange={setPageSize}
-          />
-        </div>
+      <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
+        <Pagination
+          total={notifications.length}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+      </div>
+
+      {quickOpen && (
+        <QuickActionModal
+          isOpen={quickOpen}
+          onClose={closeQuick}
+          title={t("pages.workerNotifications.modal.title", "Notification")}
+          data={selected}
+        />
       )}
-
-      {/* Leave Detail Modal for Worker */}
-      <QuickActionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        requestData={selectedRequest}
-      />
     </div>
   );
 }

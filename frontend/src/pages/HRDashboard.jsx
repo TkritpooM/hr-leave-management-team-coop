@@ -1,12 +1,16 @@
 // src/pages/HRDashboard.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import moment from "moment";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer
-} from "recharts";
-import { 
-  FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle, 
-  FiClock, FiFileText, FiTrendingUp, FiSave 
+  FiRefreshCw,
+  FiCalendar,
+  FiCheckCircle,
+  FiXCircle,
+  FiClock,
+  FiFileText,
+  FiTrendingUp,
+  FiSave,
 } from "react-icons/fi";
 import "./HRDashboard.css";
 import DailyDetailModal from "../components/DailyDetailModal";
@@ -37,16 +41,19 @@ function getMonthMatrix(year, monthIndex) {
   return weeks;
 }
 
-// 🔥 เพิ่ม Helper Function แปลง "mon,tue" -> [1, 2]
+// 🔥 Helper: "mon,tue" -> [1,2]
 const parseWorkingDays = (str) => {
   if (!str) return [1, 2, 3, 4, 5]; // Default Mon-Fri
-  const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
-  return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
+  const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+  return str
+    .split(",")
+    .map((d) => dayMap[d.trim().toLowerCase()])
+    .filter((n) => n !== undefined);
 };
 
 export default function HRDashboard() {
-
   const { t } = useTranslation();
+
   const [tab, setTab] = useState("overview");
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
@@ -58,15 +65,22 @@ export default function HRDashboard() {
   const [monthLeaveMap, setMonthLeaveMap] = useState({});
   const [loading, setLoading] = useState(false);
   const [specialHolidays, setSpecialHolidays] = useState([]);
-  
-  // 🔥 ใช้ State เก็บวันทำงาน (Default: จ-ศ ไว้ก่อน แล้วรอ API มาทับ)
+
+  // 🔥 Working days (default Mon-Fri, then override by API)
   const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]);
 
   // Reports States
   const [rangeStart, setRangeStart] = useState(toISODate(new Date(viewYear, viewMonth, 1)));
   const [rangeEnd, setRangeEnd] = useState(toISODate(new Date(viewYear, viewMonth + 1, 0)));
-  const [reportSummary, setReportSummary] = useState({ present: 0, leave: 0, late: 0, absent: 0, total: 0, lateRate: 0 });
-  
+  const [reportSummary, setReportSummary] = useState({
+    present: 0,
+    leave: 0,
+    late: 0,
+    absent: 0,
+    total: 0,
+    lateRate: 0,
+  });
+
   const [employeeReport, setEmployeeReport] = useState([]);
   const [leaveChartData, setLeaveChartData] = useState([]);
   const [perfectEmployees, setPerfectEmployees] = useState([]);
@@ -84,42 +98,41 @@ export default function HRDashboard() {
   const todayStr = toISODate(new Date());
 
   /* ===== API Calls ===== */
-  
-  // ✅ ดึงข้อมูลปฏิทิน (รายการลา + วันหยุดพิเศษ + วันทำงาน)
+
+  // ✅ Calendar data (leave + holidays + working days)
   const fetchCalendarData = async () => {
     try {
       const start = toISODate(new Date(viewYear, viewMonth, 1));
       const end = toISODate(new Date(viewYear, viewMonth + 1, 0));
-      
+
       const [leaveRes, policyRes] = await Promise.all([
         axiosClient.get(`/leave/admin/all?startDate=${start}&endDate=${end}`),
-        axiosClient.get(`/admin/attendance-policy`)
+        axiosClient.get(`/admin/attendance-policy`),
       ]);
 
       const approved = leaveRes.data.requests?.filter((r) => r.status === "Approved") || [];
       const holidays = policyRes.data.policy?.specialHolidays || [];
-      
-      // 🔥 อัปเดต State วันทำงาน โดยแปลงจาก String -> Array
+
       if (policyRes.data.policy?.workingDays) {
-          const days = parseWorkingDays(policyRes.data.policy.workingDays);
-          setWorkingDays(days);
+        const days = parseWorkingDays(policyRes.data.policy.workingDays);
+        setWorkingDays(days);
       }
       setSpecialHolidays(holidays);
 
       const mapping = {};
 
-      // 1. ใส่ข้อมูลวันหยุดพิเศษก่อน (Priority สูงสุด)
-      holidays.forEach(hDate => {
+      // 1) special holidays first (highest priority)
+      holidays.forEach((hDate) => {
         const ds = moment(hDate).format("YYYY-MM-DD");
         if (!mapping[ds]) mapping[ds] = [];
         mapping[ds].push({
-          name: t("Company Holiday"),
+          name: t("pages.hrDashboard.companyHoliday"),
           isHoliday: true,
-          colorCode: "#64748b" // Slate-500
+          colorCode: "#64748b",
         });
       });
 
-      // 2. ใส่ข้อมูลการลาของพนักงาน
+      // 2) approved leaves
       approved.forEach((leave) => {
         let curr = moment(leave.startDate).startOf("day");
         const last = moment(leave.endDate).startOf("day");
@@ -130,15 +143,18 @@ export default function HRDashboard() {
           if (!mapping[ds]) mapping[ds] = [];
           mapping[ds].push({
             name: `${leave.employee.firstName} ${leave.employee.lastName}`,
-            typeName: leave.leaveType?.typeName || "Leave",
+            typeName: leave.leaveType?.typeName || t("common.leave"),
             colorCode: typeColor,
-            isHoliday: false
+            isHoliday: false,
           });
           curr.add(1, "day");
         }
       });
+
       setMonthLeaveMap(mapping);
-    } catch (err) { console.error(t("Calendar Data Error:"), err); }
+    } catch (err) {
+      console.error("Calendar Data Error:", err);
+    }
   };
 
   const fetchDailyRecords = async () => {
@@ -150,8 +166,11 @@ export default function HRDashboard() {
       ]);
       setAttendanceRecords(attRes.data.records || []);
       setLeaveRequests(leaveRes.data.requests?.filter((r) => r.status === "Approved") || []);
-    } catch (err) { console.error(t("Daily Records Error:"), err);
-    } finally { setLoading(false); }
+    } catch (err) {
+      console.error("Daily Records Error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchReport = async (targetPage = 1) => {
@@ -162,35 +181,48 @@ export default function HRDashboard() {
       );
       const { individualReport, leaveChartData, pagination } = res.data.data;
 
-      const summary = individualReport.reduce((acc, emp) => ({
-        present: acc.present + emp.presentCount,
-        late: acc.late + emp.lateCount,
-        leave: acc.leave + emp.leaveCount,
-        absent: acc.absent + emp.absentCount
-      }), { present: 0, late: 0, leave: 0, absent: 0 });
+      const summary = individualReport.reduce(
+        (acc, emp) => ({
+          present: acc.present + emp.presentCount,
+          late: acc.late + emp.lateCount,
+          leave: acc.leave + emp.leaveCount,
+          absent: acc.absent + emp.absentCount,
+        }),
+        { present: 0, late: 0, leave: 0, absent: 0 }
+      );
 
       setReportSummary({
         ...summary,
         total: summary.present + summary.leave + summary.absent,
-        lateRate: summary.present > 0 ? Math.round((summary.late / summary.present) * 100) : 0
+        lateRate: summary.present > 0 ? Math.round((summary.late / summary.present) * 100) : 0,
       });
 
       setEmployeeReport(individualReport);
       setLeaveChartData(leaveChartData);
       setReportPagination(pagination);
       setReportPage(targetPage);
-    } catch (err) { alertError(t("Error"), t("Unable to fetch report data."));
-    } finally { setLoading(false); }
+    } catch (err) {
+      alertError(t("common.error"), t("pages.hrDashboard.unableToFetchReport"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ===== Handlers ===== */
   const handleExportPerformance = () => {
-    if (employeeReport.length === 0) return alertError(t("Error"), t("No data to export."));
-    let csv = t("Employee Name,Present (Days),Late (Times),Leave (Days),Absent (Days),Late Rate\\n");
-    employeeReport.forEach(emp => {
+    if (employeeReport.length === 0) return alertError(t("common.error"), t("pages.hrDashboard.noDataToExport"));
+
+    let csv = `${t("pages.hrDashboard.csv.employeeName")},${t("pages.hrDashboard.csv.presentDays")},${t(
+      "pages.hrDashboard.csv.lateTimes"
+    )},${t("pages.hrDashboard.csv.leaveDays")},${t("pages.hrDashboard.csv.absentDays")},${t(
+      "pages.hrDashboard.csv.lateRate"
+    )}\n`;
+
+    employeeReport.forEach((emp) => {
       csv += `"${emp.name}",${emp.presentCount},${emp.lateCount},${emp.leaveCount},${emp.absentCount},${emp.lateRate}%\n`;
     });
-    const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8;' });
+
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -205,28 +237,34 @@ export default function HRDashboard() {
       setLoading(true);
       const res = await axiosClient.get(`/timerecord/daily-detail?date=${dateStr}`);
       const isSpecial = specialHolidays.includes(dateStr);
-      const updatedData = { 
-        ...res.data.data, 
-        isSpecialHoliday: isSpecial 
+      const updatedData = {
+        ...res.data.data,
+        isSpecialHoliday: isSpecial,
       };
       setDailyData(updatedData);
       setSelectedDate(dateStr);
       setDailyModalOpen(true);
-    } catch (err) { alertError(t("Error"), t("Unable to load data."));
-    } finally { setLoading(false); }
+    } catch (err) {
+      alertError(t("common.error"), t("pages.hrDashboard.unableToLoadData"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (employeeReport.length > 0) fetchReport(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reportPageSize]);
 
   useEffect(() => {
     fetchCalendarData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewYear, viewMonth]);
 
   useEffect(() => {
     fetchDailyRecords();
     setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
   const dayRecords = useMemo(() => {
@@ -236,44 +274,67 @@ export default function HRDashboard() {
       role: r.employee.role,
       checkIn: r.checkInTime ? moment(r.checkInTime).format("HH:mm") : "--:--",
       checkOut: r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "--:--",
-      status: r.isLate ? "Late" : t("On Time"),
+      statusKey: r.isLate ? "late" : "onTime",
+      statusText: r.isLate ? t("common.status.late") : t("common.status.onTime"),
     }));
+
     const leave = leaveRequests.map((l) => ({
       id: `leave-${l.requestId}`,
       name: `${l.employee.firstName} ${l.employee.lastName}`,
       role: l.employee.role,
-      checkIn: "--:--", checkOut: "--:--",
-      status: `Leave (${l.leaveType.typeName})`,
+      checkIn: "--:--",
+      checkOut: "--:--",
+      statusKey: "leave",
+      statusText: t("common.leaveWithType", { type: l.leaveType?.typeName || t("common.leave") }),
     }));
+
     return [...att, ...leave];
-  }, [attendanceRecords, leaveRequests]);
+  }, [attendanceRecords, leaveRequests, t]);
+
+  const TAB_META = [
+    { key: "overview", label: t("pages.hrDashboard.tabs.overview") },
+    { key: "reports", label: t("pages.hrDashboard.tabs.performanceReports") },
+    { key: "audit", label: t("pages.hrDashboard.tabs.auditLog") },
+  ];
+
+  const WEEKDAYS = [
+    t("common.daysShort.sun"),
+    t("common.daysShort.mon"),
+    t("common.daysShort.tue"),
+    t("common.daysShort.wed"),
+    t("common.daysShort.thu"),
+    t("common.daysShort.fri"),
+    t("common.daysShort.sat"),
+  ];
 
   return (
     <div className="page-card hr-dashboard">
       <header className="hr-header">
         <div>
-          <h1 className="hr-title">{t("Management Dashboard")}</h1>
-          <p className="hr-subtitle">{t("Oversee employee attendance, leaves and company holidays")}</p>
+          <h1 className="hr-title">{t("pages.hrDashboard.Management Dashboard")}</h1>
+          <p className="hr-subtitle">
+            {t("pages.hrDashboard.Oversee employee attendance, leaves and company holidays")}
+          </p>
         </div>
+
         <div className="hr-header-right">
-          <div className="pill date-pill"><FiCalendar /> Selected: {moment(selectedDate).format("DD MMM YYYY")}</div>
+          <div className="pill date-pill">
+            <FiCalendar />
+            {t("pages.hrDashboard.selectedDateLabel")}: {moment(selectedDate).format("DD MMM YYYY")}
+          </div>
         </div>
       </header>
 
       <div className="hr-tabs">
-        {["overview", "reports", "audit"].map((tabKey) => (
-            <button
-              key={tabKey}
-              className={`btn small ${tab === tabKey ? "primary" : "outline"}`}
-              onClick={() => setTab(tabKey)}
-            >
-              {tabKey === "overview"
-                ? t("Overview")
-                : tabKey === "reports"
-                ? t("Performance Reports")
-                : t("Audit Log")}
-            </button>
-          ))}
+        {TAB_META.map((x) => (
+          <button
+            key={x.key}
+            className={`btn small ${tab === x.key ? "primary" : "outline"}`}
+            onClick={() => setTab(x.key)}
+          >
+            {x.label}
+          </button>
+        ))}
       </div>
 
       {tab === "overview" && (
@@ -281,57 +342,69 @@ export default function HRDashboard() {
           <section className="dashboard-section calendar-section">
             <div className="calendar-top">
               <div className="calendar-title-group">
-                <button className="nav-btn" onClick={() => setViewMonth(p => p === 0 ? 11 : p - 1)}>‹</button>
+                <button className="nav-btn" onClick={() => setViewMonth((p) => (p === 0 ? 11 : p - 1))} aria-label={t("common.previous")}>
+                  ‹
+                </button>
                 <h2 className="month-label">{moment(new Date(viewYear, viewMonth, 1)).format("MMMM YYYY")}</h2>
-                <button className="nav-btn" onClick={() => setViewMonth(p => p === 11 ? 0 : p + 1)}>›</button>
+                <button className="nav-btn" onClick={() => setViewMonth((p) => (p === 11 ? 0 : p + 1))} aria-label={t("common.next")}>
+                  ›
+                </button>
               </div>
-              <button className="btn outline small today-btn" onClick={() => setSelectedDate(todayStr)}>{t("Go to Today")}</button>
+
+              <button className="btn outline small today-btn" onClick={() => setSelectedDate(todayStr)}>
+                {t("pages.hrDashboard.goToToday")}
+              </button>
             </div>
 
             <div className="calendar">
               <div className="calendar-head">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div className="cal-cell head" key={d}>{d}</div>)}
+                {WEEKDAYS.map((d) => (
+                  <div className="cal-cell head" key={d}>
+                    {d}
+                  </div>
+                ))}
               </div>
+
               <div className="calendar-body">
                 {weeks.map((week, wIdx) => (
                   <React.Fragment key={wIdx}>
                     {week.map((d) => {
                       const iso = toISODate(d);
                       const items = monthLeaveMap[iso] || [];
-                      
-                      // 🔥 Logic เช็ควันทำงานจาก State (ที่แปลงค่าเรียบร้อยแล้ว)
+
                       const dayOfWeek = d.getDay();
                       const isWorkingDay = workingDays.includes(dayOfWeek);
 
                       let cellClass = "cal-cell";
                       if (d.getMonth() !== viewMonth) cellClass += " muted";
-                      if (!isWorkingDay) cellClass += " non-working"; // ใส่ class สีเทา
+                      if (!isWorkingDay) cellClass += " non-working";
                       if (iso === selectedDate) cellClass += " selected";
 
                       return (
-                        <div
-                          key={iso}
-                          className={cellClass}
-                          onClick={() => openDailyDetail(iso)}
-                        >
+                        <div key={iso} className={cellClass} onClick={() => openDailyDetail(iso)}>
                           <div className="cal-date-row">
                             <span className="cal-date">{d.getDate()}</span>
-                            {items.length > 2 && (<span className="more-count-badge">+{items.length - 2}</span>)}
+                            {items.length > 2 && <span className="more-count-badge">+{items.length - 2}</span>}
                           </div>
+
                           <div className="cal-leave-list">
                             {items.slice(0, 2).map((x, i) => (
-                              <div 
-                                key={i} 
-                                className={`leave-pill ${x.isHoliday ? 'holiday-pill' : ''}`} 
-                                style={{ 
+                              <div
+                                key={i}
+                                className={`leave-pill ${x.isHoliday ? "holiday-pill" : ""}`}
+                                style={{
                                   backgroundColor: x.colorCode,
-                                  color: '#fff', 
-                                  textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                                  fontWeight: x.isHoliday ? '700' : '400'
-                                }} 
-                                title={x.isHoliday ? t("Company Holiday") : `${x.name} - ${x.typeName}`}
+                                  color: "#fff",
+                                  textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                                  fontWeight: x.isHoliday ? "700" : "400",
+                                }}
+                                title={
+                                  x.isHoliday
+                                    ? t("pages.hrDashboard.companyHoliday")
+                                    : `${x.name} - ${x.typeName}`
+                                }
                               >
-                                {x.isHoliday ? "Holiday" : x.name}
+                                {x.isHoliday ? t("pages.hrDashboard.holidayShort") : x.name}
                               </div>
                             ))}
                           </div>
@@ -346,37 +419,69 @@ export default function HRDashboard() {
 
           <section className="dashboard-section details-section">
             <div className="section-header">
-              <h3>{t("Daily Attendance Records")}</h3>
-              <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}><FiRefreshCw className={loading ? "spin" : ""} />{t("Refresh")}</button>
+              <h3>{t("pages.hrDashboard.Daily Attendance Records")}</h3>
+              <button className="btn outline small" onClick={fetchDailyRecords} disabled={loading}>
+                <FiRefreshCw className={loading ? "spin" : ""} />
+                {t("pages.hrDashboard.Refresh")}
+              </button>
             </div>
+
             <div className="table-wrap">
               <table className="table">
                 <thead>
-                  <tr><th>{t("Employee")}</th><th>{t("Role")}</th><th>{t("In")}</th><th>{t("Out")}</th><th>{t("Status")}</th></tr>
+                  <tr>
+                    <th>{t("pages.hrDashboard.Employee")}</th>
+                    <th>{t("pages.hrDashboard.Role")}</th>
+                    <th>{t("pages.hrDashboard.In")}</th>
+                    <th>{t("pages.hrDashboard.Out")}</th>
+                    <th>{t("pages.hrDashboard.Status")}</th>
+                  </tr>
                 </thead>
+
                 <tbody>
                   {dayRecords.length === 0 ? (
-                    <tr><td colSpan="5" className="empty">{t("No records found for this date.")}</td></tr>
+                    <tr>
+                      <td colSpan="5" className="empty">
+                        {t("pages.hrDashboard.noRecordsForDate")}
+                      </td>
+                    </tr>
                   ) : (
-                    dayRecords.slice((page-1)*pageSize, page*pageSize).map((r) => (
-                      <tr key={r.id}>
-                        <td className="fw-500">{r.name}</td>
-                        <td className="text-muted">{r.role}</td>
-                        <td>{r.checkIn}</td>
-                        <td>{r.checkOut}</td>
-                        <td>
-                          <span className={`badge ${r.status.includes("Leave") ? "badge-leave" : r.status === "Late" ? "badge-late" : "badge-ok"}`}>
-                            {r.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                    dayRecords
+                      .slice((page - 1) * pageSize, page * pageSize)
+                      .map((r) => (
+                        <tr key={r.id}>
+                          <td className="fw-500">{r.name}</td>
+                          <td className="text-muted">{r.role}</td>
+                          <td>{r.checkIn}</td>
+                          <td>{r.checkOut}</td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                r.statusKey === "leave"
+                                  ? "badge-leave"
+                                  : r.statusKey === "late"
+                                  ? "badge-late"
+                                  : "badge-ok"
+                              }`}
+                            >
+                              {r.statusText}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
                   )}
                 </tbody>
               </table>
             </div>
+
             <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
-              <Pagination total={dayRecords.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
+              <Pagination
+                total={dayRecords.length}
+                page={page}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           </section>
         </>
@@ -384,103 +489,139 @@ export default function HRDashboard() {
 
       {tab === "reports" && (
         <section className="dashboard-section">
-            <div className="section-header reports-header">
-              <div><h3>{t("HR Analytics")}</h3><p>{t("Detailed performance and attendance trends")}</p></div>
-              <div className="reports-controls">
-                <div className="input-group">
-                  <label>{t("Start:")}</label>
-                  <input type="date" value={rangeStart} max={todayStr} onChange={e => {setRangeStart(e.target.value); setRangeEnd(moment(e.target.value).endOf('month').format("YYYY-MM-DD"));}} />
-                </div>
-                <div className="input-group">
-                  <label>{t("End:")}</label>
-                  <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} />
-                </div>
-                <button className="btn primary small" onClick={fetchReport} disabled={loading}>{t("Run Report")}</button>
-                <button className="btn outline small" onClick={handleExportPerformance} disabled={employeeReport.length === 0}><FiSave />{t("Export CSV")}</button>
+          <div className="section-header reports-header">
+            <div>
+              <h3>{t("pages.hrDashboard.HR Analytics")}</h3>
+              <p>{t("pages.hrDashboard.Detailed performance and attendance trends")}</p>
+            </div>
+
+            <div className="reports-controls">
+              <div className="input-group">
+                <label>{t("pages.hrDashboard.Start:")}</label>
+                <input
+                  type="date"
+                  value={rangeStart}
+                  max={todayStr}
+                  onChange={(e) => {
+                    setRangeStart(e.target.value);
+                    setRangeEnd(moment(e.target.value).endOf("month").format("YYYY-MM-DD"));
+                  }}
+                />
               </div>
-            </div>
 
-            <div className="stats-grid">
-              <Card title={t("Present")} value={reportSummary.present} tone="green" icon={<FiCheckCircle />} />
-              <Card title={t("On Leave")} value={reportSummary.leave} tone="blue" icon={<FiFileText />} />
-              <Card title={t("Late")} value={reportSummary.late} tone="red" icon={<FiClock />} />
-              <Card title={t("Absent")} value={reportSummary.absent} tone="gray" icon={<FiXCircle />} />
-              <Card title={t("Late Rate")} value={`${reportSummary.lateRate}%`} tone="amber" icon={<FiTrendingUp />} />
-            </div>
+              <div className="input-group">
+                <label>{t("pages.hrDashboard.End:")}</label>
+                <input type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)} />
+              </div>
 
-            <div className="table-wrap" style={{ marginTop: 25 }}>
-              <div className="table-header-title">{t("Employee Performance Summary")}</div>
-              <table className="table">
-                <thead>
+              <button className="btn primary small" onClick={fetchReport} disabled={loading}>
+                {t("pages.hrDashboard.Run Report")}
+              </button>
+
+              <button className="btn outline small" onClick={handleExportPerformance} disabled={employeeReport.length === 0}>
+                <FiSave />
+                {t("pages.hrDashboard.Export CSV")}
+              </button>
+            </div>
+          </div>
+
+          <div className="stats-grid">
+            <Card title={t("pages.hrDashboard.Present")} value={reportSummary.present} tone="green" icon={<FiCheckCircle />} />
+            <Card title={t("pages.hrDashboard.On Leave")} value={reportSummary.leave} tone="blue" icon={<FiFileText />} />
+            <Card title={t("pages.hrDashboard.Late")} value={reportSummary.late} tone="red" icon={<FiClock />} />
+            <Card title={t("pages.hrDashboard.Absent")} value={reportSummary.absent} tone="gray" icon={<FiXCircle />} />
+            <Card title={t("pages.hrDashboard.Late Rate")} value={`${reportSummary.lateRate}%`} tone="amber" icon={<FiTrendingUp />} />
+          </div>
+
+          <div className="table-wrap" style={{ marginTop: 25 }}>
+            <div className="table-header-title">{t("pages.hrDashboard.Employee Performance Summary")}</div>
+
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{t("pages.hrDashboard.Employee")}</th>
+                  <th className="text-center">{t("pages.hrDashboard.Days Present")}</th>
+                  <th className="text-center">{t("pages.hrDashboard.Times Late")}</th>
+                  <th className="text-center">{t("pages.hrDashboard.Days Leave")}</th>
+                  <th className="text-center">{t("pages.hrDashboard.Days Absent")}</th>
+                  <th className="text-center">{t("pages.hrDashboard.Rate")}</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {employeeReport.length === 0 ? (
                   <tr>
-                    <th>{t("Employee")}</th>
-                    <th className="text-center">{t("Days Present")}</th>
-                    <th className="text-center">{t("Times Late")}</th>
-                    <th className="text-center">{t("Days Leave")}</th>
-                    <th className="text-center">{t("Days Absent")}</th>
-                    <th className="text-center">{t("Rate")}</th>
+                    <td colSpan="6" className="empty">
+                      {t("pages.hrDashboard.clickRunReportHint")}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {employeeReport.length === 0 ? (
-                    <tr><td colSpan="6" className="empty">{t('Click "Run Report" to load analytics.')}</td></tr>
-                  ) : (
-                    employeeReport.map(emp => (
-                      <tr key={emp.employeeId}>
-                        <td><strong>{emp.name}</strong></td>
-                        <td className="text-center">{emp.presentCount}</td>
-                        <td className="text-center text-danger">{emp.lateCount}</td>
-                        <td className="text-center">{emp.leaveCount}</td>
-                        <td className="text-center text-danger">{emp.absentCount}</td>
-                        <td className="text-center">
-                            <span className={`badge ${emp.lateRate > 20 ? "badge-late" : "badge-ok"}`}>{emp.lateRate}%</span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ) : (
+                  employeeReport.map((emp) => (
+                    <tr key={emp.employeeId}>
+                      <td>
+                        <strong>{emp.name}</strong>
+                      </td>
+                      <td className="text-center">{emp.presentCount}</td>
+                      <td className="text-center text-danger">{emp.lateCount}</td>
+                      <td className="text-center">{emp.leaveCount}</td>
+                      <td className="text-center text-danger">{emp.absentCount}</td>
+                      <td className="text-center">
+                        <span className={`badge ${emp.lateRate > 20 ? "badge-late" : "badge-ok"}`}>{emp.lateRate}%</span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-            <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
-              <Pagination 
-                total={reportPagination.total} 
-                page={reportPage} 
-                pageSize={reportPageSize} 
-                onPageChange={fetchReport} 
-                onPageSizeChange={setReportPageSize} 
-              />
-            </div>
+          <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>
+            <Pagination
+              total={reportPagination.total}
+              page={reportPage}
+              pageSize={reportPageSize}
+              onPageChange={fetchReport}
+              onPageSizeChange={setReportPageSize}
+            />
+          </div>
 
-            <div className="charts-container">
-              <div className="report-card">
-                <h5 className="card-title">{t("🏆 Top Performance")}</h5>
-                <div className="perfect-list">
-                  {perfectEmployees.length > 0 ? perfectEmployees.map(emp => (
+          <div className="charts-container">
+            <div className="report-card">
+              <h5 className="card-title">{t("pages.hrDashboard.topPerformance")}</h5>
+              <div className="perfect-list">
+                {perfectEmployees.length > 0 ? (
+                  perfectEmployees.map((emp) => (
                     <div key={emp.employeeId} className="perfect-item">
                       <span className="fw-500">{emp.name}</span>
-                      <span className="badge badge-ok">{t("EXCELLENT")}</span>
+                      <span className="badge badge-ok">{t("pages.hrDashboard.excellent")}</span>
                     </div>
-                  )) : <p className="empty-msg">{t("No data available.")}</p>}
-                </div>
-              </div>
-
-              <div className="report-card">
-                <h5 className="card-title">{t("📊 Leave Distribution")}</h5>
-                <div className="chart-box">
-                  {leaveChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie data={leaveChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                          {leaveChartData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color || "#3b82f6"} />)}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : <p className="empty-msg">{t("No leave data found.")}</p>}
-                </div>
+                  ))
+                ) : (
+                  <p className="empty-msg">{t("common.noDataAvailable")}</p>
+                )}
               </div>
             </div>
+
+            <div className="report-card">
+              <h5 className="card-title">{t("pages.hrDashboard.leaveDistribution")}</h5>
+              <div className="chart-box">
+                {leaveChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie data={leaveChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                        {leaveChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || "#3b82f6"} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="empty-msg">{t("pages.hrDashboard.noLeaveDataFound")}</p>
+                )}
+              </div>
+            </div>
+          </div>
         </section>
       )}
 
@@ -503,10 +644,16 @@ function Card({ title, value, tone, icon }) {
   return (
     <div className="stat-card" style={{ background: p.bg, borderLeft: `4px solid ${p.border}` }}>
       <div className="stat-content">
-        <div className="stat-label" style={{ color: p.fg }}>{title}</div>
-        <div className="stat-value" style={{ color: p.fg }}>{value}</div>
+        <div className="stat-label" style={{ color: p.fg }}>
+          {title}
+        </div>
+        <div className="stat-value" style={{ color: p.fg }}>
+          {value}
+        </div>
       </div>
-      <div className="stat-icon" style={{ color: p.border }}>{icon}</div>
+      <div className="stat-icon" style={{ color: p.border }}>
+        {icon}
+      </div>
     </div>
   );
 }

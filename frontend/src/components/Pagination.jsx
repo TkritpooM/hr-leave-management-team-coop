@@ -9,8 +9,6 @@ export default function Pagination({
   onPageSizeChange,
   pageSizeOptions = [5, 10, 20, 50],
 }) {
-  const { t } = useTranslation();
-
   const totalPages = Math.max(1, Math.ceil((total || 0) / (pageSize || 1)));
   const safePage = Math.min(Math.max(1, page), totalPages);
 

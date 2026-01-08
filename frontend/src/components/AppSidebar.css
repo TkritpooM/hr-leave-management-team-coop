@@ -11,8 +11,6 @@
 }
 
 .sb{
-  /* Positioning is controlled by AppLayout (sticky + overlay on hover).
-     Keep sidebar itself size-aware. */
   position: relative;
   height: 100%;
   width: var(--sb-collapsed);
@@ -33,7 +31,6 @@
   z-index: 20;
 }
 
-/* expand on hover (desktop) */
 .sb:hover{ width: var(--sb-expanded); }
 
 /* Top */
@@ -65,7 +62,6 @@
 
 .sb-profile-info{ min-width: 0; }
 
-/* hide text in collapsed state (smooth reveal on hover) */
 .sb-name,
 .sb-role{
   opacity: 0;
@@ -171,7 +167,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* ✅ allow scrolling when menu is long */
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1 1 auto;
@@ -228,7 +223,6 @@
   color: rgba(15,23,42,.86);
 }
 
-/* normalize icons */
 .sb-item-ico svg{
   width: 20px;
   height: 20px;
@@ -314,7 +308,7 @@
 }
 
 /* =========================================================
-   ✅ FIX: Collapsed state (no "pill within pill", uniform icons)
+   ✅ FIX: Collapsed state
    ========================================================= */
 .sb:not(:hover) .sb-top{ padding: 12px 8px 10px; }
 
@@ -332,7 +326,6 @@
   border-radius: 20px;
 }
 
-/* hide text blocks */
 .sb:not(:hover) .sb-name,
 .sb:not(:hover) .sb-role,
 .sb:not(:hover) .sb-section-label,
@@ -342,7 +335,6 @@
   display: none !important;
 }
 
-/* ✅ Nav layout collapsed: center icons, remove extra padding/margins */
 .sb:not(:hover) .sb-nav{
   padding: 10px 8px 12px;
   overflow-y: auto;
@@ -352,22 +344,16 @@
 }
 
 .sb:not(:hover) .sb-item{
-  /* make link "invisible", icon becomes the only pill */
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
-
   padding: 0 !important;
   margin: 0 !important;
   width: 100%;
   justify-content: center;
 }
+.sb:not(:hover) .sb-item:hover{ transform: none; }
 
-.sb:not(:hover) .sb-item:hover{
-  transform: none;
-}
-
-/* icon pill slightly larger + nicer */
 .sb:not(:hover) .sb-item-ico{
   width: 54px;
   height: 54px;
@@ -377,25 +363,16 @@
   box-shadow: 0 12px 26px rgba(2,6,23,.08);
 }
 
-/* ✅ Active in collapsed: highlight icon pill only */
-.sb:not(:hover) .sb-item.active{
-  color: inherit;
-}
-
+.sb:not(:hover) .sb-item.active{ color: inherit; }
 .sb:not(:hover) .sb-item.active .sb-item-ico{
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   border-color: rgba(22,163,74,.28);
   box-shadow: 0 16px 34px rgba(22,163,74,.18);
   color: #fff;
 }
+.sb:not(:hover) .sb-item.active .sb-item-ico svg{ color: #fff; }
 
-.sb:not(:hover) .sb-item.active .sb-item-ico svg{
-  color: #fff;
-}
-
-/* bottom area collapsed */
 .sb:not(:hover) .sb-bottom{ padding: 12px 10px 14px; }
-
 .sb:not(:hover) .sb-logout{
   justify-content: center;
   padding: 12px 10px;
@@ -425,7 +402,6 @@
   background: rgba(2,6,23,.35);
 }
 
-/* Mobile: slide-in drawer */
 @media (max-width: 980px){
   .sb-mobile-toggle{ display: grid; place-items: center; }
 
@@ -441,8 +417,6 @@
   }
 
   .sb.sb-mobile-open{ transform: translateX(0); }
-
-  /* On mobile: no hover collapse */
   .sb:hover{ width: var(--sb-expanded); }
 
   .sb-nav{
@@ -453,7 +427,6 @@
   }
   .sb-nav::-webkit-scrollbar{ width: 0; height: 0; }
 
-  /* Always show text on mobile */
   .sb-name,
   .sb-role,
   .sb-item-text,
@@ -468,7 +441,6 @@
 
   .sb-bell{ display: grid !important; }
 
-  /* disable collapsed overrides on mobile */
   .sb:not(:hover) .sb-item{
     background: rgba(255,255,255,.75) !important;
     border-color: transparent !important;
@@ -486,19 +458,15 @@
   }
 }
 
-/* ===== FIX: top card overflow in collapsed (logo/profile card too big) ===== */
-.sb:not(:hover) .sb-top{
-  padding: 12px 10px 10px; /* ลด padding ให้พอดี */
-}
+/* ===== FIX: top card overflow in collapsed ===== */
+.sb:not(:hover) .sb-top{ padding: 12px 10px 10px; }
 
 .sb:not(:hover) .sb-profile{
-  /* เอาการ์ดพื้นหลังออก -> เหลือแค่ avatar */
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
 
-  /* จัดให้อยู่กลาง และไม่กินพื้นที่เกิน */
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -508,11 +476,155 @@
 .sb:not(:hover) .sb-avatar{
   width: 56px;
   height: 56px;
-  border-radius: 20px; /* กลมสวย ไม่เหลี่ยมเกิน */
+  border-radius: 20px;
 }
 
-/* กันไม่ให้มีอะไรดันพื้นที่ */
 .sb:not(:hover) .sb-profile-info,
 .sb:not(:hover) .sb-bell{
   display: none !important;
+}
+
+/* =========================================================
+   🌐 Language Dropdown (future-proof)
+   ========================================================= */
+
+.sb-lang{
+  margin-top: 10px;
+  padding: 0 12px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sb-lang-label{
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(15,23,42,.65);
+  white-space: nowrap;
+
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity .12s ease, transform .12s ease;
+}
+.sb:hover .sb-lang-label{
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sb-lang-dd{
+  margin-left: auto;
+  position: relative;
+}
+
+.sb-lang-trigger{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.92);
+  color: rgba(15,23,42,.86);
+  font-weight: 950;
+  cursor: pointer;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+}
+.sb-lang-trigger:hover{
+  background: var(--surface2);
+  border-color: rgba(22,163,74,.28);
+}
+.sb-lang-trigger:active{ transform: translateY(1px); }
+
+.sb-lang-globe{ font-size: 14px; line-height: 1; }
+.sb-lang-current{ font-size: 12px; letter-spacing: .04em; }
+.sb-lang-caret{ font-size: 12px; opacity: .70; }
+
+.sb-lang-menu{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 210px;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 18px 60px rgba(2,6,23,.14);
+  z-index: 50;
+}
+
+.sb-lang-item{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(15,23,42,.86);
+  font-weight: 900;
+  transition: background .15s ease, border-color .15s ease;
+}
+.sb-lang-item:hover{
+  background: rgba(22,163,74,.10);
+  border-color: rgba(22,163,74,.20);
+}
+
+.sb-lang-item-left{
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.sb-lang-item-short{
+  width: 34px;
+  font-weight: 950;
+  color: rgba(15,23,42,.70);
+}
+.sb-lang-item-label{
+  font-weight: 900;
+  color: rgba(15,23,42,.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sb-lang-item.active{
+  background: linear-gradient(135deg, rgba(22,163,74,.16), rgba(34,197,94,.10));
+  border-color: rgba(22,163,74,.25);
+}
+.sb-lang-check{
+  font-weight: 950;
+  color: rgba(22,163,74,.95);
+}
+
+/* collapsed: make it a single icon-sized button (no squeezing) */
+.sb:not(:hover) .sb-lang{
+  padding: 8px 8px 10px;
+  justify-content: center;
+}
+
+.sb:not(:hover) .sb-lang-label{ display: none !important; }
+
+.sb:not(:hover) .sb-lang-trigger{
+  height: 54px;
+  width: 54px;
+  padding: 0;
+  border-radius: 20px;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(15,23,42,.03);
+  border-color: rgba(15,23,42,.10);
+  box-shadow: 0 12px 26px rgba(2,6,23,.08);
+}
+
+.sb:not(:hover) .sb-lang-caret{ display: none; }
+
+.sb:not(:hover) .sb-lang-menu{
+  left: calc(100% + 10px);
+  right: auto;
+  top: 0;
 }
