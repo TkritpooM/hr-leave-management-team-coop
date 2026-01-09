@@ -181,7 +181,6 @@ const calculateTotalDays = async (startDateStr, endDateStr, startDuration, endDu
 const checkQuotaAvailability = async (employeeId, leaveTypeId, requestedDays, year) => {
     // 1. Check leave type (If unpaid, quota check is not required)
     const leaveType = await prisma.leaveType.findUnique({ where: { leaveTypeId } });
-    if (!leaveType?.isPaid) return true;
 
     // 2. Fetch employee quota for the specific year
     const quota = await prisma.leaveQuota.findUnique({

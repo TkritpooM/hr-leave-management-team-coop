@@ -320,26 +320,35 @@ const handleApproval = async (req, res, next) => {
       let finalStatus = 'Rejected';
 
       if (action === 'approve') {
-        const leaveType = await tx.leaveType.findUnique({ where: { leaveTypeId } });
+        // 1. ดึงข้อมูลโควต้าของพนักงานสำหรับประเภทการลานี้ในปีนี้ (ถ้ามี)
+        const quota = await tx.leaveQuota.findUnique({
+          where: { employeeId_leaveTypeId_year: { employeeId, leaveTypeId, year: requestYear } },
+        });
 
-        if (leaveType?.isPaid) {
-          const quota = await tx.leaveQuota.findUnique({
-            where: { employeeId_leaveTypeId_year: { employeeId, leaveTypeId, year: requestYear } },
-          });
-
-          if (!quota) throw CustomError.badRequest("Leave quota not found for the current year.");
-
-          const availableDays = parseFloat((quota.totalDays.toNumber() + quota.carriedOverDays.toNumber() - quota.usedDays.toNumber()).toFixed(2));
+        // 2. ถ้ามีการตั้งค่าโควต้าไว้ (ไม่ว่าจะเป็น Paid หรือ Unpaid) ให้คำนวณและหักยอด
+        if (quota) {
+          const availableDays = parseFloat(
+            (
+              quota.totalDays.toNumber() + 
+              quota.carriedOverDays.toNumber() - 
+              quota.usedDays.toNumber()
+            ).toFixed(2)
+          );
 
           if (requestedDays > availableDays) {
             throw CustomError.conflict(`Insufficient quota (Available: ${availableDays}, Requested: ${requestedDays})`);
           }
 
+          // อัปเดตยอดการใช้งาน (หักโควต้า)
           await tx.leaveQuota.update({
             where: { quotaId: quota.quotaId },
             data: { usedDays: { increment: requestedDays } }
           });
         }
+        
+        // ถ้าไม่มีข้อมูลในตาราง LeaveQuota (เช่น ประเภทการลาที่ลาได้ไม่จำกัดและไม่ได้ตั้งค่าโควต้าไว้) 
+        // ระบบจะปล่อยให้ผ่าน (Approved) โดยไม่หักยอดโควต้าใดๆ
+
         finalStatus = 'Approved';
       }
 

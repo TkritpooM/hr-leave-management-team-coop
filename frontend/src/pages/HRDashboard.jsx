@@ -179,23 +179,29 @@ export default function HRDashboard() {
       const res = await axiosClient.get(
         `/timerecord/report/performance?startDate=${rangeStart}&endDate=${rangeEnd}&page=${targetPage}&limit=${reportPageSize}`
       );
-      const { individualReport, leaveChartData, pagination } = res.data.data;
+      const { individualReport, leaveChartData, pagination, summary } = res.data.data;
 
-      const summary = individualReport.reduce(
-        (acc, emp) => ({
-          present: acc.present + emp.presentCount,
-          late: acc.late + emp.lateCount,
-          leave: acc.leave + emp.leaveCount,
-          absent: acc.absent + emp.absentCount,
-        }),
-        { present: 0, late: 0, leave: 0, absent: 0 }
-      );
+      // Use summary from backend if available
+      if (summary) {
+        setReportSummary(summary);
+      } else {
+        // Fallback (should not be reached if backend is updated)
+        const localSummary = individualReport.reduce(
+          (acc, emp) => ({
+            present: acc.present + emp.presentCount,
+            late: acc.late + emp.lateCount,
+            leave: acc.leave + emp.leaveCount,
+            absent: acc.absent + emp.absentCount,
+          }),
+          { present: 0, late: 0, leave: 0, absent: 0 }
+        );
 
-      setReportSummary({
-        ...summary,
-        total: summary.present + summary.leave + summary.absent,
-        lateRate: summary.present > 0 ? Math.round((summary.late / summary.present) * 100) : 0,
-      });
+        setReportSummary({
+          ...localSummary,
+          total: localSummary.present + localSummary.leave + localSummary.absent,
+          lateRate: localSummary.present > 0 ? Math.round((localSummary.late / localSummary.present) * 100) : 0,
+        });
+      }
 
       setEmployeeReport(individualReport);
       setLeaveChartData(leaveChartData);
@@ -456,13 +462,12 @@ export default function HRDashboard() {
                           <td>{r.checkOut}</td>
                           <td>
                             <span
-                              className={`badge ${
-                                r.statusKey === "leave"
+                              className={`badge ${r.statusKey === "leave"
                                   ? "badge-leave"
                                   : r.statusKey === "late"
-                                  ? "badge-late"
-                                  : "badge-ok"
-                              }`}
+                                    ? "badge-late"
+                                    : "badge-ok"
+                                }`}
                             >
                               {r.statusText}
                             </span>
@@ -514,7 +519,7 @@ export default function HRDashboard() {
                 <input type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)} />
               </div>
 
-              <button className="btn primary small" onClick={fetchReport} disabled={loading}>
+              <button className="btn primary small" onClick={() => fetchReport(1)} disabled={loading}>
                 {t("pages.hrDashboard.Run Report")}
               </button>
 

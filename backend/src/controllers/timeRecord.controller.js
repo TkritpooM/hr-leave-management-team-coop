@@ -18,7 +18,7 @@ const handleCheckIn = async (req, res, next) => {
     await safeAudit({
       action: record.isLate ? "CHECKIN_LATE" : "CHECKIN",
       entity: "TimeRecord",
-      entityKey: `Employee:${employeeId}:WorkDate:${new Date(record.workDate).toISOString().slice(0,10)}`,
+      entityKey: `Employee:${employeeId}:WorkDate:${new Date(record.workDate).toISOString().slice(0, 10)}`,
       oldValue: null,
       newValue: {
         employeeId,
@@ -44,7 +44,7 @@ const handleCheckOut = async (req, res, next) => {
     await safeAudit({
       action: "CHECKOUT",
       entity: "TimeRecord",
-      entityKey: `Employee:${employeeId}:WorkDate:${new Date(record.workDate).toISOString().slice(0,10)}`,
+      entityKey: `Employee:${employeeId}:WorkDate:${new Date(record.workDate).toISOString().slice(0, 10)}`,
       oldValue: null,
       newValue: {
         employeeId,
@@ -272,8 +272,8 @@ const getDailyDetail = async (req, res, next) => {
     const presentIds = attendance.map(a => a.employeeId);
     const leaveIds = leaves.map(l => l.employeeId);
 
-    const absent = isSpecialHoliday 
-      ? [] 
+    const absent = isSpecialHoliday
+      ? []
       : allEmployees.filter(emp => !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId));
 
     res.status(200).json({
@@ -303,7 +303,9 @@ const getEmployeePerformanceReport = async (req, res, next) => {
 
     const pageNum = parseInt(page) || 1;
     const limitNum = parseInt(limit) || 10;
-    const skipValue = (pageNum - 1) * limitNum;
+    // Calculate skip/take for array slicing later
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
 
     const whereCondition = {
       joiningDate: { lte: end.toDate() },
@@ -313,17 +315,17 @@ const getEmployeePerformanceReport = async (req, res, next) => {
       ]
     };
 
-    const [totalCount, employees, policy] = await Promise.all([
-      prisma.employee.count({ where: whereCondition }),
+    // 🔥 Change: Fetch ALL matching employees to calculate global stats
+    const [employees, policy] = await Promise.all([
       prisma.employee.findMany({
         where: whereCondition,
         select: { employeeId: true, firstName: true, lastName: true, role: true, joiningDate: true },
-        skip: skipValue,
-        take: limitNum
+        // No skip/take here -> In-memory pagination
       }),
       prisma.attendancePolicy.findFirst()
     ]);
 
+    const totalCount = employees.length;
     const employeeIds = employees.map(e => e.employeeId);
     const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).format('YYYY-MM-DD'));
     const effectiveEnd = end.isAfter(today) ? today : end;
@@ -354,12 +356,13 @@ const getEmployeePerformanceReport = async (req, res, next) => {
       })
     ]);
 
+    // Calculate full report for ALL employees
     const report = employees.map(emp => {
       const myAtts = allAttendance.filter(a => a.employeeId === emp.employeeId);
       const myLeaves = allLeaves.filter(l => l.employeeId === emp.employeeId);
       const presentCount = myAtts.length;
       const lateCount = myAtts.filter(a => a.isLate).length;
-      
+
       let absentCount = 0;
       const empJoiningDate = moment(emp.joiningDate).format('YYYY-MM-DD');
       workDaysList.forEach(day => {
@@ -374,12 +377,25 @@ const getEmployeePerformanceReport = async (req, res, next) => {
         employeeId: emp.employeeId,
         name: `${emp.firstName} ${emp.lastName}`,
         role: emp.role,
-        presentCount, lateCount, 
-        leaveCount: myLeaves.reduce((sum, l) => sum + parseFloat(l.totalDaysRequested), 0), 
+        presentCount, lateCount,
+        leaveCount: myLeaves.reduce((sum, l) => sum + parseFloat(l.totalDaysRequested), 0),
         absentCount,
         lateRate: presentCount > 0 ? Math.round((lateCount / presentCount) * 100) : 0
       };
     });
+
+    // Global Summary (All employees)
+    const summary = report.reduce((acc, r) => ({
+      present: acc.present + r.presentCount,
+      late: acc.late + r.lateCount,
+      leave: acc.leave + r.leaveCount,
+      absent: acc.absent + r.absentCount,
+    }), { present: 0, late: 0, leave: 0, absent: 0 });
+
+    const total = summary.present + summary.leave + summary.absent;
+    const lateRate = summary.present > 0 ? Math.round((summary.late / summary.present) * 100) : 0;
+
+    const finalSummary = { ...summary, total, lateRate };
 
     const leaveSummaryByType = {};
     allLeaves.forEach(l => {
@@ -390,11 +406,15 @@ const getEmployeePerformanceReport = async (req, res, next) => {
       leaveSummaryByType[typeName].value += parseFloat(l.totalDaysRequested);
     });
 
+    // Pagination Slice
+    const paginatedReport = report.slice(startIndex, endIndex);
+
     res.status(200).json({
       success: true,
       data: {
-        individualReport: report,
+        individualReport: paginatedReport, // Only return current page
         leaveChartData: Object.values(leaveSummaryByType),
+        summary: finalSummary, // 🔥 New: Global Summary
         pagination: {
           total: totalCount,
           totalPages: Math.ceil(totalCount / limitNum),
