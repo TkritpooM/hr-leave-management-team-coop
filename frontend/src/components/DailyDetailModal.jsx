@@ -10,13 +10,28 @@ import {
   FiCoffee,
 } from "react-icons/fi";
 import moment from "moment";
+import "moment/locale/th";
 import { useTranslation } from "react-i18next";
 
 export default function DailyDetailModal({ isOpen, onClose, date, data }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  // ✅ locale สำหรับ moment (ให้คงที่เสมอ)
+  const mLocale = useMemo(() => {
+    const lng = (i18n.resolvedLanguage || i18n.language || "en")
+      .toLowerCase()
+      .trim();
+    return lng.startsWith("th") ? "th" : "en";
+  }, [i18n.resolvedLanguage, i18n.language]);
+
+  // ✅ sync moment locale เมื่อเปลี่ยนภาษา
+  useEffect(() => {
+    moment.locale(mLocale);
+  }, [mLocale]);
+
   const [activeTab, setActiveTab] = useState("present");
 
-  // 1. วิเคราะห์สถานะของวันที่เลือก
+  // 1) วิเคราะห์สถานะของวันที่เลือก
   const dateStatus = useMemo(() => {
     if (!date) return {};
     const selected = moment(date).startOf("day");
@@ -34,17 +49,23 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
   const { isFuture, isWeekend, isSpecialHoliday } = dateStatus;
   const isHoliday = isWeekend || isSpecialHoliday;
 
-  // 2. Auto-Switch Tab: ถ้าวันหยุด/วันอนาคต ให้ค้างที่ present เท่านั้น
+  // 2) Auto-Switch Tab: ถ้าวันหยุด/วันอนาคต ให้กลับไป Present เสมอ
   useEffect(() => {
-    if (!isOpen) return;
-    if ((isHoliday || isFuture) && activeTab !== "present") {
-      setActiveTab("present");
+    if (isOpen) {
+      if ((isHoliday || isFuture) && activeTab !== "present") {
+        setActiveTab("present");
+      }
     }
-  }, [isOpen, isHoliday, isFuture, activeTab]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, date, isHoliday, isFuture]);
 
   if (!isOpen || !data) return null;
 
   const { present = [], leaves = [], absent = [], summary = {} } = data;
+
+  const tabPresentLabel = isHoliday
+    ? t("components.dailyDetailModal.workingOT", "Working (OT)")
+    : t("components.dailyDetailModal.present", "Present");
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -86,28 +107,35 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                 }}
               >
                 <FiCalendar style={{ color: "#64748b" }} />
-                {t("Daily Details for")} {moment(date).format("DD MMM YYYY")}
+                {t("components.dailyDetailModal.dailyDetailsFor", "Daily Details for")}{" "}
+                {moment(date).locale(mLocale).format("DD MMM YYYY")}
               </h3>
 
               <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
                 {isFuture && (
                   <span style={statusBadgeStyle("#eff6ff", "#3b82f6")}>
-                    {t("Upcoming Date")}
+                    {t("components.dailyDetailModal.upcomingDate", "Upcoming Date")}
                   </span>
                 )}
                 {isSpecialHoliday && (
                   <span style={statusBadgeStyle("#fef2f2", "#ef4444")}>
-                    {t("Company Holiday")}
+                    {t(
+                      "components.dailyDetailModal.companyHoliday",
+                      "Company Holiday"
+                    )}
                   </span>
                 )}
                 {isWeekend && (
                   <span style={statusBadgeStyle("#f8fafc", "#64748b")}>
-                    {t("Weekend")}
+                    {t("components.dailyDetailModal.weekend", "Weekend")}
                   </span>
                 )}
                 {!isFuture && !isHoliday && (
                   <span style={statusBadgeStyle("#f0fdf4", "#22c55e")}>
-                    {t("Regular Working Day")}
+                    {t(
+                      "components.dailyDetailModal.regularWorkingDay",
+                      "Regular Working Day"
+                    )}
                   </span>
                 )}
               </div>
@@ -121,34 +149,40 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                 borderRadius: "50%",
                 padding: "5px",
               }}
+              aria-label={t("common.close", "Close")}
             >
               <FiX />
             </button>
           </div>
 
           {/* Tab Navigation */}
-          <div className="hr-tabs" style={{ marginTop: "20px", display: "flex", gap: "8px" }}>
+          <div
+            className="hr-tabs"
+            style={{ marginTop: "20px", display: "flex", gap: "8px" }}
+          >
+            {/* Present/OT เสมอ */}
             <TabButton
               active={activeTab === "present"}
               onClick={() => setActiveTab("present")}
-              label={isHoliday ? t("Working (OT)") : t("Present")}
-              count={summary.presentCount ?? 0}
+              label={tabPresentLabel}
+              count={summary.presentCount || 0}
             />
 
+            {/* ซ่อน Leave/Absent ถ้าเป็นวันหยุด หรือวันอนาคต */}
             {!isHoliday && !isFuture && (
               <>
                 <TabButton
                   active={activeTab === "leave"}
                   onClick={() => setActiveTab("leave")}
-                  label={t("On Leave")}
-                  count={summary.leaveCount ?? 0}
+                  label={t("components.dailyDetailModal.onLeave", "On Leave")}
+                  count={summary.leaveCount || 0}
                 />
                 <TabButton
                   active={activeTab === "absent"}
                   onClick={() => setActiveTab("absent")}
-                  label={t("Absent")}
-                  count={summary.absentCount ?? 0}
-                  isDanger={(summary.absentCount ?? 0) > 0}
+                  label={t("components.dailyDetailModal.absent", "Absent")}
+                  count={summary.absentCount || 0}
+                  isDanger={(summary.absentCount || 0) > 0}
                 />
               </>
             )}
@@ -166,27 +200,45 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
             flexDirection: "column",
           }}
         >
-          {/* Empty State (Holiday/Future) */}
-          {activeTab === "present" && (summary.presentCount ?? 0) === 0 && (
-            isHoliday ? (
-              <HolidayEmptyState isWeekend={isWeekend} isSpecial={isSpecialHoliday} t={t} />
-            ) : isFuture ? (
+          {/* 1) วันหยุดก่อน */}
+          {isHoliday && (summary.presentCount || 0) === 0 && activeTab === "present" ? (
+            <HolidayEmptyState
+              t={t}
+              isWeekend={isWeekend}
+              isSpecial={isSpecialHoliday}
+            />
+          ) : (
+            // 2) วันอนาคต
+            isFuture &&
+            activeTab === "present" &&
+            (summary.presentCount || 0) === 0 && (
               <EmptyState
-                message={t("No attendance data expected yet for this future date.")}
+                message={t(
+                  "components.dailyDetailModal.futureNoData",
+                  "No attendance data expected yet for this future date."
+                )}
                 icon={<FiSunrise size={48} />}
               />
-            ) : null
+            )
           )}
 
-          {/* Present Table */}
+          {/* ตารางคนมาทำงาน (รวม OT ในวันหยุด) */}
           {activeTab === "present" && present.length > 0 && (
             <table className="table" style={{ borderCollapse: "separate", borderSpacing: "0" }}>
               <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
                 <tr>
-                  <th style={tableHeadStyle}>{t("Employee")}</th>
-                  <th style={tableHeadStyle}>{t("Check In")}</th>
-                  <th style={tableHeadStyle}>{t("Check Out")}</th>
-                  <th style={tableHeadStyle}>{t("Status")}</th>
+                  <th style={tableHeadStyle}>
+                    {t("components.dailyDetailModal.employee", "Employee")}
+                  </th>
+                  <th style={tableHeadStyle}>
+                    {t("components.dailyDetailModal.checkIn", "Check In")}
+                  </th>
+                  <th style={tableHeadStyle}>
+                    {t("components.dailyDetailModal.checkOut", "Check Out")}
+                  </th>
+                  <th style={tableHeadStyle}>
+                    {t("components.dailyDetailModal.status", "Status")}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -198,17 +250,26 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                       </strong>
                     </td>
                     <td style={tableCellStyle}>
-                      <FiClock size={14} /> {moment(r.checkInTime).format("HH:mm")}
+                      <FiClock size={14} />{" "}
+                      {r.checkInTime
+                        ? moment(r.checkInTime).locale(mLocale).format("HH:mm")
+                        : "--:--"}
                     </td>
                     <td style={tableCellStyle}>
-                      {r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "--:--"}
+                      {r.checkOutTime
+                        ? moment(r.checkOutTime).locale(mLocale).format("HH:mm")
+                        : "--:--"}
                     </td>
                     <td style={tableCellStyle}>
                       <span
                         className={`badge ${r.isLate ? "badge-late" : "badge-ok"}`}
                         style={{ fontSize: "0.75rem" }}
                       >
-                        {isHoliday ? t("OT Work") : r.isLate ? t("Late") : t("On Time")}
+                        {isHoliday
+                          ? t("components.dailyDetailModal.otWork", "OT Work")
+                          : r.isLate
+                          ? t("common.status.late", "Late")
+                          : t("common.status.onTime", "On Time")}
                       </span>
                     </td>
                   </tr>
@@ -217,15 +278,21 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
             </table>
           )}
 
-          {/* Leave Table */}
+          {/* รายการลา (เฉพาะวันทำงานปกติ) */}
           {activeTab === "leave" && !isHoliday && !isFuture && (
             leaves.length > 0 ? (
               <table className="table" style={{ borderCollapse: "separate", borderSpacing: "0" }}>
                 <thead style={{ position: "sticky", top: 0, background: "#fff", zIndex: 10 }}>
                   <tr>
-                    <th style={tableHeadStyle}>{t("Employee")}</th>
-                    <th style={tableHeadStyle}>{t("Leave Type")}</th>
-                    <th style={tableHeadStyle}>{t("Approved By")}</th>
+                    <th style={tableHeadStyle}>
+                      {t("components.dailyDetailModal.employee", "Employee")}
+                    </th>
+                    <th style={tableHeadStyle}>
+                      {t("components.dailyDetailModal.leaveType", "Leave Type")}
+                    </th>
+                    <th style={tableHeadStyle}>
+                      {t("components.dailyDetailModal.approvedBy", "Approved By")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -243,12 +310,12 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                             padding: "4px 10px",
                             borderRadius: "20px",
                             fontWeight: "800",
-                            backgroundColor: `${l.leaveType.colorCode || "#3b82f6"}15`,
-                            color: l.leaveType.colorCode || "#3b82f6",
-                            border: `1px solid ${l.leaveType.colorCode || "#3b82f6"}30`,
+                            backgroundColor: `${l.leaveType?.colorCode || "#3b82f6"}15`,
+                            color: l.leaveType?.colorCode || "#3b82f6",
+                            border: `1px solid ${l.leaveType?.colorCode || "#3b82f6"}30`,
                           }}
                         >
-                          {l.leaveType.typeName}
+                          {l.leaveType?.typeName || t("common.leave", "Leave")}
                         </span>
                       </td>
                       <td style={tableCellStyle}>
@@ -262,7 +329,8 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                           }}
                         >
                           <FiCheck size={14} color="#10b981" />{" "}
-                          {l.approvedByHR?.firstName || t("System")}
+                          {l.approvedByHR?.firstName ||
+                            t("common.system", "System")}
                         </div>
                       </td>
                     </tr>
@@ -270,11 +338,16 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                 </tbody>
               </table>
             ) : (
-              <EmptyState message={t("No employees on leave for this date.")} />
+              <EmptyState
+                message={t(
+                  "components.dailyDetailModal.noEmployeesOnLeave",
+                  "No employees on leave for this date."
+                )}
+              />
             )
           )}
 
-          {/* Absent Cards */}
+          {/* รายการคนขาด (เฉพาะวันทำงานปกติ) */}
           {activeTab === "absent" && !isHoliday && !isFuture && (
             <div style={{ paddingTop: "15px" }}>
               {absent.length > 0 ? (
@@ -292,14 +365,19 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
                         <div style={{ fontWeight: "700", color: "#1e293b" }}>
                           {emp.firstName} {emp.lastName}
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{emp.role}</div>
+                        <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                          {emp.role}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <EmptyState
-                  message={t("All employees are accounted for today.")}
+                  message={t(
+                    "components.dailyDetailModal.allAccounted",
+                    "All employees are accounted for today."
+                  )}
                   icon={<FiCheck size={40} color="#22c55e" />}
                 />
               )}
@@ -313,7 +391,7 @@ export default function DailyDetailModal({ isOpen, onClose, date, data }) {
 
 /* --- Sub-components & Styles --- */
 
-const HolidayEmptyState = ({ isWeekend, isSpecial, t }) => (
+const HolidayEmptyState = ({ t, isWeekend, isSpecial }) => (
   <div
     style={{
       flex: 1,
@@ -325,16 +403,27 @@ const HolidayEmptyState = ({ isWeekend, isSpecial, t }) => (
       textAlign: "center",
     }}
   >
-    <div style={{ background: "#f8fafc", padding: "24px", borderRadius: "50%", marginBottom: "16px" }}>
+    <div
+      style={{
+        background: "#f8fafc",
+        padding: "24px",
+        borderRadius: "50%",
+        marginBottom: "16px",
+      }}
+    >
       <FiCoffee size={48} color="#94a3b8" />
     </div>
+
     <h4 style={{ margin: "0 0 8px", color: "#1e293b" }}>
-      {isSpecial ? t("Company Special Holiday") : t("Weekend Break")}
-    </h4>
-    <p style={{ margin: 0, color: "#64748b", maxWidth: "300px" }}>
       {isSpecial
-        ? t("Today is an officially announced non-working day.")
-        : t("Enjoy the weekend! This is a scheduled non-working day.")}
+        ? t("components.dailyDetailModal.companySpecialHolidayTitle", "Company Special Holiday")
+        : t("components.dailyDetailModal.weekendBreakTitle", "Weekend Break")}
+    </h4>
+
+    <p style={{ margin: 0, color: "#64748b", maxWidth: "320px" }}>
+      {isSpecial
+        ? t("components.dailyDetailModal.companySpecialHolidayDesc", "Today is an officially announced non-working day.")
+        : t("components.dailyDetailModal.weekendBreakDesc", "Enjoy the weekend! This is a scheduled non-working day.")}
     </p>
   </div>
 );
@@ -367,14 +456,16 @@ const EmptyState = ({ message, icon }) => (
       width: "100%",
     }}
   >
-    <div style={{ marginBottom: "16px", opacity: 0.4 }}>{icon || <FiInfo size={36} />}</div>
+    <div style={{ marginBottom: "16px", opacity: 0.4 }}>
+      {icon || <FiInfo size={36} />}
+    </div>
     <p style={{ margin: 0, fontSize: "1rem", fontWeight: "500" }}>{message}</p>
   </div>
 );
 
 const statusBadgeStyle = (bg, color) => ({
   background: bg,
-  color: color,
+  color,
   padding: "4px 12px",
   borderRadius: "6px",
   fontSize: "0.75rem",

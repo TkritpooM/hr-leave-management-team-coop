@@ -10,50 +10,49 @@ import { useTranslation } from "react-i18next";
 
 // --- Constants ---
 const ACTION_LABELS = {
-  LEAVE_REQUEST_CREATE: "audit.leaveRequested",
-  LEAVE_REQUEST_CANCEL: "audit.leaveCancelled",
-  LEAVE_REQUEST_APPROVE: "audit.leaveApproved",
-  LEAVE_REQUEST_REJECT: "audit.leaveRejected",
-  LEAVE_REQUEST_DELETE: "audit.leaveDeleted",
-  CHECKIN: "audit.checkIn",
-  CHECKIN_LATE: "audit.checkInLate",
-  CHECKOUT: "audit.checkOut",
-  LEAVE_TYPE_CREATE: "audit.leaveTypeCreate",
-  LEAVE_TYPE_UPDATE: "audit.leaveTypeUpdate",
-  LEAVE_TYPE_DELETE: "audit.leaveTypeDelete",
-  QUOTA_CREATE: "audit.quotaCreate",
-  QUOTA_UPDATE: "audit.quotaUpdate",
-  EMPLOYEE_QUOTA_BULK_UPDATE: "audit.quotaBulkUpdate",
-  HOLIDAY_CREATE: "audit.holidayCreate",
-  HOLIDAY_DELETE: "audit.holidayDelete",
-  ATTENDANCE_POLICY_UPDATE: "audit.policyUpdate",
-  SYNC_DEFAULT_QUOTAS_ALL_EMPLOYEES: "audit.syncQuotas",
-  PROCESS_YEAR_END_CARRY_FORWARD: "audit.yearEndCarry",
-  EMPLOYEE_CREATE: "audit.employeeCreate",
-  EMPLOYEE_UPDATE_BY_HR: "audit.employeeUpdate",
-  PROFILE_UPDATE: "audit.profileUpdate",
-  REGISTER: "audit.register",
-  LOGIN_SUCCESS: "audit.loginSuccess",
-  EXPORT_ATTENDANCE_CSV: "audit.exportAttendance",
-  NOTIFICATION_MARK_READ: "audit.notificationRead",
-  NOTIFICATION_MARK_ALL_READ: "audit.notificationReadAll",
-  NOTIFICATION_CLEAR_ALL: "audit.notificationClearAll",
-  NOTIFICATION_DELETE_ONE: "audit.notificationDelete",
+  LEAVE_REQUEST_CREATE: "Leave Requested",
+  LEAVE_REQUEST_CANCEL: "Leave Cancelled",
+  LEAVE_REQUEST_APPROVE: "Leave Approved",
+  LEAVE_REQUEST_REJECT: "Leave Rejected",
+  LEAVE_REQUEST_DELETE: "Leave Deleted",
+  CHECKIN: "Clock-In",
+  CHECKIN_LATE: "Clock-In (Late)",
+  CHECKOUT: "Clock-Out",
+  LEAVE_TYPE_CREATE: "Created Leave Type",
+  LEAVE_TYPE_UPDATE: "Updated Leave Type",
+  LEAVE_TYPE_DELETE: "Deleted Leave Type",
+  QUOTA_CREATE: "Created Quota",
+  QUOTA_UPDATE: "Updated Quota",
+  EMPLOYEE_QUOTA_BULK_UPDATE: "Bulk Quota Update",
+  HOLIDAY_CREATE: "Added Holiday",
+  HOLIDAY_DELETE: "Deleted Holiday",
+  ATTENDANCE_POLICY_UPDATE: "Updated Attendance Policy",
+  SYNC_DEFAULT_QUOTAS_ALL_EMPLOYEES: "Synced Global Quotas",
+  PROCESS_YEAR_END_CARRY_FORWARD: "Processed Year-End Carry Forward",
+  EMPLOYEE_CREATE: "Added Employee",
+  EMPLOYEE_UPDATE_BY_HR: "Employee Info Updated",
+  PROFILE_UPDATE: "Profile Updated",
+  REGISTER: "Account Registered",
+  LOGIN_SUCCESS: "Login Success",
+  EXPORT_ATTENDANCE_CSV: "Exported Attendance (CSV)",
+  NOTIFICATION_MARK_READ: "Marked Read",
+  NOTIFICATION_MARK_ALL_READ: "Marked All Read",
+  NOTIFICATION_CLEAR_ALL: "Cleared Notifications",
+  NOTIFICATION_DELETE_ONE: "Deleted Notification",
 };
 
 const CATEGORY_LABELS = {
-  Leave: "audit.category.leave",
-  Attendance: "audit.category.attendance",
-  Quota: "audit.category.quota",
-  Holiday: "audit.category.holiday",
-  Policy: "audit.category.policy",
-  Employee: "audit.category.employee",
-  Notification: "audit.category.notification",
-  Auth: "audit.category.auth",
-  Report: "audit.category.report",
-  Other: "audit.category.other",
+  Leave: "Leave Management",
+  Attendance: "Attendance",
+  Quota: "Quota",
+  Holiday: "Holidays",
+  Policy: "Policies",
+  Employee: "Employee Records",
+  Notification: "Notifications",
+  Auth: "Account/Auth",
+  Report: "Reports",
+  Other: "Other",
 };
-
 
 // --- Helpers ---
 const getCategoryByAction = (action = "") => {
@@ -90,7 +89,7 @@ const JsonBlock = ({ value }) => (
 );
 
 export default function AuditLogPanel() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
@@ -125,7 +124,7 @@ export default function AuditLogPanel() {
       setRows(Array.isArray(res) ? res : res?.rows || []);
       setTotal(Array.isArray(res) ? res.length : res?.total || 0);
     } catch (err) {
-      alertError(t("Error"), t("Unable to load audit logs."));
+      alertError("Error", "Unable to load audit logs.");
     } finally {
       setLoading(false);
     }
@@ -142,8 +141,8 @@ export default function AuditLogPanel() {
     const cat = getCategoryByAction(log?.action);
     return {
       ...log,
-      __actLabel: t(ACTION_LABELS[log?.action] || log?.action),
-      __catLabel: t(CATEGORY_LABELS[cat] || cat),
+      __catLabel: CATEGORY_LABELS[cat] || cat,
+      __actLabel: ACTION_LABELS[log?.action] || log?.action || "-",
       __user: log?.performer ? `${log.performer.firstName} ${log.performer.lastName}`.trim() : "-",
       __summary: parseEntityText(log)
     };
@@ -156,46 +155,46 @@ export default function AuditLogPanel() {
         <div className="audit-head" style={{ flexDirection: "column", alignItems: "flex-start", gap: "20px" }}>
           {/* 1. TITLE (Always on Top) */}
           <div className="audit-header-title">
-            <div className="audit-title"><FiShield />{t("Audit Log")}</div>
-            <div className="audit-subtitle">{t("System activities and history")}</div>
+            <div className="audit-title"><FiShield />{t("components.auditLogPanel.Audit Log")}</div>
+            <div className="audit-subtitle">{t("components.auditLogPanel.System activities and history")}</div>
           </div>
 
           {/* 2. TOOLS / FILTERS */}
           <div className="audit-tools">
             <div className="audit-field">
-              <label className="audit-label"><FiFilter />{t("Category")}</label>
+              <label className="audit-label"><FiFilter />{t("components.auditLogPanel.Category")}</label>
               <select className="audit-select" value={category} onChange={e => setCategory(e.target.value)}>
                 {categories.map(c => <option key={c} value={c}>{c === "All" ? "All" : CATEGORY_LABELS[c] || c}</option>)}
               </select>
             </div>
 
             <div className="audit-field">
-              <label className="audit-label">{t("Action")}</label>
+              <label className="audit-label">{t("components.auditLogPanel.Action")}</label>
               <select className="audit-select" value={action} onChange={e => setAction(e.target.value)}>
                 {actionOptions.map(a => <option key={a} value={a}>{a === "All" ? "All" : ACTION_LABELS[a] || a}</option>)}
               </select>
             </div>
 
             <div className="audit-field">
-              <label className="audit-label">{t("From")}</label>
+              <label className="audit-label">{t("components.auditLogPanel.From")}</label>
               <input className="audit-input" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
             </div>
 
             <div className="audit-field">
-              <label className="audit-label">{t("To")}</label>
+              <label className="audit-label">{t("components.auditLogPanel.To")}</label>
               <input className="audit-input" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
             </div>
 
             <div className="audit-search">
               <FiSearch className="audit-search-icon" />
-              <input value={q} onChange={e => setQ(e.target.value)} placeholder={t("Search User, ID...")} />
+              <input value={q} onChange={e => setQ(e.target.value)} placeholder={t("components.auditLogPanel.searchPlaceholder")} />
             </div>
 
             <div className="audit-action-btns">
-              <button className="btn outline small" onClick={handleClearFilters} title={t("Clear all filters")}>
-                <FiTrash2 />{t("Clear")}</button>
+              <button className="btn outline small" onClick={handleClearFilters} title={t("components.auditLogPanel.Clear all filters")}>
+                <FiTrash2 />{t("components.auditLogPanel.Clear")}</button>
               <button className="btn primary small" onClick={fetchAudit} disabled={loading}>
-                <FiRefreshCw className={loading ? "spin" : ""} />{t("Refresh")}</button>
+                <FiRefreshCw className={loading ? "spin" : ""} />{t("components.auditLogPanel.Refresh")}</button>
             </div>
           </div>
         </div>
@@ -205,15 +204,15 @@ export default function AuditLogPanel() {
           <table className="audit-table">
             <thead>
               <tr>
-                <th className="audit-th-time">{t("Timestamp")}</th>
-                <th className="audit-th-user">{t("User")}</th>
-                <th className="audit-th-type">{t("Category")}</th>
-                <th className="audit-th-desc">{t("Activity")}</th>
+                <th className="audit-th-time">{t("components.auditLogPanel.Timestamp")}</th>
+                <th className="audit-th-user">{t("components.auditLogPanel.User")}</th>
+                <th className="audit-th-type">{t("components.auditLogPanel.Category")}</th>
+                <th className="audit-th-desc">{t("components.auditLogPanel.Activity")}</th>
               </tr>
             </thead>
             <tbody>
               {normalizedData.length === 0 ? (
-                <tr><td colSpan="4" className="audit-empty">{loading ? "Loading..." : t("No logs found")}</td></tr>
+                <tr><td colSpan="4" className="audit-empty">{loading ? "Loading..." : "No logs found"}</td></tr>
               ) : (
                 normalizedData.map(log => (
                   <tr key={log.auditLogId} className="audit-row" onClick={() => setSelected(log)}>
@@ -243,7 +242,7 @@ export default function AuditLogPanel() {
 
         {/* FOOTER */}
         <div className="audit-footer">
-          <div className="audit-hint">{t("Click row for data comparison")}</div>
+          <div className="audit-hint">{t("components.auditLogPanel.Click row for data comparison")}</div>
           <Pagination total={total} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
       </div>
@@ -254,27 +253,27 @@ export default function AuditLogPanel() {
           <div className="audit-modal-content" onClick={e => e.stopPropagation()} style={{ background: "white", width: "min(960px, 95vw)", borderRadius: "18px", overflow: "hidden", boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 800 }}>{t(ACTION_LABELS[selected.action] || selected.action)}</h3>
+                <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 800 }}>{ACTION_LABELS[selected.action] || selected.action}</h3>
                 <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>{moment(selected.createdAt).format("DD MMM YYYY, HH:mm:ss")}</div>
               </div>
-              <button className="btn outline small" onClick={() => setSelected(null)}><FiX />{t("Close")}</button>
+              <button className="btn outline small" onClick={() => setSelected(null)}><FiX />{t("components.auditLogPanel.Close")}</button>
             </div>
             <div style={{ padding: "20px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
                 <div style={{ border: "1px solid #f0f0f0", padding: "15px", borderRadius: "12px" }}>
-                  <h4 style={{ marginTop: 0, fontSize: "14px", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>{t("General Information")}</h4>
+                  <h4 style={{ marginTop: 0, fontSize: "14px", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>{t("components.auditLogPanel.General Information")}</h4>
                   <div style={{ fontSize: "13px", lineHeight: "2" }}>
-                    <div><b>{t("User:")}</b> {selected.__user}</div>
-                    <div><b>{t("Role:")}</b> {selected?.performer?.role || "-"}</div>
-                    <div><b>{t("IP Address:")}</b> {selected.ipAddress || "N/A"}</div>
-                    <div><b>{t("Target:")}</b> {selected.__summary}</div>
+                    <div><b>{t("components.auditLogPanel.User:")}</b> {selected.__user}</div>
+                    <div><b>{t("components.auditLogPanel.Role:")}</b> {selected?.performer?.role || "-"}</div>
+                    <div><b>{t("components.auditLogPanel.IP Address:")}</b> {selected.ipAddress || "N/A"}</div>
+                    <div><b>{t("components.auditLogPanel.Target:")}</b> {selected.__summary}</div>
                   </div>
                 </div>
                 <div style={{ border: "1px solid #f0f0f0", padding: "15px", borderRadius: "12px" }}>
-                  <h4 style={{ marginTop: 0, fontSize: "14px", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>{t("Changes Snapshot")}</h4>
+                  <h4 style={{ marginTop: 0, fontSize: "14px", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>{t("components.auditLogPanel.Changes Snapshot")}</h4>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div><label style={{ fontSize: "11px", fontWeight: 800, color: "#999" }}>{t("BEFORE")}</label><JsonBlock value={selected.oldValue} /></div>
-                    <div><label style={{ fontSize: "11px", fontWeight: 800, color: "#999" }}>{t("AFTER")}</label><JsonBlock value={selected.newValue} /></div>
+                    <div><label style={{ fontSize: "11px", fontWeight: 800, color: "#999" }}>{t("components.auditLogPanel.BEFORE")}</label><JsonBlock value={selected.oldValue} /></div>
+                    <div><label style={{ fontSize: "11px", fontWeight: 800, color: "#999" }}>{t("components.auditLogPanel.AFTER")}</label><JsonBlock value={selected.newValue} /></div>
                   </div>
                 </div>
               </div>

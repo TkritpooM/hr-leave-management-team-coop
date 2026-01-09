@@ -4,8 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 
 export default function ProtectedRoute({ children }) {
-  const { t } = useTranslation();
-
   const { isReady, isAuthenticated } = useAuth();
   const location = useLocation();
 

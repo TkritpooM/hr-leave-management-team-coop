@@ -13,17 +13,21 @@ i18n
   .init({
     resources: {
       en: { translation: en },
-      th: { translation: th }
+      th: { translation: th },
     },
     supportedLngs: SUPPORTED_LANGS,
     fallbackLng: "en",
+
+    // ✅ เพิ่ม 2 บรรทัดนี้
+    load: "languageOnly",
+    nonExplicitSupportedLngs: true,
+
     detection: {
       order: ["localStorage", "navigator", "htmlTag"],
-      caches: ["localStorage"]
+      caches: ["localStorage"],
     },
-    interpolation: {
-      escapeValue: false
-    }
-  });
+    interpolation: { escapeValue: false },
+  })
+
 
 export default i18n;

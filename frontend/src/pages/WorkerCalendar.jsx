@@ -35,7 +35,7 @@ const parseWorkingDays = (str) => {
 };
 
 export default function WorkerCalendar() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
@@ -180,7 +180,7 @@ export default function WorkerCalendar() {
     if (isHoliday) {
       modalData = {
         type: "holiday",
-        status: t("Company Holiday"),
+        status: "Company Holiday",
         reason: "This is a pre-announced company non-working day.",
       };
     } else if (leave) {
@@ -200,8 +200,8 @@ export default function WorkerCalendar() {
       // 🔥 วันหยุดประจำสัปดาห์ (ตาม Setting)
       modalData = {
         type: "weekend",
-        status: t("Non-Working Day"),
-        reason: t("Off-day according to company schedule."),
+        status: "Non-Working Day",
+        reason: "Off-day according to company schedule.",
       };
     } else if (isFuture) {
       modalData = {
@@ -235,7 +235,7 @@ export default function WorkerCalendar() {
     <div className="page-card wc">
       <header className="wc-head">
         <div>
-          <h1 className="wc-title">{t("My Calendar")}</h1>
+          <h1 className="wc-title">{t("pages.workerCalendar.My Calendar")}</h1>
           <p className="wc-sub">
             Attendance + Leave (monthly view){loading ? " • Loading..." : ""}
           </p>
@@ -256,7 +256,7 @@ export default function WorkerCalendar() {
 
       <div className="calendar">
         <div className="calendar-head">
-          {[t("Sun"), t("Mon"), t("Tue"), t("Wed"), t("Thu"), t("Fri"), t("Sat")].map((d) => (
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
             <div className="cal-cell head" key={d}>{d}</div>
           ))}
         </div>
@@ -322,7 +322,7 @@ export default function WorkerCalendar() {
                         display: "block",
                         marginTop: "2px"
                       }}
-                    >{t("Company Holiday")}</span>
+                    >{t("pages.workerCalendar.Company Holiday")}</span>
                   )}
                 </div>
               </div>

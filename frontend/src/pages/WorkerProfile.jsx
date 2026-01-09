@@ -10,8 +10,7 @@ import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/swee
 import { useTranslation } from "react-i18next";
 
 export default function WorkerProfile() {
-  const { t } = useTranslation();
-
+  const { t, i18n } = useTranslation();
   const [profile, setProfile] = useState(() => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
@@ -81,7 +80,7 @@ export default function WorkerProfile() {
         });
         
         if (res.data.success) {
-        await alertSuccess(t("Success"), t("Profile updated successfully."));
+        await alertSuccess("Success", "Profile updated successfully.");
         setIsEditing(false);
         await fetchProfile(); 
         }
@@ -94,10 +93,10 @@ export default function WorkerProfile() {
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
     if (!requestData.newFirstName || !requestData.newLastName) {
-      return alertError(t("Validation"), t("Please fill in both First and Last name."));
+      return alertError("Validation", "Please fill in both First and Last name.");
     }
 
-    const ok = await alertConfirm(t("Confirm Request"), t("Are you sure you want to submit this name change request?"));
+    const ok = await alertConfirm("Confirm Request", "Are you sure you want to submit this name change request?");
     if (!ok) return;
 
     try {
@@ -118,19 +117,19 @@ export default function WorkerProfile() {
       });
 
       if (res.data.success) {
-        await alertSuccess(t("Request Sent"), t("Your request has been submitted to HR."));
+        await alertSuccess("Request Sent", "Your request has been submitted to HR.");
         setIsRequestModalOpen(false);
         fetchProfile(); // เพื่อโหลดสถานะ Pending (ถ้ามี)
       }
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || t("Failed to submit request."));
+      await alertError("Error", err.response?.data?.message || "Failed to submit request.");
     } finally {
       setIsSubmittingRequest(false);
     }
   };
 
-  if (loading) return <div className="p-loader">{t("Loading profile...")}</div>;
-  if (!profile) return <div className="p-error">{t("User not found")}</div>;
+  if (loading) return <div className="p-loader">{t("common.loadingProfile")}</div>;
+  if (!profile) return <div className="p-error">{t("pages.workerProfile.User not found")}</div>;
 
   const initials = (profile.firstName?.charAt(0) || "U") + (profile.lastName?.charAt(0) || "");
   const hasPendingRequest = profile?.profileUpdateRequests?.some(r => r.status === 'Pending');
@@ -138,7 +137,7 @@ export default function WorkerProfile() {
   return (
     <div className="profile-page-container">
       <header className="profile-page-header">
-        <h1 className="profile-page-title">{t("My Profile")}</h1>
+        <h1 className="profile-page-title">{t("pages.workerProfile.My Profile")}</h1>
       </header>
 
       <div className="profile-main-content">
@@ -146,20 +145,20 @@ export default function WorkerProfile() {
           <div className="avatar-section">
             <div className="avatar-circle">
               {profile.profileImageUrl ? (
-                <img src={profile.profileImageUrl} alt={t("Profile")} />
+                <img src={profile.profileImageUrl} alt={t("pages.workerProfile.Profile")} />
               ) : ( initials.toUpperCase() )}
             </div>
             <h2 className="display-name">{profile.firstName} {profile.lastName}</h2>
-            <span className="badge-role">{profile.role || t("Worker")}</span>
+            <span className="badge-role">{profile.role || "Worker"}</span>
             
             {/* ✅ แสดงสถานะ Pending */}
             {hasPendingRequest ? (
               <div className="status-pill pending">
-                <FiRefreshCw className="spin" />{t("Pending Approval")}</div>
+                <FiRefreshCw className="spin" />{t("pages.workerProfile.Pending Approval")}</div>
             ) : (
               <div className={`status-pill ${profile.isActive ? 'active' : 'inactive'}`}>
                 <span className="dot"></span>
-                {profile.isActive ? t("Active Employee") : "Inactive"}
+                {profile.isActive ? "Active Employee" : "Inactive"}
               </div>
             )}
 
@@ -170,25 +169,25 @@ export default function WorkerProfile() {
               onClick={() => setIsRequestModalOpen(true)}
               disabled={hasPendingRequest}
             >
-              <FiEdit2 />{t("Request Name Change")}</button>
+              <FiEdit2 />{t("pages.workerProfile.Request Name Change")}</button>
           </div>
         </aside>
 
         <form className="profile-details-grid" onSubmit={handleUpdate}>
           <section className="info-section">
             <h3 className="section-header">
-              <FiUser />{t("Personal Information")}</h3>
+              <FiUser />{t("pages.workerProfile.Personal Information")}</h3>
             <div className="info-field-list">
               <div className="info-box">
-                <label>{t("First name")}</label>
+                <label>{t("pages.workerProfile.First name")}</label>
                 <p>{profile.firstName}</p>
               </div>
               <div className="info-box">
-                <label>{t("Last name")}</label>
+                <label>{t("pages.workerProfile.Last name")}</label>
                 <p>{profile.lastName}</p>
               </div>
               <div className="info-box">
-                <label><FiMail />{t("Contact email")}</label>
+                <label><FiMail />{t("pages.workerProfile.Contact email")}</label>
                 <p>{profile.email}</p>
               </div>
             </div>
@@ -196,18 +195,18 @@ export default function WorkerProfile() {
 
           {!isEditing ? (
             <section className="info-section">
-              <h3 className="section-header"><FiBriefcase />{t("Employment Information")}</h3>
+              <h3 className="section-header"><FiBriefcase />{t("pages.workerProfile.Employment Information")}</h3>
               <div className="info-field-list">
                 <div className="info-box">
-                  <label>{t("Employee ID")}</label>
+                  <label>{t("pages.workerProfile.Employee ID")}</label>
                   <p>#{profile.employeeId}</p>
                 </div>
                 <div className="info-box">
-                  <label><FiCalendar />{t("Start date")}</label>
+                  <label><FiCalendar />{t("pages.workerProfile.Start date")}</label>
                   <p>{profile.joiningDate ? moment(profile.joiningDate).format("DD MMM YYYY") : "-"}</p>
                 </div>
                 <div className={`info-box highlight ${profile.isActive ? 'ok' : 'danger'}`}>
-                  <label><FiShield />{t("Employment status")}</label>
+                  <label><FiShield />{t("pages.workerProfile.Employment status")}</label>
                   <p>{profile.isActive ? "Active" : "Inactive"}</p>
                 </div>
               </div>
@@ -215,33 +214,33 @@ export default function WorkerProfile() {
           ) : (
             <section className="info-section edit-password-section">
               <div className="section-header-row">
-                <h3 className="section-header"><FiLock />{t("Change Password")}</h3>
+                <h3 className="section-header"><FiLock />{t("pages.workerProfile.Change Password")}</h3>
                 <button type="button" className="btn-close-edit" onClick={() => setIsEditing(false)}><FiX /></button>
               </div>
               <div className="info-field-list">
                 <div className="info-box">
-                  <label>{t("Current password")}</label>
+                  <label>{t("pages.workerProfile.Current password")}</label>
                   <input 
                     type="password" 
                     className="edit-input"
-                    placeholder={t("Enter current password...")}
+                    placeholder={t("auth.placeholders.currentPassword")}
                     value={formData.currentPassword}
                     onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
                     required
                   />
                 </div>
                 <div className="info-box">
-                  <label>{t("New password")}</label>
+                  <label>{t("pages.workerProfile.New password")}</label>
                   <input 
                     type="password" 
                     className="edit-input"
-                    placeholder={t("Enter new password...")}
+                    placeholder={t("auth.placeholders.newPassword")}
                     value={formData.newPassword}
                     onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                     required
                   />
                 </div>
-                <button type="submit" className="btn primary full-width">{t("Update Password")}</button>
+                <button type="submit" className="btn primary full-width">{t("pages.workerProfile.Update Password")}</button>
               </div>
             </section>
           )}
@@ -255,46 +254,46 @@ export default function WorkerProfile() {
             <div className="p-modal-header">
               <div className="p-header-icon"><FiEdit2 /></div>
               <div className="p-header-text">
-                <h3>{t("Request Name Change")}</h3>
-                <p>{t("Submit a request to update your official name.")}</p>
+                <h3>{t("pages.workerProfile.Request Name Change")}</h3>
+                <p>{t("pages.workerProfile.nameChangeHint")}</p>
               </div>
               <button className="p-modal-close" onClick={() => setIsRequestModalOpen(false)}><FiX /></button>
             </div>
             
             <form onSubmit={handleSubmitRequest} className="p-modal-form">
               <div className="p-current-info">
-                <label>{t("Current Name")}</label>
+                <label>{t("pages.workerProfile.Current Name")}</label>
                 <div className="p-name-badge">{profile.firstName} {profile.lastName}</div>
               </div>
 
               <div className="p-form-row">
                 <div className="p-input-group">
-                  <label>{t("New First Name")}</label>
+                  <label>{t("pages.workerProfile.New First Name")}</label>
                   <input 
                     type="text" 
                     value={requestData.newFirstName}
                     onChange={e => setRequestData({...requestData, newFirstName: e.target.value})}
-                    placeholder={t("First name")}
+                    placeholder={t("pages.workerProfile.First name")}
                   />
                 </div>
                 <div className="p-input-group">
-                  <label>{t("New Last Name")}</label>
+                  <label>{t("pages.workerProfile.New Last Name")}</label>
                   <input 
                     type="text" 
                     value={requestData.newLastName}
                     onChange={e => setRequestData({...requestData, newLastName: e.target.value})}
-                    placeholder={t("Last name")}
+                    placeholder={t("pages.workerProfile.Last name")}
                   />
                 </div>
               </div>
 
               <div className="p-input-group">
-                <label>{t("Reason")}</label>
+                <label>{t("pages.workerProfile.Reason")}</label>
                 <textarea 
                   rows="2"
                   value={requestData.reason}
                   onChange={e => setRequestData({...requestData, reason: e.target.value})}
-                  placeholder={t("e.g. Marriage or legal change")}
+                  placeholder={t("pages.workerProfile.examples.nameChange")}
                 ></textarea>
               </div>
 
@@ -307,14 +306,14 @@ export default function WorkerProfile() {
                 />
                 <label htmlFor="p-file">
                   <FiUpload />
-                  <span>{requestData.attachment ? requestData.attachment.name : t("Upload supporting document")}</span>
+                  <span>{requestData.attachment ? requestData.attachment.name : "Upload supporting document"}</span>
                 </label>
               </div>
 
               <div className="p-modal-footer">
-                <button type="button" className="p-btn-cancel" onClick={() => setIsRequestModalOpen(false)}>{t("Cancel")}</button>
+                <button type="button" className="p-btn-cancel" onClick={() => setIsRequestModalOpen(false)}>Cancel</button>
                 <button type="submit" className="p-btn-submit" disabled={isSubmittingRequest}>
-                  {isSubmittingRequest ? "Sending..." : t("Submit Request")}
+                  {isSubmittingRequest ? "Sending..." : "Submit Request"}
                 </button>
               </div>
             </form>
