@@ -514,7 +514,7 @@ export default function HRDashboard() {
                 <input type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)} />
               </div>
 
-              <button className="btn primary small" onClick={fetchReport} disabled={loading}>
+              <button className="btn primary small" onClick={() => fetchReport(1)} disabled={loading}>
                 {t("pages.hrDashboard.Run Report")}
               </button>
 
