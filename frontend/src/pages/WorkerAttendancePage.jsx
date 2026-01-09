@@ -145,7 +145,7 @@ export default function WorkerAttendancePage() {
 
         <div className="wa-header-right">
           <div className={`wa-pill ${isExceeded ? "danger" : ""}`}>
-            Late this month: <strong>{lateCount ?? "-"}</strong> / {lateLimit}
+            {t("pages.workerAttendancePage.Late this month")} : <strong>{lateCount ?? "-"}</strong> / {lateLimit}
           </div>
           <button className="wa-btn wa-btn-primary" type="button" onClick={handleExportCSV} disabled={loading}>{t("pages.workerAttendancePage.Export CSV")}</button>
         </div>
@@ -219,9 +219,11 @@ export default function WorkerAttendancePage() {
                     <td className="wa-mono">{r.in}</td>
                     <td className="wa-mono">{r.out}</td>
                     <td>
-                      <span className={`wa-badge ${r.late ? "late" : "ok"}`}>
-                        {r.late ? "Late" : "On Time"}
-                      </span>
+                     <span className={`wa-badge ${r.late ? "late" : "ok"}`}>
+                      {r.late
+                        ? t("pages.workerAttendancePage.status.late")
+                        : t("pages.workerAttendancePage.status.onTime")}
+                    </span>
                     </td>
                     <td className="wa-note">{r.note || "-"}</td>
                   </tr>

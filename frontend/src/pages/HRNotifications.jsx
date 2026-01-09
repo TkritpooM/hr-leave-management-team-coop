@@ -86,7 +86,7 @@ export default function HRNotifications() {
         requestId: noti.relatedRequestId,
         employeeName: noti.notificationType === "NewRequest" 
           ? (noti.message.split('from ')[1]?.split(' (')[0] || t("common.user"))
-          : t("pages.hrProfileRequests.table.employee"), 
+          : t("pages.hrProfileRequests.Employee"),
         leaveType: noti.relatedRequest.leaveType?.typeName || t("common.noResults"),
         startDate: noti.relatedRequest.startDate,
         endDate: noti.relatedRequest.endDate,
@@ -108,7 +108,11 @@ export default function HRNotifications() {
   };
 
   const deleteNoti = async (id) => {
-    const ok = await alertConfirm(t("common.confirm"), t("workerNotifications.alert.clearAllText"), t("common.confirm"));
+    const ok = await alertConfirm(
+          t("common.confirm"),
+          t("pages.workerNotifications.alert.clearAllText"),
+          t("common.confirm")
+        );
     if (!ok) return;
     try {
       await axiosClient.delete(`/notifications/${id}`);
@@ -134,11 +138,15 @@ export default function HRNotifications() {
   }, [notifications, page, pageSize]);
 
   const getTitle = (type, message) => {
-    if (message?.includes("Profile Update")) return t("pages.hrProfileRequests.title");
-    if (type === "NewRequest") return t("pages.workerDashboard.Leave Request");
-    if (type === "Approved") return t("pages.workerLeave.Approved");
-    return t("pages.workerNotifications.type.general");
-  };
+  if (message?.includes("Profile Update"))
+    return t("pages.hrProfileRequests.title", "Profile Requests");
+  if (type === "NewRequest")
+    return t("pages.workerDashboard.Leave Request", "Leave Request");
+  if (type === "Approved")
+    return t("pages.workerLeave.Approved", "Approved");
+  return t("pages.workerNotifications.type.general", "General");
+};
+
 
   const renderTypeIcon = (type, message) => {
     if (message?.includes("Profile Update")) return <FiInfo style={{ color: "#8b5cf6" }} />;
@@ -151,7 +159,7 @@ export default function HRNotifications() {
       <header className="worker-header">
         <div>
           <h1 className="worker-title">{t("pages.hrNotifications.HR Notifications")}</h1>
-          <p className="worker-datetime">{t("workerNotifications.subtitle")}</p>
+          <p className="worker-datetime">{t("pages.workerNotifications.subtitle")}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn outline small" onClick={fetchNotifications} disabled={loading}>

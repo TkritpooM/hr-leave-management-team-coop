@@ -1,5 +1,6 @@
 {
   "common": {
+    "all": "All",
     "success": "Success",
     "approve": "Approve",
     "reject": "Reject",
@@ -7,6 +8,7 @@
     "language": "Language",
     "english": "English",
     "thai": "Thai",
+    "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "HR",
       "Worker": "Worker"
@@ -236,42 +238,133 @@
       "Download": "Download",
       "Attachment preview": "Attachment preview",
       "No file": "No file",
-      "label": "Attachment"
+      "label": "Attachment",
+       "title": "Leave Approvals",
+      "filters": {
+        "allTypes": "All types"
+      },
+      "buttons": {
+        "refresh": "Refresh",
+        "rejectSelected": "Reject Selected",
+        "approveSelected": "Approve Selected",
+        "details": "Details",
+        "close": "Close",
+        "open": "Open",
+        "download": "Download"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "modal": {
+        "title": "Leave Request Details"
+      },
+      "fields": {
+        "daysDeducted": "Days deducted"
+      },
+      "defaults": {
+        "leave": "Leave"
+      },
+      "attachment": {
+        "noFile": "No file",
+        "previewAlt": "Attachment preview",
+        "fileTypeLabel": "File type",
+        "previewNotSupportedLine1": "This browser can't preview this file type.",
+        "previewNotSupportedLine2": "Please click {{download}} or {{open}} above.",
+        "kind": {
+          "image": "Image",
+          "pdf": "PDF",
+          "word": "Word",
+          "zip": "ZIP",
+          "file": "File"
+        }
+      },
+      "alert": {
+        "confirmTitle": "Confirm {{label}}",
+        "confirmText": "Do you want to {{label}} {{count}} request(s)?",
+        "doneText": "Successfully {{label}}d."
+      }
     },
     "leaveTypeSettings": {
-      "Leave Settings": "Leave Settings",
-      "Define standard leave quotas and carry-forward policies for employees": "Define standard leave quotas and carry-forward policies for employees",
-      "Process carry forward for next year": "Process carry forward for next year",
-      "Process Year-End": "Process Year-End",
-      "Refresh": "Refresh",
-      "Add Type": "Add Type",
-      "Type Name & Policy": "Type Name & Policy",
-      "Paid Status": "Paid Status",
-      "Default Days": "Default Days",
-      "Theme Color": "Theme Color",
-      "Actions": "Actions",
-      "noLeaveTypesFound": "No leave types found",
-      "Carry Forward": "Carry Forward",
-      "Max Carry Days": "Max Carry Days",
-      "Warning:": "Warning:",
-      "Carry-forward Disabled": "Carry-forward Disabled",
-      "Type Name": "Type Name",
-      "Default Quota (Days Per Year)": "Default Quota (Days Per Year)",
-      "Maximum Carry-over Days (Max Carry Days)": "Maximum Carry-over Days (Max Carry Days)",
-      "Theme Color for Calendar & Charts": "Theme Color for Calendar & Charts",
-      "#HEXCODE": "#HEXCODE",
-      "Save Policy": "Save Policy",
-      "yearEndPolicyTitle": "Year-End Carry Forward Policy (Year {{year}})",
-      "Please read and understand the following policies:": "Please read and understand the following policies:",
-      "yearEndPolicyAccept": "I understand and accept all policies above",
+      "title": "Leave Settings",
+      "subtitle": "Define standard leave quotas and carry-forward policies for employees",
+      "buttons": {
+        "processYearEnd": "Process Year-End",
+        "processCarryForwardTooltip": "Process carry forward for next year",
+        "refresh": "Refresh",
+        "addType": "Add Type",
+        "savePolicy": "Save Policy",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+
+      "table": {
+        "typeNamePolicy": "Type Name & Policy",
+        "paidStatus": "Paid Status",
+        "defaultDays": "Default Days",
+        "themeColor": "Theme Color",
+        "actions": "Actions"
+      },
+
+      "paid": {
+        "paidLeave": "Paid Leave",
+        "unpaidLeave": "Unpaid Leave"
+      },
+
+      "daysLabel": "{{days}} days",
+
+      "badges": {
+        "carryForwardEnabled": "Carry-forward Enabled (Max {{max}} Days)",
+        "carryForwardDisabled": "Carry-forward Disabled"
+      },
+
+      "modal": {
+        "addTitle": "Add Leave Type",
+        "addSubtitle": "Create a new leave type category",
+        "editTitle": "Edit Leave Type",
+        "editSubtitle": "Modify details and leave policies"
+      },
+
+      "form": {
+        "typeName": "Type Name",
+        "defaultQuotaDaysPerYear": "Default Quota (Days Per Year)",
+        "paidLeave": "Paid Leave",
+        "enableCarryForward": "Enable Carry Forward",
+        "maxCarryOverDays": "Maximum Carry-over Days (Max Carry Days)",
+        "themeColor": "Theme Color for Calendar & Charts",
+        "hexPlaceholder": "#HEXCODE"
+      },
+      "yearEndPolicyTitle": "Year-End Policy ({{year}})",
+      "yearEndPolicyIntro": "Please read and understand the following policies:",
+      "yearEndPolicyAccept": "I understand and agree to proceed.",
+      "yearEndPolicyMustAccept": "You must accept the policy before continuing.",
       "confirmButtonText": "Confirm",
       "cancelButtonText": "Cancel",
-      "yearEndPolicyMustAccept": "Please check the box to accept the policies before continuing",
-      "examples": {
-        "leaveTypeName": "e.g. Annual Leave"
+      "yearEndPolicy": {
+        "bullet1": "The system will use Remaining Days from {{year}} for calculation.",
+        "bullet2": "Carry-forward only applies to types with Carry Forward enabled.",
+        "bullet3": "Days carried over will not exceed the Max Carry Days defined for each type.",
+        "bullet4": "New quotas for {{year}} will be automatically created for all employees.",
+        "warningLabel": "Warning:",
+        "bullet5": "This action cannot be undone. Ensure all pending leave requests are processed first."
       },
-      "title": "Delete Leave Type",
-      "text": "Are you sure you want to delete this leave type?"
+      "examples": {
+        "leaveTypeName": "e.g. Sick Leave"
+      },
+      "noLeaveTypesFound": "No leave types found",
+      "delete": {
+        "title": "Delete Leave Type",
+        "text": "Are you sure you want to delete this leave type?"
+      },
+      "alert": {
+        "fetchFailed": "Unable to fetch leave types",
+        "saved": "Leave type saved successfully",
+        "saveFailed": "Unable to save leave type",
+        "deleted": "Leave type deleted successfully",
+        "deleteFailed": "Unable to delete. Please try again later",
+        "carryForwardSuccess": "Carry-forward to year {{year}} completed successfully",
+        "carryForwardFailed": "Unable to process year-end carry forward"
+      }
     },
     "hrDashboard": {
        "selectedDateLabel": "Selected",
@@ -331,38 +424,87 @@
       "noLeaveDataFound": "No leave data found."
     },
     "hrEmployees": {
-      "Employees": "Employees",
-      "Manage employees and leave quotas": "Manage employees and leave quotas",
-      "All roles": "All roles",
-      "HR": "HR",
-      "Worker": "Worker",
-      "All status": "All status",
-      "Active only": "Active only",
-      "Inactive only": "Inactive only",
-      "Sync Default Quotas": "Sync Default Quotas",
-      "Sync Default": "Sync Default",
-      "Add New": "Add New",
-      "Refresh List": "Refresh List",
-      "Refresh": "Refresh",
-      "ID": "ID",
-      "Name": "Name",
-      "Email / Role": "Email / Role",
-      "Actions": "Actions",
+      "buttons": {
+        "addNew": "Add New",
+        "refresh": "Refresh",
+        "refreshList": "Refresh List",
+        "edit": "Edit"
+      },
+      "add": {
+        "title": "Add New Employee",
+        "subtitle": "Fill in details to create a new account"
+      },
+      "title": "Employees",
+      "subtitle": "Manage employees and leave quotas",
+      "search": {
+        "placeholder": "Search employees..."
+      },
+      "filters": {
+        "allRoles": "All roles",
+        "hr": "HR",
+        "worker": "Worker",
+        "allStatus": "All status",
+        "activeOnly": "Active only",
+        "inactiveOnly": "Inactive only"
+      },
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "emailRole": "Email / Role",
+        "actions": "Actions"
+      },
+      "badge": {
+        "inactive": "Inactive"
+      },
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "quota": "Quota",
       "noEmployeesFound": "No employees found",
-      "Inactive": "Inactive",
-      "Edit": "Edit",
-      "Quota": "Quota",
-      "First Name": "First Name",
-      "Last Name": "Last Name",
-      "Email Address": "Email Address",
-      "Role": "Role",
-      "Joining Date": "Joining Date",
-      "Save": "Save",
-      "Set Leave Quota": "Set Leave Quota",
-      "Leave Type / Used": "Leave Type / Used",
-      "This Year": "This Year",
-      "Carried": "Carried",
-      "Save Quota": "Save Quota"
+      "form": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "role": "Role",
+        "joiningDate": "Joining Date",
+        "active": "Active",
+        "password": "Password",
+        "passwordHint": "(leave blank to keep current)"
+      },
+      "edit": {
+        "title": "Edit Employee"
+      },
+      "quotaModal": {
+        "title": "Leave Quotas",
+        "loadYear": "Load",
+        "syncStandard": "Sync Standard",
+        "leaveTypeUsed": "Leave Type / Used",
+        "thisYear": "This Year",
+        "carried": "Carried",
+        "maxCarryDays": "Max Carry",
+        "carryAllowed": "Carry Allowed",
+        "usedLabel": "Used",
+        "carryHintAllowed": "Allowed",
+        "carryHintBlocked": "Blocked",
+        "saveQuota": "Save Quota"
+      },
+      "alert": {
+        "loadFailed": "Failed to load employees.",
+        "saved": "Saved.",
+        "updated": "Updated.",
+        "loadQuotaFailed": "Failed to load quotas.",
+        "quotaSaved": "Quota saved.",
+        "activateTitle": "Activate employee?",
+        "deactivateTitle": "Deactivate employee?",
+        "activateText": "This will allow the employee to log in again.",
+        "deactivateText": "This will prevent the employee from logging in.",
+        "syncTitle": "Sync standard quotas?",
+        "syncText": "This will sync standard quotas to employees.",
+        "synced": "Synced.",
+        "syncFailed": "Unable to sync.",
+        "quotaSaveFailed": "Unable to update quota.",
+        "activated": "Employee is now Active.",
+        "deactivated": "Employee is now Inactive."
+      }
     },
     "workerAttendancePage": {
       "Date": "Date",
@@ -378,7 +520,12 @@
       "Export CSV": "Export CSV",
       "Search": "Search",
       "Check In": "Check In",
-      "noRecordsInRange": "No records found for the selected range."
+      "noRecordsInRange": "No records found for the selected range.",
+      "Late this month":"Late this month",
+      "status": {
+          "late": "Late",
+          "onTime": "On Time"
+        }
     },
     "workerCalendar": {
       "Company Holiday": "Company Holiday",
@@ -402,7 +549,8 @@
       "Supporting Document": "Supporting Document",
       "View Attachment": "View Attachment",
       "Official document (PDF/Image)": "Official document (PDF/Image)",
-      "Open": "Open"
+      "Open": "Open",
+      "title": "Profile Requests"
     },
     "workerDashboard": {
       "Leave": "Leave",
@@ -468,7 +616,8 @@
       "type": {
         "lateWarning": "Late Warning",
         "leave": "Leave",
-        "general": "General"
+        "general": "General",
+        "profile": "Profile"
       },
       "alert": {
         "loadFailed": "Failed to load notifications.",
@@ -564,7 +713,80 @@
       "Close": "Close",
       "General Information": "General Information",
       "User:": "User:",
-      "searchPlaceholder": "Search user, ID..."
+      "searchPlaceholder": "Search user, ID...",
+       "title": "Audit Log",
+      "subtitle": "System activities and history",
+      "category": "Category",
+      "action": "Action",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear",
+      "clearAllFilters": "Clear all filters",
+      "refresh": "Refresh",
+      "timestamp": "Timestamp",
+      "user": "User",
+      "activity": "Activity",
+      "loading": "Loading...",
+      "noLogs": "No logs found",
+      "footerHint": "Click a row to view detailed changes",
+      "modal": {
+        "close": "Close",
+        "generalInfo": "General Information",
+        "changes": "Changes Snapshot",
+        "before": "Before",
+        "after": "After",
+        "user": "User",
+        "role": "Role",
+        "ip": "IP Address",
+        "target": "Target"
+      },
+
+      "categories": {
+        "Leave": "Leave Management",
+        "Attendance": "Attendance",
+        "Quota": "Quota",
+        "Holiday": "Holidays",
+        "Policy": "Policies",
+        "Employee": "Employee Records",
+        "Notification": "Notifications",
+        "Auth": "Account / Auth",
+        "Report": "Reports",
+        "Other": "Other"
+      },
+
+      "actions": {
+        "LEAVE_REQUEST_CREATE": "Leave Requested",
+        "LEAVE_REQUEST_CANCEL": "Leave Cancelled",
+        "LEAVE_REQUEST_APPROVE": "Leave Approved",
+        "LEAVE_REQUEST_REJECT": "Leave Rejected",
+        "LEAVE_REQUEST_DELETE": "Leave Deleted",
+        "CHECKIN": "Clock-In",
+        "CHECKIN_LATE": "Clock-In (Late)",
+        "CHECKOUT": "Clock-Out",
+        "LEAVE_TYPE_CREATE": "Created Leave Type",
+        "LEAVE_TYPE_UPDATE": "Updated Leave Type",
+        "LEAVE_TYPE_DELETE": "Deleted Leave Type",
+        "QUOTA_CREATE": "Created Quota",
+        "QUOTA_UPDATE": "Updated Quota",
+        "EMPLOYEE_QUOTA_BULK_UPDATE": "Bulk Quota Update",
+        "HOLIDAY_CREATE": "Added Holiday",
+        "HOLIDAY_DELETE": "Deleted Holiday",
+        "ATTENDANCE_POLICY_UPDATE": "Updated Attendance Policy",
+        "SYNC_DEFAULT_QUOTAS_ALL_EMPLOYEES": "Synced Global Quotas",
+        "PROCESS_YEAR_END_CARRY_FORWARD": "Processed Year-End Carry Forward",
+        "EMPLOYEE_CREATE": "Added Employee",
+        "EMPLOYEE_UPDATE_BY_HR": "Employee Info Updated",
+        "PROFILE_UPDATE": "Profile Updated",
+        "REGISTER": "Account Registered",
+        "LOGIN_SUCCESS": "Login Success",
+        "EXPORT_ATTENDANCE_CSV": "Exported Attendance (CSV)",
+        "NOTIFICATION_MARK_READ": "Marked Notification Read",
+        "NOTIFICATION_MARK_ALL_READ": "Marked All Notifications Read",
+        "NOTIFICATION_CLEAR_ALL": "Cleared All Notifications",
+        "NOTIFICATION_DELETE_ONE": "Deleted Notification",
+        "PROFILE_UPDATE_REQUEST_SUBMIT": "Profile Update Requested",
+        "PROFILE_UPDATE_REJECTED": "Profile Update Rejected"
+      }
     },
     "dailyDetailModal": {
        "dailyDetailsFor": "Daily Details for",

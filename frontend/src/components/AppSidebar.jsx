@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import "./AppSidebar.css";
+import axiosClient from "../api/axiosClient";
 
 import {
   FiGrid,
@@ -65,6 +66,13 @@ const safeJSON = (v, fallback = {}) => {
   }
 };
 
+const safeTs = (ts) => {
+  if (!ts) return 0;
+  const d = new Date(ts);
+  const ms = d.getTime();
+  return Number.isFinite(ms) ? ms : 0;
+};
+
 export default function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -74,7 +82,13 @@ export default function AppSidebar() {
   const role = user.role === "HR" ? "HR" : "Worker";
   const sections = MENUS[role];
 
+  // key ที่ sidebar ใช้แสดงเลข
   const notificationKey = role === "HR" ? "hr_unread_notifications" : "worker_unread_notifications";
+
+  // ✅ key last seen ให้ตรงกับหน้า Notifications ที่คุณใช้จริง
+  const lastSeenKey = role === "HR"
+    ? "hr_unread_notifications_last_seen"     // จาก HRNotifications.jsx
+    : "worker_notifications_last_seen";       // จาก WorkerNotifications.jsx
 
   const first = user.firstName || user.first_name || "";
   const last = user.lastName || user.last_name || "";
@@ -84,20 +98,91 @@ export default function AppSidebar() {
   // Mobile drawer
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // unread badge
+  // unread badge (ค่าใน state)
   const [unread, setUnread] = useState(() => Number(localStorage.getItem(notificationKey) || "0") || 0);
+
+  // ✅ helper: เซ็ต unread=0 + อัปเดต lastSeen เพื่อให้ refresh แล้วไม่กลับมา
+  const markAllSeenLocally = useCallback(() => {
+    try {
+      localStorage.setItem(notificationKey, "0");
+      localStorage.setItem(lastSeenKey, String(Date.now()));
+    } catch (_) {}
+    setUnread(0);
+
+    // ยิง event เผื่อที่อื่นฟังอยู่
+    try {
+      window.dispatchEvent(new Event(`${notificationKey}_updated`));
+    } catch (_) {}
+  }, [notificationKey, lastSeenKey]);
+
+  // ✅ คำนวณ unread จาก server + lastSeen (แก้อาการ refresh แล้วเลขกลับมา)
+  const syncUnreadFromServer = useCallback(async () => {
+    try {
+      const lastSeen = Number(localStorage.getItem(lastSeenKey) || "0") || 0;
+
+      // ดึง noti ของตัวเอง
+      const res = await axiosClient.get("/notifications/my");
+      const fetched = res.data?.notifications || res.data || [];
+
+      const unreadCount = fetched.reduce((acc, n) => {
+        const ts = n.createdAt || n.timestamp;
+        return safeTs(ts) > lastSeen ? acc + 1 : acc;
+      }, 0);
+
+      const finalCount = Number.isFinite(unreadCount) ? unreadCount : 0;
+
+      localStorage.setItem(notificationKey, String(finalCount));
+      setUnread(finalCount);
+    } catch (e) {
+      // ถ้าดึงไม่ได้ ก็ fallback ใช้ค่าเดิมใน localStorage
+      const n = Number(localStorage.getItem(notificationKey) || "0");
+      setUnread(Number.isFinite(n) ? n : 0);
+    }
+  }, [lastSeenKey, notificationKey]);
+
+  // ✅ ตอนเริ่มแอป/refresh: ซิงก์ unread ให้ถูกต้องจาก server ทันที
+  useEffect(() => {
+    syncUnreadFromServer();
+  }, [syncUnreadFromServer]);
+
+  // ✅ ถ้าอยู่หน้า notifications ให้ถือว่าอ่านแล้วเสมอ (กันเคส refresh หน้า noti)
+  useEffect(() => {
+    const onNotiPage =
+      location.pathname === "/hr/notifications" ||
+      location.pathname === "/worker/notifications";
+
+    if (onNotiPage) {
+      markAllSeenLocally();
+    }
+  }, [location.pathname, markAllSeenLocally]);
+
+  // ✅ ฟัง storage + custom events (กรณีมีที่อื่น set ค่า)
   useEffect(() => {
     const tick = () => {
       const n = Number(localStorage.getItem(notificationKey) || "0");
       setUnread(Number.isFinite(n) ? n : 0);
     };
-    const tmr = setInterval(tick, 700);
+
+    const onCustom = () => tick();
+
     window.addEventListener("storage", tick);
+    window.addEventListener(`${notificationKey}_updated`, onCustom);
+
+    // sync เป็นระยะเบา ๆ กันเคสมี noti มาแต่ lastSeen ยังไม่อัปเดต
+    const tmr = setInterval(() => {
+      // ถ้าอยู่หน้า noti ไม่ต้อง sync ให้มันกระพริบกลับมา
+      const onNotiPage =
+        location.pathname === "/hr/notifications" ||
+        location.pathname === "/worker/notifications";
+      if (!onNotiPage) syncUnreadFromServer();
+    }, 20000);
+
     return () => {
       clearInterval(tmr);
       window.removeEventListener("storage", tick);
+      window.removeEventListener(`${notificationKey}_updated`, onCustom);
     };
-  }, [notificationKey]);
+  }, [notificationKey, location.pathname, syncUnreadFromServer]);
 
   // close mobile drawer on route change
   useEffect(() => {
@@ -122,12 +207,9 @@ export default function AppSidebar() {
   // =========================================================
   const [langOpen, setLangOpen] = useState(false);
 
-  // ✅ อนาคตเพิ่มภาษา 3/4 ภาษา เพิ่มใน array นี้ได้เลย
   const LANGS = [
     { code: "th", short: "TH", label: tt("common.thai", "ไทย") },
     { code: "en", short: "EN", label: tt("common.english", "English") },
-    // { code: "jp", short: "JP", label: "日本語" },
-    // { code: "zh", short: "ZH", label: "中文" },
   ];
 
   const activeLang = LANGS.find((x) => (i18n.language || "").startsWith(x.code)) || LANGS[0];
@@ -138,24 +220,17 @@ export default function AppSidebar() {
     return () => document.removeEventListener("click", close);
   }, [langOpen]);
 
- const changeLang = async (code) => {
-  try {
-    // 1) เปลี่ยนภาษา i18next
-    await i18n.changeLanguage(code);
-
-    // 2) บังคับ persist ให้ detector ชัวร์ ๆ
-    localStorage.setItem("i18nextLng", code);
-
-    // 3) อัปเดต lang ของ html (ช่วยบาง lib/บางเคส)
-    document.documentElement.lang = code;
-
-    setLangOpen(false);
-  } catch (e) {
-    console.error("changeLang error:", e);
-    setLangOpen(false);
-  }
-};
-
+  const changeLang = async (code) => {
+    try {
+      await i18n.changeLanguage(code);
+      localStorage.setItem("i18nextLng", code);
+      document.documentElement.lang = code;
+      setLangOpen(false);
+    } catch (e) {
+      console.error("changeLang error:", e);
+      setLangOpen(false);
+    }
+  };
 
   return (
     <>

@@ -258,7 +258,9 @@ export default function WorkerNotifications() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {renderTypeIcon(n.notificationType)}
                       <span style={{ fontWeight: 700 }}>{renderTypeLabel(n.notificationType)}</span>
-                      {n._isNewSinceLastSeen && <span className="badge badge-ok">NEW</span>}
+                      {n._isNewSinceLastSeen && (
+                        <span className="badge badge-ok">{t("pages.workerNotifications.badge.new")}</span>
+                      )}
                     </div>
                   </td>
                   <td style={{ color: "#334155", lineHeight: "1.5" }}>{n.message}</td>
