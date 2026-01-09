@@ -14,6 +14,7 @@
     align-items: center;
     border-bottom: 1px solid #f1f5f9;
     padding-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .worker-title {
@@ -62,8 +63,12 @@
 }
 
 .history-table tr:hover {
-    background-color: #f1f5f9;
-    transition: background-color 0.2s ease;
+    background-color: #f8fafc;
+}
+
+/* แถวที่ยังไม่ได้อ่าน */
+.history-table tr.unread {
+    background-color: rgba(59, 130, 246, 0.02);
 }
 
 .history-table td.empty {
@@ -76,15 +81,17 @@
 .badge {
     padding: 4px 10px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     display: inline-flex;
     align-items: center;
+    text-transform: uppercase;
 }
 
 .badge-ok {
     background: #f0fdf4;
     color: #16a34a;
+    border: 1px solid #dcfce7;
 }
 
 .btn {
@@ -112,6 +119,11 @@
     border-color: #cbd5e1;
 }
 
+.btn.primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
 .btn.danger {
     background: #fef2f2;
     color: #ef4444;
@@ -125,6 +137,19 @@
 .btn.small {
     padding: 6px 12px;
     font-size: 13px;
+    border-radius: 8px;
+}
+
+.action-btns-group {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.pagination-footer {
+    marginTop: 24px;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .spin {

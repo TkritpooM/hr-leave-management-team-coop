@@ -3,7 +3,7 @@ import {
   FiBell, FiTrash2, FiCheckCircle, FiRefreshCw,
   FiAlertCircle, FiCheck, FiInfo,
 } from "react-icons/fi";
-import "./WorkerNotifications.css"; // เรียกใช้ CSS เดียวกันกับ Worker
+import "./WorkerNotifications.css"; // เรียกใช้ CSS สไตล์ Minimal
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import QuickActionModal from "../components/QuickActionModal";
@@ -73,7 +73,6 @@ export default function HRNotifications() {
   const handleNotiClick = (noti) => {
     if (!noti.isRead) markAsRead(noti.notificationId);
 
-    // Logic แกะ ID สำหรับ Profile Update
     if (noti.message?.includes("Profile Update")) {
       const requestId = noti.message.match(/ID: (\d+)/)?.[1];
       navigate("/hr/profile-requests", { 
@@ -82,7 +81,6 @@ export default function HRNotifications() {
       return;
     }
 
-    // Logic สำหรับ Leave Request (QuickActionModal)
     if (noti.relatedRequestId && noti.relatedRequest) {
       setSelectedRequest({
         requestId: noti.relatedRequestId,
@@ -110,7 +108,7 @@ export default function HRNotifications() {
   };
 
   const deleteNoti = async (id) => {
-    const ok = await alertConfirm(t("common.confirm"), t("pages.workerNotifications.alert.clearAllText"), t("common.confirm"));
+    const ok = await alertConfirm(t("common.confirm"), t("workerNotifications.alert.clearAllText"), t("common.confirm"));
     if (!ok) return;
     try {
       await axiosClient.delete(`/notifications/${id}`);
@@ -171,8 +169,7 @@ export default function HRNotifications() {
         </div>
       </header>
 
-      {/* ใช้ Table Wrapper เดียวกับ My Attendance / Audit Log */}
-      <div className="history-table-wrapper" style={{ marginTop: 24 }}>
+      <div className="history-table-wrapper">
         <table className="history-table">
           <thead>
             <tr>
@@ -194,7 +191,7 @@ export default function HRNotifications() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {renderTypeIcon(n.notificationType, n.message)}
                       <span style={{ fontWeight: 700 }}>{getTitle(n.notificationType, n.message)}</span>
-                      {n._isNewSinceLastSeen && <span className="badge badge-ok" style={{ fontSize: '10px' }}>{t("pages.hrNotifications.NEW")}</span>}
+                      {n._isNewSinceLastSeen && <span className="badge badge-ok">{t("pages.hrNotifications.NEW")}</span>}
                     </div>
                   </td>
                   <td style={{ color: "#334155", lineHeight: "1.5" }}>{n.message}</td>
@@ -202,7 +199,7 @@ export default function HRNotifications() {
                     {new Date(n.createdAt).toLocaleString(mLocale === 'th' ? 'th-TH' : 'en-GB')}
                   </td>
                   <td style={{ textAlign: "center" }}>
-                    <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>
+                    <div className="action-btns-group">
                       <button className="btn outline small" onClick={() => handleNotiClick(n)}>
                         <FiCheck />
                         <span>{t("pages.workerNotifications.view")}</span>
@@ -224,7 +221,7 @@ export default function HRNotifications() {
       </div>
 
       {!loading && notifications.length > 0 && (
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="pagination-footer">
           <Pagination 
             total={notifications.length} 
             page={page} 
