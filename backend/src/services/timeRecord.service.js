@@ -12,7 +12,6 @@ const checkIn = async (employeeId) => {
     const now = nowMoment.toDate();
     const todayStr = formatDateOnly(now);
 
-    // 1. ดึงข้อมูลเบื้องต้น: Record วันนี้, Policy, และใบลาที่ Approved
     const [existingRecord, policy, leave] = await Promise.all([
         prisma.timeRecord.findUnique({
             where: { employeeId_workDate: { employeeId, workDate: new Date(todayStr) } }
@@ -31,22 +30,43 @@ const checkIn = async (employeeId) => {
     if (existingRecord) throw CustomError.conflict("คุณได้เช็คอินไปแล้วในวันนี้");
     if (!policy) throw CustomError.notFound("ไม่พบการตั้งค่านโยบายการเข้างาน");
 
-    // 🚩 อุดช่องโหว่ข้อ 5: เช็ควันหยุด (Special Holidays จาก Policy)
+    // 🚩 เช็ควันหยุดพิเศษ (ข้อ 5)
     if (policy.specialHolidays?.includes(todayStr)) {
         throw CustomError.badRequest("วันนี้เป็นวันหยุดพิเศษตามนโยบาย ไม่สามารถลงเวลาได้");
     }
 
+    // 🚩 [ปรับปรุง] บล็อกการเช็คอินหลังเวลาเลิกงาน (Prevent Check-in after End Time)
+    // ถ้าลาครึ่งบ่าย ให้ใช้เวลาเริ่มพักเป็นเกณฑ์หมดเวลาเช็คอิน ถ้าคนปกติใช้เวลาเลิกงาน
+    // 🚩 [1] บล็อกการเช็คอินหลังเวลาเลิกงาน (อันเดิมที่คุณมีอยู่แล้ว)
+    const isHalfAfternoon = leave && (leave.startDuration === 'HalfAfternoon' || leave.endDuration === 'HalfAfternoon');
+    const deadlineStr = isHalfAfternoon ? policy.breakStartTime : policy.endTime;
+    const deadlineMoment = moment.tz(`${todayStr} ${deadlineStr}`, TIMEZONE);
+
+    if (nowMoment.isAfter(deadlineMoment)) {
+        const errorMsg = isHalfAfternoon 
+            ? `คุณลาครึ่งบ่าย หมดเวลาบันทึกเช็คอินแล้ว (สิ้นสุดกะงานเช้าเวลา ${policy.breakStartTime})`
+            : `หมดเวลาบันทึกเวลาทำงานสำหรับวันนี้แล้ว (เลิกงานเวลา ${policy.endTime})`;
+        throw CustomError.badRequest(errorMsg);
+    }
+
+    // 🚩 [2] เพิ่มใหม่: บล็อกการเช็คอินก่อนเวลาที่กำหนด (เช่น ก่อน 06:00 น.)
+    const startTimeMoment = moment.tz(`${todayStr} ${policy.startTime}`, TIMEZONE);
+    const earliestAllowed = startTimeMoment.clone().subtract(4, 'hours');
+
+    if (nowMoment.isBefore(earliestAllowed)) {
+        throw CustomError.badRequest(`ยังไม่ถึงเวลาเริ่มบันทึกงานสำหรับวันนี้ (เปิดให้บันทึกได้ตั้งแต่เวลา ${earliestAllowed.format('HH:mm')} น.)`);
+    }
+
     let targetInTime = policy.startTime;
-    let isLate = false;
 
     // 🚩 Logic 3.5 & 3.2: เช็คสถานะการลา
     if (leave) {
-        // กรณีลาเต็มวัน (3.5)
+        // 1. กรณีลาเต็มวัน (3.5)
         if (leave.startDuration === 'Full' || (leave.startDuration === 'HalfMorning' && leave.endDuration === 'HalfAfternoon')) {
             throw CustomError.badRequest("คุณมีการลาเต็มวันที่ได้รับอนุมัติแล้ว ไม่ต้องลงเวลาทำงาน");
         }
 
-        // กรณีลาครึ่งวันเช้า (3.2)
+        // 2. กรณีลาครึ่งวันเช้า (3.2)
         if (leave.startDuration === 'HalfMorning') {
             const breakStartMoment = moment.tz(`${todayStr} ${policy.breakStartTime}`, TIMEZONE);
             if (nowMoment.isBefore(breakStartMoment)) {
@@ -55,10 +75,12 @@ const checkIn = async (employeeId) => {
             // ใช้เวลาจบพักเป็นเกณฑ์เช็คสาย
             targetInTime = policy.breakEndTime;
         }
+        
+        // 3. กรณีลาครึ่งวันบ่าย (3.3) -> ใช้ targetInTime = policy.startTime ตามปกติ (เพราะต้องมาเช้า)
     }
 
     // คำนวณสถานะสาย
-    isLate = checkIsLate(now, targetInTime, policy.graceMinutes);
+    const isLate = checkIsLate(now, targetInTime, policy.graceMinutes);
 
     return await prisma.timeRecord.create({
         data: {

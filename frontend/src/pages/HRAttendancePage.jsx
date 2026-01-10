@@ -289,6 +289,25 @@ export default function HRAttendancePage() {
     return specialHolidays.includes(todayStr);
   }, [specialHolidays, todayStr]);
 
+  const isAfterWorkHours = useMemo(() => {
+    if (!policy?.endTime) return false;
+    const [h, m] = policy.endTime.split(":").map(Number);
+    const endMoment = moment().hour(h).minute(m).second(0);
+    return moment().isAfter(endMoment);
+  }, [policy.endTime]);
+
+  const isTooEarly = useMemo(() => {
+    if (!policy?.startTime) return false;
+    
+    // สร้าง Moment ของเวลาเริ่มงานในวันนี้
+    const startTimeMoment = moment(`${todayStr} ${policy.startTime}`, "YYYY-MM-DD HH:mm");
+    
+    // คำนวณเวลาที่เร็วที่สุดที่ยอมให้กดได้ (ลบออก 4 ชม.)
+    const earliestAllowed = startTimeMoment.clone().subtract(4, 'hours');
+    
+    return moment(now).isBefore(earliestAllowed);
+  }, [now, policy.startTime]);
+
   return (
     <div className="page-card">
       <header className="worker-header">
@@ -305,7 +324,7 @@ export default function HRAttendancePage() {
 
       <section className="action-row">
         {[
-          { label: "checkIn", time: checkedInAt, disabled: !!checkedInAt || isFullDayLeave || isTodaySpecialHoliday, handler: () => handleAttendance('in'), btnText: isFullDayLeave ? "On Leave" : isTodaySpecialHoliday ? "Holiday" : (checkedInAt ? "checkedIn" : "checkInNow") },
+          { label: "checkIn", time: checkedInAt, disabled: !!checkedInAt || isFullDayLeave || isTodaySpecialHoliday || (isAfterWorkHours && !checkedInAt) || isTooEarly, handler: () => handleAttendance('in'), btnText: isFullDayLeave ? "On Leave" : isTodaySpecialHoliday ? "Holiday" : (isAfterWorkHours && !checkedInAt) ? "Time Expired" : isTooEarly ? "Too Early" : (checkedInAt ? "checkedIn" : "checkInNow") },
           { label: "checkOut", time: checkedOutAt, disabled: !checkedInAt || !!checkedOutAt || isBeforeEndTime, handler: () => handleAttendance('out'), btnText: "checkOutBtn" }
         ].map((action, idx) => (
           <div className="action-card" key={idx}>
@@ -317,7 +336,7 @@ export default function HRAttendancePage() {
               disabled={action.disabled}
               style={idx === 1 && isBeforeEndTime && checkedInAt && !checkedOutAt ? { opacity: 0.5, cursor: "not-allowed" } : {}}
             >
-              {idx === 1 && isBeforeEndTime && checkedInAt && !checkedOutAt ? t("pages.hrAttendancePage.waitUntil", { time: policy.endTime }) : t(`pages.hrAttendancePage.${action.btnText}`)}
+              {idx === 1 && isBeforeEndTime && checkedInAt && !checkedOutAt ? t("pages.hrAttendancePage.waitUntil", { time: isHalfDayAfternoon ? policy.breakStartTime : policy.endTime }) : t(`pages.hrAttendancePage.${action.btnText}`)}
             </button>
           </div>
         ))}
