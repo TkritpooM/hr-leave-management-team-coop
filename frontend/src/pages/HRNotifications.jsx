@@ -90,6 +90,8 @@ export default function HRNotifications() {
         leaveType: noti.relatedRequest.leaveType?.typeName || t("common.noResults"),
         startDate: noti.relatedRequest.startDate,
         endDate: noti.relatedRequest.endDate,
+        startDuration: noti.relatedRequest.startDuration, 
+        endDuration: noti.relatedRequest.endDuration,
         reason: noti.relatedRequest?.reason || t("common.noDataAvailable"),
         status: noti.relatedRequest.status,
         attachmentUrl: noti.relatedRequest.attachmentUrl, 

@@ -92,6 +92,8 @@ export default function WorkerNotifications() {
         leaveType: req?.leaveType?.typeName ?? n?.leaveType,
         startDate: req?.startDate ?? n?.startDate,
         endDate: req?.endDate ?? n?.endDate,
+        startDuration: req?.startDuration ?? n?.startDuration,
+        endDuration: req?.endDuration ?? n?.endDuration,
         reason: req?.reason ?? n?.reason,
         attachmentUrl: req?.attachmentUrl ?? n?.attachmentUrl,
         approvedByHR: req?.approvedByHR ?? n?.approvedByHR,

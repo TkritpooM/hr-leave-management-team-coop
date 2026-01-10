@@ -126,9 +126,24 @@ const QuickActionModal = ({
   const renderPeriod = () => {
     const s = startDate ? moment(startDate) : null;
     const e = endDate ? moment(endDate) : null;
-    const left = s && s.isValid() ? s.format("DD MMM") : "-";
-    const right = e && e.isValid() ? e.format("DD MMM YYYY") : "-";
-    return `${left} - ${right}`;
+    if (!s || !s.isValid()) return "-";
+
+    // Helper แปลงค่า Duration เป็นข้อความ
+    const getDurationText = (dur) => {
+      if (dur === "HalfMorning") return `(${t("pages.hrAttendancePage.halfMorning", "Morning")})`;
+      if (dur === "HalfAfternoon") return `(${t("pages.hrAttendancePage.halfAfternoon", "Afternoon")})`;
+      return ""; // ถ้าเป็น Full ไม่ต้องแสดงอะไรต่อท้าย
+    };
+
+    const startLabel = `${s.format("DD MMM")} ${getDurationText(payload?.startDuration)}`;
+    const endLabel = e && e.isValid() ? `${e.format("DD MMM YYYY")} ${getDurationText(payload?.endDuration)}` : "-";
+
+    // ถ้าลาวันเดียวและไม่ใช่เต็มวัน ให้แสดงแค่วันเดียวพร้อมระบุช่วงเวลา
+    if (s.isSame(e, 'day') && payload?.startDuration !== 'Full') {
+      return startLabel;
+    }
+
+    return `${startLabel} - ${endLabel}`;
   };
 
   // ✅ ยิง endpoint ตามประเภท
