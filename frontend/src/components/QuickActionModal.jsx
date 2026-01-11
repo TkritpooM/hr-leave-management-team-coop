@@ -128,20 +128,22 @@ const QuickActionModal = ({
     const e = endDate ? moment(endDate) : null;
     if (!s || !s.isValid()) return "-";
 
-    // Helper แปลงค่า Duration เป็นข้อความ
+    // Helper แปลงค่า Duration เป็นข้อความ (เช็คค่า Half ตาม Schema)
     const getDurationText = (dur) => {
-      if (dur === "HalfMorning") return `(${t("pages.hrAttendancePage.halfMorning", "Morning")})`;
-      if (dur === "HalfAfternoon") return `(${t("pages.hrAttendancePage.halfAfternoon", "Afternoon")})`;
+      if (dur === "HalfMorning") return ` (${t("pages.hrAttendancePage.halfMorning", "Morning")})`;
+      if (dur === "HalfAfternoon") return ` (${t("pages.hrAttendancePage.halfAfternoon", "Afternoon")})`;
       return ""; // ถ้าเป็น Full ไม่ต้องแสดงอะไรต่อท้าย
     };
 
-    const startLabel = `${s.format("DD MMM")} ${getDurationText(payload?.startDuration)}`;
-    const endLabel = e && e.isValid() ? `${e.format("DD MMM YYYY")} ${getDurationText(payload?.endDuration)}` : "-";
-
-    // ถ้าลาวันเดียวและไม่ใช่เต็มวัน ให้แสดงแค่วันเดียวพร้อมระบุช่วงเวลา
-    if (s.isSame(e, 'day') && payload?.startDuration !== 'Full') {
-      return startLabel;
+    // 1. กรณีลาวันเดียวกัน (Same Day)
+    if (!e || !e.isValid() || s.isSame(e, 'day')) {
+      const durLabel = getDurationText(payload?.startDuration);
+      return `${s.format("DD MMM YYYY")}${durLabel}`;
     }
+
+    // 2. กรณีลาหลายวัน (Multi-day)
+    const startLabel = `${s.format("DD MMM")}${getDurationText(payload?.startDuration)}`;
+    const endLabel = `${e.format("DD MMM YYYY")}${getDurationText(payload?.endDuration)}`;
 
     return `${startLabel} - ${endLabel}`;
   };
