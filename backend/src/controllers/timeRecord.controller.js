@@ -418,12 +418,120 @@ const getEmployeePerformanceReport = async (req, res, next) => {
     // Pagination Slice
     const paginatedReport = report.slice(startIndex, endIndex);
 
+    // 🚩 1. คำนวณ Trend Data (รายวัน) สำหรับกราฟเส้น - เพิ่มส่วน Absent
+    let trendData = [];
+    let trendCurr = start.clone();
+    while (trendCurr.isSameOrBefore(end, 'day')) {
+      const dateStr = trendCurr.format('YYYY-MM-DD');
+      const dayOfWeek = trendCurr.day();
+      
+      // กรองข้อมูลเฉพาะวันทำงาน (ไม่เอาเสาร์-อาทิตย์ และวันหยุดบริษัท)
+      const isWorkDay = dayOfWeek !== 0 && dayOfWeek !== 6 && !specialHolidays.includes(dateStr);
+      
+      const dailyAtt = allAttendance.filter(a => moment(a.workDate).isSame(trendCurr, 'day'));
+      const dailyLeave = allLeaves.filter(l => trendCurr.isBetween(moment(l.startDate), moment(l.endDate), 'day', '[]'));
+
+      let dailyAbsent = 0;
+      if (isWorkDay) {
+        // คำนวณหาคนที่ไม่ได้มาทำงานและไม่ได้ลาในวันนั้น
+        const presentAndLeaveIds = [
+          ...dailyAtt.map(a => a.employeeId),
+          ...dailyLeave.map(l => l.employeeId)
+        ];
+        // เฉพาะพนักงานที่เข้าทำงานแล้ว ณ วันนั้น
+        dailyAbsent = employees.filter(emp => 
+          !presentAndLeaveIds.includes(emp.employeeId) && 
+          moment(emp.joiningDate).format('YYYY-MM-DD') <= dateStr
+        ).length;
+      }
+
+      trendData.push({
+        date: trendCurr.format('DD MMM'),
+        present: dailyAtt.length - dailyAtt.filter(a => a.isLate).length,
+        late: dailyAtt.filter(a => a.isLate).length,
+        leave: dailyLeave.length,
+        absent: dailyAbsent // ✅ เพิ่มค่าคนขาดรายวัน
+      });
+      trendCurr.add(1, 'day');
+    }
+
+    // 🚩 2. คำนวณ Monthly Comparison (ดึงค่าจริงเดือนก่อน: Present, Late, Absent)
+    const lastMonthStart = start.clone().subtract(1, 'months').startOf('month');
+    const lastMonthEnd = lastMonthStart.clone().endOf('month');
+    
+    // ดึงข้อมูลการมาทำงานและวันลาของเดือนที่แล้ว
+    const [lastMonthAtts, lastMonthApprovedLeaves] = await Promise.all([
+      prisma.timeRecord.findMany({
+        where: { workDate: { gte: lastMonthStart.toDate(), lte: lastMonthEnd.toDate() }, employeeId: { in: employeeIds } },
+        select: { isLate: true, workDate: true, employeeId: true }
+      }),
+      prisma.leaveRequest.findMany({
+        where: { status: 'Approved', startDate: { lte: lastMonthEnd.toDate() }, endDate: { gte: lastMonthStart.toDate() }, employeeId: { in: employeeIds } }
+      })
+    ]);
+
+    // สร้างลิสต์วันทำงานของเดือนที่แล้ว (เพื่อหา Absent)
+    let lastMonthWorkDays = [];
+    let lmCurr = lastMonthStart.clone();
+    while (lmCurr.isSameOrBefore(lastMonthEnd, 'day')) {
+      const dayOfWeek = lmCurr.day();
+      const dateStr = lmCurr.format('YYYY-MM-DD');
+      // ตรวจสอบเสาร์-อาทิตย์ และวันหยุดพิเศษ
+      if (dayOfWeek !== 0 && dayOfWeek !== 6 && !specialHolidays.includes(dateStr)) {
+        lastMonthWorkDays.push(dateStr);
+      }
+      lmCurr.add(1, 'day');
+    }
+
+    // คำนวณหา Absent รวมของเดือนที่แล้ว
+    let lastMonthAbsentTotal = 0;
+    employees.forEach(emp => {
+      const empJoiningDate = moment(emp.joiningDate).format('YYYY-MM-DD');
+      const myLmAtts = lastMonthAtts.filter(a => a.employeeId === emp.employeeId);
+      const myLmLeaves = lastMonthApprovedLeaves.filter(l => l.employeeId === emp.employeeId);
+
+      lastMonthWorkDays.forEach(day => {
+        if (day >= empJoiningDate) {
+          const hasAtt = myLmAtts.some(a => moment(a.workDate).format('YYYY-MM-DD') === day);
+          const hasLeave = myLmLeaves.some(l => day >= moment(l.startDate).format('YYYY-MM-DD') && day <= moment(l.endDate).format('YYYY-MM-DD'));
+          if (!hasAtt && !hasLeave) lastMonthAbsentTotal++;
+        }
+      });
+    });
+
+    const lastMonthLateCount = lastMonthAtts.filter(a => a.isLate).length;
+    const monthlyComparison = [
+      { 
+        month: lastMonthStart.format('MMMM YYYY'), 
+        present: lastMonthAtts.length - lastMonthLateCount, 
+        late: lastMonthLateCount, 
+        absent: lastMonthAbsentTotal // ✅ ได้ค่าจริงแล้ว
+      },
+      { 
+        month: 'Current Period', 
+        present: summary.present, 
+        late: summary.late, 
+        absent: summary.absent 
+      }
+    ];
+
+    const perfectEmployees = report
+      .filter(emp => emp.presentCount > 0 && emp.lateCount === 0 && emp.absentCount === 0)
+      .map(emp => ({
+        employeeId: emp.employeeId,
+        name: emp.name
+      }))
+      .slice(0, 5); // เอามาแค่ 5 คนพอให้ดู Minimal
+
     res.status(200).json({
       success: true,
       data: {
         individualReport: paginatedReport, // Only return current page
         leaveChartData: Object.values(leaveSummaryByType),
         summary: finalSummary, // 🔥 New: Global Summary
+        trendData, // ✅ กราฟเส้น
+        monthlyComparison, // ✅ กราฟเปรียบเทียบ
+        perfectEmployees,
         pagination: {
           total: totalCount,
           totalPages: Math.ceil(totalCount / limitNum),
