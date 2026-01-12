@@ -1,5 +1,14 @@
 {
   "common": {
+     "leave": "ลา",
+      "requestStatus": {
+      "pending": "รออนุมัติ",
+      "approved": "อนุมัติแล้ว",
+      "rejected": "ถูกปฏิเสธ",
+      "cancelled": "ยกเลิกแล้ว"
+    },
+    "refreshList": "รีเฟรชรายการ",
+    "details": "รายละเอียด",
     "status": {
       "pending": "รอดำเนินการ",
       "waiting": "รอการตรวจสอบ",
@@ -64,7 +73,6 @@
     },
      "previous": "ก่อนหน้า",
     "next": "ถัดไป",
-    "leave": "ลา",
     "leaveWithType": "ลา ({{type}})",
     "daysShort": {
       "sun": "อา",
@@ -159,6 +167,15 @@
       "askHrAssignQuota": "กรุณาติดต่อ HR เพื่อกำหนดโควต้าวันลาให้"
     },
     "hrAttendancePage": {
+      "On Leave": "อยู่ระหว่างลา",
+      "Holiday": "วันหยุด",
+      "Time Expired": "หมดเวลาแล้ว",
+      "Too Early": "เร็วเกินไป",
+      "duration": {
+        "full": "เต็มวัน",
+        "halfMorning": "ครึ่งวัน (เช้า)",
+        "halfAfternoon": "ครึ่งวัน (บ่าย)"
+      },
        "hello": "สวัสดี",
       "hrFallback": "HR",
       "lateThisMonth": "มาสายเดือนนี้:",
@@ -376,6 +393,15 @@
       }
     },
     "hrDashboard": {
+      "attendanceLeaveTrends": "แนวโน้มการเข้างานและการลา",
+      "top5LateEmployees": "พนักงานมาสายสูงสุด 5 อันดับ",
+      "monthlyPerformanceComparison": "เปรียบเทียบประสิทธิภาพรายเดือน",
+      "series": {
+        "present": "มาทำงาน",
+        "absent": "ขาดงาน",
+        "late": "มาสาย",
+        "leave": "ลา"
+      },
       "selectedDateLabel": "เลือกวันที่",
       "goToToday": "ไปที่วันนี้",
       "tabs": {
@@ -559,9 +585,32 @@
       "View Attachment": "ดูไฟล์แนบ",
       "Official document (PDF/Image)": "เอกสารทางการ (PDF/รูปภาพ)",
       "Open": "เปิด",
-      "title": "คำขอแก้ไขโปรไฟล์"
+      "title": "คำขอแก้ไขโปรไฟล์",
+      "alert": {
+        "loadFailed": "ไม่สามารถโหลดคำขอแก้ไขโปรไฟล์ได้",
+
+        "confirmApproveTitle": "อนุมัติการแก้ไขโปรไฟล์?",
+        "confirmApproveText": "คุณต้องการอนุมัติคำขอแก้ไขโปรไฟล์นี้หรือไม่?",
+
+        "confirmRejectTitle": "ปฏิเสธการแก้ไขโปรไฟล์?",
+        "confirmRejectText": "คุณต้องการปฏิเสธคำขอแก้ไขโปรไฟล์นี้หรือไม่?",
+
+        "approved": "อนุมัติคำขอแก้ไขโปรไฟล์เรียบร้อยแล้ว",
+        "rejected": "ปฏิเสธคำขอแก้ไขโปรไฟล์เรียบร้อยแล้ว"
+      }
     },
     "workerDashboard": {
+      "button": {
+        "onLeave": "อยู่ระหว่างลา",
+        "holiday": "วันหยุด",
+        "timeExpired": "หมดเวลาแล้ว",
+        "tooEarly": "เร็วเกินไป"
+      },
+      "duration": {
+        "full": "เต็มวัน",
+        "halfMorning": "ครึ่งวัน (เช้า)",
+        "halfAfternoon": "ครึ่งวัน (บ่าย)"
+      },
       "Leave": "ลา",
       "Attendance History (Recent)": "ประวัติการลงเวลาล่าสุด",
       "Date": "วันที่",

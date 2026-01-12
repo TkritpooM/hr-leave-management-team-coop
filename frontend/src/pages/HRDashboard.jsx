@@ -273,21 +273,51 @@ export default function HRDashboard() {
             <div className="analytics-charts-container">
               
               <div className="report-card full-width">
-                <h5 className="card-title">Attendance & Leave Trends</h5>
+                <h5 className="card-title">
+                  {t("pages.hrDashboard.attendanceLeaveTrends")}
+                </h5>
                 <div className="chart-box-large">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={attendanceTrend}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                      <Legend iconType="circle" />
-                      <Line type="monotone" dataKey="present" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
-                      <Line type="monotone" dataKey="late" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} />
-                      <Line type="monotone" dataKey="leave" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} />
-                      <Line type="monotone" dataKey="absent" name="Absent" stroke="#ef4444" strokeWidth={3} dot={{ r: 4 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                 <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={attendanceTrend}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                    <Legend iconType="circle" />
+                    <Line
+                      type="monotone"
+                      dataKey="present"
+                      name={t("pages.hrDashboard.series.present")}
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="late"
+                      name={t("pages.hrDashboard.series.late")}
+                      stroke="#f59e0b"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="leave"
+                      name={t("pages.hrDashboard.series.leave")}
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="absent"
+                      name={t("pages.hrDashboard.series.absent")}
+                      stroke="#ef4444"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
                 </div>
               </div>
 
@@ -302,7 +332,9 @@ export default function HRDashboard() {
                 </div>
 
                 <div className="report-card">
-                  <h5 className="card-title">Top 5 Late Employees</h5>
+                  <h5 className="card-title">
+                    {t("pages.hrDashboard.top5LateEmployees")}
+                  </h5>
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={[...employeeReport].sort((a,b) => b.lateCount - a.lateCount).slice(0,5)}>
                       <XAxis dataKey="name" fontSize={10} tickFormatter={(v) => v.split(' ')[0]} />
@@ -328,7 +360,9 @@ export default function HRDashboard() {
               </div>
 
               <div className="report-card full-width">
-                <h5 className="card-title">Monthly Performance Comparison</h5>
+                <h5 className="card-title">
+                  {t("pages.hrDashboard.monthlyPerformanceComparison")}
+                </h5>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={comparisonData} layout="vertical" margin={{ left: 50, right: 30 }}>
                     <XAxis type="number" hide /><YAxis dataKey="month" type="category" fontSize={12} width={100} /><Tooltip /><Legend />

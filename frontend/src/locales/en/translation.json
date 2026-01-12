@@ -1,5 +1,14 @@
 {
   "common": {
+    "leave": "Leave",
+    "requestStatus": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "refreshList": "Refresh List",
+    "details": "Details",
     "status": {
       "pending": "Pending",
       "waiting": "Waiting",
@@ -161,6 +170,15 @@
       "askHrAssignQuota": "Ask HR to assign leave quota."
     },
     "hrAttendancePage": {
+      "On Leave": "On Leave",
+      "Holiday": "Holiday",
+      "Time Expired": "Time Expired",
+      "Too Early": "Too Early",
+      "duration": {
+            "full": "Full Day",
+            "halfMorning": "Half Day (Morning)",
+            "halfAfternoon": "Half Day (Afternoon)"
+          },
         "hello": "Hello",
         "hrFallback": "HR",
         "lateThisMonth": "Late this month:",
@@ -371,7 +389,16 @@
       }
     },
     "hrDashboard": {
-       "selectedDateLabel": "Selected",
+      "attendanceLeaveTrends": "Attendance & Leave Trends",
+      "top5LateEmployees": "Top 5 Late Employees",
+      "monthlyPerformanceComparison": "Monthly Performance Comparison",
+      "series": {
+      "present": "Present",
+      "late": "Late",
+      "leave": "Leave",
+      "absent": "Absent"
+    },
+      "selectedDateLabel": "Selected",
       "goToToday": "Go to Today",
       "tabs": {
         "overview": "Overview",
@@ -554,9 +581,32 @@
       "View Attachment": "View Attachment",
       "Official document (PDF/Image)": "Official document (PDF/Image)",
       "Open": "Open",
-      "title": "Profile Requests"
+      "title": "Profile Requests",
+      "alert": {
+        "loadFailed": "Failed to load profile update requests.",
+
+        "confirmApproveTitle": "Approve profile update?",
+        "confirmApproveText": "Are you sure you want to approve this profile update request?",
+
+        "confirmRejectTitle": "Reject profile update?",
+        "confirmRejectText": "Are you sure you want to reject this profile update request?",
+
+        "approved": "Profile update request approved successfully.",
+        "rejected": "Profile update request rejected successfully."
+      }
     },
     "workerDashboard": {
+      "button": {
+        "onLeave": "On Leave",
+        "holiday": "Holiday",
+        "timeExpired": "Time Expired",
+        "tooEarly": "Too Early"
+      },
+      "duration": {
+        "full": "Full Day",
+        "halfMorning": "Morning",
+        "halfAfternoon": "Afternoon"
+      },
       "Leave": "Leave",
       "Attendance History (Recent)": "Attendance History (Recent)",
       "Date": "Date",

@@ -49,7 +49,11 @@ function QuotaCard({ title, usedDays, totalDays, carriedOverDays }) {
           <h4 className="quota-title">{title}</h4>
           {carried > 0 && (
             <span className="carried-badge">
-              {t("pages.hrAttendancePage.carriedOverBadge", "+{{days}} Carried Over", { days: carried })}
+              {t("pages.hrAttendancePage.carriedOverBadge", {
+                days: carried,
+                defaultValue: `+${carried} Carried Over`
+              })
+              }
             </span>
           )}
         </div>
@@ -275,7 +279,7 @@ export default function WorkerDashboard() {
     <div className="page-card">
       <header className="worker-header">
         <div>
-          <h1 className="worker-title">{t("pages.workerDashboard.hello")}, {JSON.parse(localStorage.getItem("user") || "{}").firstName || "Worker"}</h1>
+          <h1 className="worker-title">{t("pages.workerDashboard.hello")}, {JSON.parse(localStorage.getItem("user") || "{}").firstName || t("pages.workerDashboard.workerFallback")}</h1>
           <p className="worker-datetime">{now.toLocaleString(i18n.language === "th" ? "th-TH" : "en-GB")}</p>
         </div>
         <div className="clock-box"><FiClock /> {formatTime(now)}</div>
@@ -295,15 +299,16 @@ export default function WorkerDashboard() {
             onClick={handleCheckIn} 
             disabled={!!checkedInAt || isFullDayLeave || isTodaySpecialHoliday || (isAfterWorkHours && !checkedInAt) || isTooEarly}
           >
-            {isFullDayLeave 
-              ? "On Leave" 
-              : isTodaySpecialHoliday 
-                ? "Holiday" 
-                : (isAfterWorkHours && !checkedInAt)
-                  ? "Time Expired"
-                  : isTooEarly 
-                    ? "Too Early"
-                    : (checkedInAt ? t("pages.workerDashboard.checkedIn") : t("pages.workerDashboard.Check In"))}
+            {isFullDayLeave
+            ? t("pages.workerDashboard.button.onLeave")
+            : isTodaySpecialHoliday
+              ? t("pages.workerDashboard.button.holiday")
+              : (isAfterWorkHours && !checkedInAt)
+                ? t("pages.workerDashboard.button.timeExpired")
+                : isTooEarly
+                  ? t("pages.workerDashboard.button.tooEarly")
+                  : (checkedInAt ? t("pages.workerDashboard.checkedIn") : t("pages.workerDashboard.Check In"))
+          }
           </button>
         </div>
 
@@ -318,7 +323,10 @@ export default function WorkerDashboard() {
             style={isBeforeEndTime && checkedInAt && !checkedOutAt ? { opacity: 0.5, cursor: "not-allowed" } : {}}
           >
             {isBeforeEndTime && checkedInAt && !checkedOutAt 
-              ? `${t("pages.hrAttendancePage.waitUntil", "Wait until")} ${isHalfDayAfternoon ? policy.breakStartTime : policy.endTime}` 
+              ? t("pages.hrAttendancePage.waitUntil", {
+              time: isHalfDayAfternoon ? policy.breakStartTime : policy.endTime,
+              defaultValue: `Wait until ${isHalfDayAfternoon ? policy.breakStartTime : policy.endTime}`
+            }) 
               : (checkedOutAt ? t("pages.workerDashboard.checkedOut") : t("pages.workerDashboard.Check Out"))}
           </button>
         </div>
@@ -372,7 +380,9 @@ export default function WorkerDashboard() {
                   <DatePicker selected={leaveForm.startDate ? new Date(leaveForm.startDate) : null} onChange={(date) => handleLeaveChange({ target: { name: "startDate", value: toISODate(date) } })} minDate={new Date()} filterDate={isWorkingDate} dateFormat="yyyy-MM-dd" className="wa-datepicker-input" required />
                   {/* ✅ Added Duration Dropdown */}
                   <select value={leaveForm.startDuration} onChange={(e) => setLeaveForm(p => ({ ...p, startDuration: e.target.value }))} style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd" }}>
-                    <option value="Full">Full Day</option><option value="HalfMorning">Morning</option><option value="HalfAfternoon">Afternoon</option>
+                   <option value="Full">{t("pages.workerDashboard.duration.full")}</option>
+                  <option value="HalfMorning">{t("pages.workerDashboard.duration.halfMorning")}</option>
+                  <option value="HalfAfternoon">{t("pages.workerDashboard.duration.halfAfternoon")}</option>
                   </select>
                 </div>
 
@@ -380,7 +390,9 @@ export default function WorkerDashboard() {
                   <label>{t("pages.workerDashboard.endDate")}</label>
                   <DatePicker selected={leaveForm.endDate ? new Date(leaveForm.endDate) : null} onChange={(date) => handleLeaveChange({ target: { name: "endDate", value: toISODate(date) } })} minDate={leaveForm.startDate ? new Date(leaveForm.startDate) : new Date()} filterDate={isWorkingDate} dateFormat="yyyy-MM-dd" className="wa-datepicker-input" required />
                   <select value={leaveForm.endDuration} onChange={(e) => setLeaveForm(p => ({ ...p, endDuration: e.target.value }))} disabled={leaveForm.startDate === leaveForm.endDate && leaveForm.startDuration !== 'Full'} style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd" }}>
-                    <option value="Full">Full Day</option><option value="HalfMorning">Morning</option><option value="HalfAfternoon">Afternoon</option>
+                    <option value="Full">{t("pages.workerDashboard.duration.full")}</option>
+                    <option value="HalfMorning">{t("pages.workerDashboard.duration.halfMorning")}</option>
+                    <option value="HalfAfternoon">{t("pages.workerDashboard.duration.halfAfternoon")}</option>
                   </select>
                 </div>
               </div>

@@ -398,7 +398,7 @@ export default function HRAttendancePage() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
               <h3 style={{ margin: 0 }}>{t("pages.hrAttendancePage.requestLeave")}</h3>
-              <button type="button" onClick={() => setIsLeaveModalOpen(false)} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: "#666" }}>&times;</button>
+              <button aria-label={t("common.close")} type="button" onClick={() => setIsLeaveModalOpen(false)} style={{ background: "none", border: "none", fontSize: "24px", cursor: "pointer", color: "#666" }}>&times;</button>
             </div>
 
             <form onSubmit={handleSubmitLeave} className="leave-form">
@@ -421,9 +421,9 @@ export default function HRAttendancePage() {
                     onChange={(e) => setLeaveForm(p => ({ ...p, startDuration: e.target.value }))}
                     style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px" }}
                   >
-                    <option value="Full">เต็มวัน (Full Day)</option>
-                    <option value="HalfMorning">ครึ่งเช้า (Morning)</option>
-                    <option value="HalfAfternoon">ครึ่งบ่าย (Afternoon)</option>
+                    <option value="Full">{t("pages.hrAttendancePage.duration.full")}</option>
+                    <option value="HalfMorning">{t("pages.hrAttendancePage.duration.halfMorning")}</option>
+                    <option value="HalfAfternoon">{t("pages.hrAttendancePage.duration.halfAfternoon")}</option>
                   </select>
                 </div>
 
