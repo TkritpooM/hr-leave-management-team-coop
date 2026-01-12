@@ -74,18 +74,17 @@ const getValidWorkDays = async (startDateStr, endDateStr) => {
     const start = moment(startDateStr).tz(TIMEZONE).startOf('day');
     const end = moment(endDateStr).tz(TIMEZONE).startOf('day');
     
-    // 1. Fetch holidays from the main table and special holidays from Policy
     const [holidayRecords, policy] = await Promise.all([
         getHolidays(start.toDate(), end.toDate()),
-        prisma.attendancePolicy.findFirst({ where: { policyId: 1 }, select: { specialHolidays: true } })
+        prisma.attendancePolicy.findFirst({ where: { policyId: 1 } })
     ]);
 
+    // แปลง "mon,tue,sat" เป็น [1, 2, 6]
+    const workingDaysArr = policy?.workingDays ? parseWorkingDaysToNumbers(policy.workingDays) : [1,2,3,4,5];
+
     const holidayMap = new Map();
-    // Map main holiday table
     holidayRecords.forEach(h => holidayMap.set(moment(h.holidayDate).format('YYYY-MM-DD'), true));
-    
-    // Map Special Holidays from Policy field (if any)
-    if (policy?.specialHolidays && Array.isArray(policy.specialHolidays)) {
+    if (policy?.specialHolidays) {
         policy.specialHolidays.forEach(hStr => holidayMap.set(hStr, true));
     }
 
@@ -94,13 +93,23 @@ const getValidWorkDays = async (startDateStr, endDateStr) => {
     while (current.isSameOrBefore(end, 'day')) {
         const dateStr = current.format('YYYY-MM-DD');
         const dayOfWeek = current.day(); 
-        // Exclude Sunday (0), Saturday (6), and holidays
-        if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidayMap.has(dateStr)) {
+
+        // ✅ แก้จากเดิม (dayOfWeek !== 0 && dayOfWeek !== 6) 
+        // เป็นการเช็คว่า "วันนั้นอยู่ในรายชื่อวันทำงานของ Policy หรือไม่"
+        const isWorkingDay = workingDaysArr.includes(dayOfWeek);
+        const isHoliday = holidayMap.has(dateStr);
+
+        if (isWorkingDay && !isHoliday) {
             workDaysCount++;
         }
         current.add(1, 'day');
     }
     return workDaysCount;
+};
+
+const parseWorkingDaysToNumbers = (str) => {
+    const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+    return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
 };
 
 /**

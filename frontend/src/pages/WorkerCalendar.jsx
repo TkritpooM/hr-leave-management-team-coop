@@ -121,6 +121,9 @@ export default function WorkerCalendar() {
             ? `${l.approvedByHR.firstName || ""} ${l.approvedByHR.lastName || ""}`.trim()
             : "";
 
+          const isStartDay = cur.isSame(moment(l.startDate), "day");
+          const isEndDay = cur.isSame(moment(l.endDate), "day");
+
           map[key].push({
             type: "leave",
             leaveType: l.leaveType?.typeName || "Leave",
@@ -129,6 +132,10 @@ export default function WorkerCalendar() {
             reason: l.reason || "-",
             startDate: l.startDate,
             endDate: l.endDate,
+            startDuration: l.startDuration,
+            endDuration: l.endDuration,
+            isStartDay,
+            isEndDay,
             approvedByHR: l.approvedByHR || null,
             approvedByName,
             approvalDate: l.approvalDate || null,
@@ -169,9 +176,8 @@ export default function WorkerCalendar() {
     
     const todayStr = toISODate(new Date());
     const isFuture = isoDate > todayStr;
-    const dayOfWeek = moment(isoDate).day(); // 0 = Sun, 6 = Sat
+    const dayOfWeek = moment(isoDate).day();
     
-    // 🔥 เช็ควันทำงานจาก State ที่แปลงค่ามาแล้ว
     const isWorkingDay = workingDays.includes(dayOfWeek); 
     const isHoliday = specialHolidays.includes(isoDate);
 
@@ -191,13 +197,17 @@ export default function WorkerCalendar() {
         leaveType: leave.leaveType,
         startDate: leave.startDate,
         endDate: leave.endDate,
+        // ✅ ส่งค่า Duration และเช็คว่าเป็นวันแรกหรือวันสุดท้ายของช่วงลาหรือไม่
+        startDuration: leave.startDuration,
+        endDuration: leave.endDuration,
+        isStartDay: leave.isStartDay,
+        isEndDay: leave.isEndDay,
         approvedByName: leave.approvedByName || "",
         approvedByHR: leave.approvedByHR || null,
         approvalDate: leave.approvalDate || null,
         reason: leave.reason,
       };
     } else if (!isWorkingDay) {
-      // 🔥 วันหยุดประจำสัปดาห์ (ตาม Setting)
       modalData = {
         type: "weekend",
         status: "Non-Working Day",

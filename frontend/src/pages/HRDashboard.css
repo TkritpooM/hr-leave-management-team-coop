@@ -340,3 +340,144 @@
 .badge-ok { background: #dcfce7; color: #166534; }
 .badge-late { background: #fee2e2; color: #991b1b; }
 .badge-leave { background: #eff6ff; color: #1e40af; }
+
+.perfect-list-minimal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.perfect-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.emp-name { font-weight: 700; color: #1e293b; font-size: 13.5px; }
+
+.badge-excellent {
+  font-size: 10px;
+  font-weight: 800;
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.empty-msg-mini {
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Custom Scrollbar สำหรับพนักงานเยอะ */
+.perfect-list-minimal::-webkit-scrollbar { width: 4px; }
+.perfect-list-minimal::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+/* ✅ 2. การจัดเลย์เอาต์กราฟ (Container) - ปรับระยะห่าง (Gap) ให้สมดุล */
+.analytics-charts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px; /* เพิ่มระยะห่างแนวตั้งระหว่างแถวให้โปร่งขึ้น */
+  margin-top: 30px;
+}
+
+.charts-grid-3-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px; /* เพิ่มระยะห่างแนวนอนระหว่าง 3 ช่องให้เท่ากับแนวตั้ง */
+}
+
+/* ✅ 3. ตกแต่งกล่อง Card ของกราฟ - แก้ปัญหาตัวหนังสือขาด และทำให้ดูเต็มพื้นที่ */
+.report-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 16px; /* ปรับความโค้งให้ดูทันสมัยขึ้น */
+  padding: 24px; /* เพิ่ม Padding กลับมาเล็กน้อยเพื่อให้ตัวหนังสือมีพื้นที่ว่าง (Breathing Room) */
+  min-height: fit-content !important; /* ให้กล่องขยายตามเนื้อหาจริง ไม่ขาดตอน */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+  font-weight: 800;
+  margin-bottom: 20px; /* เพิ่มระยะห่างใต้หัวข้อไม่ให้ติดกับกราฟ */
+  color: #1e293b;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  line-height: 1.4; /* แก้ปัญหาตัวหนังสือเบียดหรือขาดแนวตั้ง */
+}
+
+/* ✅ 4. ควบคุมพื้นที่แสดงผลกราฟให้เต็มกล่อง */
+.chart-box-large {
+  height: 280px; /* เพิ่มความสูงเล็กน้อยให้กราฟ Trend ดูไม่แบนเกินไป */
+  width: 100%;
+}
+
+/* แก้ไขให้กราฟใน 3 ช่องกลางกางออกเต็มพื้นที่การ์ด */
+.report-card .recharts-responsive-container {
+  height: 220px !important; /* ปรับให้พอดีกับ Padding ใหม่ */
+  width: 100% !important;
+}
+
+.full-width {
+  width: 100% !important;
+  grid-column: span 3;
+}
+
+/* ✅ 5. ตกแต่ง Top Performance List ให้ดูเต็มและชัดเจน */
+.perfect-list-minimal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding-right: 4px; /* กัน Scrollbar เบียดตัวหนังสือ */
+}
+
+.perfect-item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+  min-height: 45px; /* บังคับความสูงขั้นต่ำไม่ให้ตัวหนังสือขาด */
+}
+
+.emp-name { 
+  font-weight: 700; 
+  color: #334155; 
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* ถ้าชื่อยาวเกินจะใส่ ... ให้แทนการตัดขาด */
+}
+
+.badge-excellent {
+  font-size: 10px;
+  font-weight: 800;
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  flex-shrink: 0; /* ป้องกัน Badge โดนบีบจนตัวหนังสือขาด */
+}

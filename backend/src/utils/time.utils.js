@@ -21,20 +21,17 @@ const formatDateOnly = (date) => {
 };
 
 // ฟังก์ชันสำหรับเช็คว่าสายหรือไม่ โดยเทียบกับนโยบายใน DB
-const checkIsLate = (checkInTime, policy) => {
-  const { startTime, graceMinutes } = policy;
-  
-  // แปลงเวลาเข้างานปัจจุบันเป็น Moment เพื่อดึงเฉพาะ ชั่วโมง:นาที
-  const now = moment(checkInTime).tz("Asia/Bangkok");
-  
-  // สร้างเวลาที่เป็นเส้นตาย (Deadline) ของวันนี้จาก Policy
-  const [hour, minute] = startTime.split(":").map(Number);
-  const deadline = moment(checkInTime).tz("Asia/Bangkok")
-    .hour(hour)
-    .minute(minute + graceMinutes) // รวมเวลาผ่อนผันแล้ว
-    .second(0);
+const checkIsLate = (checkInTime, targetTimeStr, graceMinutes) => {
+    const now = moment(checkInTime).tz(TIMEZONE);
+    const [hour, minute] = targetTimeStr.split(":").map(Number);
+    
+    const deadline = moment(checkInTime).tz(TIMEZONE)
+        .hour(hour)
+        .minute(minute + graceMinutes)
+        .second(0)
+        .millisecond(0);
 
-  return now.isAfter(deadline);
+    return now.isAfter(deadline);
 };
 
 module.exports = {

@@ -6,8 +6,7 @@ import axiosClient from "../api/axiosClient";
 import { useTranslation } from "react-i18next";
 
 export default function Employees() {
-
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [employees, setEmployees] = useState([]);
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +39,7 @@ export default function Employees() {
       setEmployees(res.data.employees || []);
     } catch (err) {
       console.error("Fetch Employees Error:", err);
-      await alertError("Error", err.response?.data?.message || err.message);
+      await alertError(t("common.error"), err.response?.data?.message || err.message);
     }
   };
 
@@ -50,7 +49,7 @@ export default function Employees() {
       setTypes(res.data.types || []);
     } catch (err) {
       console.error("Fetch Leave Types Error:", err);
-      await alertError("Error", err.response?.data?.message || err.message);
+      await alertError(t("common.error"), err.response?.data?.message || err.message);
     }
   };
 
@@ -108,25 +107,30 @@ export default function Employees() {
       }
       setEmpModalOpen(false);
       fetchEmployees();
-      await alertSuccess("Done", `${isEditMode ? "Updated" : "Created"} employee successfully.`);
+      await alertSuccess(
+        t("common.success"),
+        t(isEditMode ? "pages.hrEmployees.alert.updated" : "pages.hrEmployees.alert.saved")
+      );
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || err.message);
+      await alertError(t("common.error"), err.response?.data?.message || err.message);
     }
   };
 
   const handleSyncQuotas = async () => {
-    const ok = await alertConfirm(t("Sync Default Quotas"), t("Apply default leave quotas to all employees for the current year?"),
-      "Sync"
+    const ok = await alertConfirm(
+      t("pages.hrEmployees.alert.syncTitle"),
+      t("pages.hrEmployees.alert.syncText"),
+      t("pages.hrEmployees.quotaModal.syncStandard")
     );
     if (!ok) return;
 
     try {
       setLoading(true);
       await axiosClient.post("/admin/hr/sync-quotas", {});
-      await alertSuccess(t("Done"), t("Default quotas have been synced."));
+      await alertSuccess(t("common.success"), t("pages.hrEmployees.alert.synced"));
       fetchEmployees();
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || t("Unable to sync."));
+      await alertError(t("common.error"), err.response?.data?.message || t("pages.hrEmployees.alert.syncFailed"));
     } finally {
       setLoading(false);
     }
@@ -140,21 +144,21 @@ export default function Employees() {
       const quotasData = res.data.quotas || [];
       const map = new Map(quotasData.map((x) => [x.leaveTypeId, x]));
 
-      const rows = types.map((t) => {
-        const hit = map.get(t.leaveTypeId);
+      const rows = types.map((t2) => {
+        const hit = map.get(t2.leaveTypeId);
         return {
-          leaveTypeId: t.leaveTypeId,
-          typeName: t.typeName,
+          leaveTypeId: t2.leaveTypeId,
+          typeName: t2.typeName,
           totalDays: hit ? Number(hit.totalDays) : 0,
           usedDays: hit ? Number(hit.usedDays) : 0,
           carriedOverDays: hit ? Number(hit.carriedOverDays) : 0,
-          canCarry: t.isCarryForward || t.maxCarryDays > 0,
+          canCarry: t2.isCarryForward || t2.maxCarryDays > 0,
         };
       });
       setQuotaRows(rows);
     } catch (err) {
-      console.error(t("Fetch Quota Error:"), err);
-      await alertError("Error", err.response?.data?.message || err.message);
+      console.error("Fetch Quota Error:", err);
+      await alertError(t("common.error"), err.response?.data?.message || err.message);
     }
   };
 
@@ -168,9 +172,9 @@ export default function Employees() {
         })),
       });
       setQuotaOpen(false);
-      await alertSuccess(t("Done"), t("Leave quota updated."));
+      await alertSuccess(t("common.success"), t("pages.hrEmployees.alert.quotaSaved"));
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || t("Unable to update quota."));
+      await alertError(t("common.error"), err.response?.data?.message || t("pages.hrEmployees.alert.quotaSaveFailed"));
     }
   };
 
@@ -178,24 +182,25 @@ export default function Employees() {
   const toggleActive = async (emp) => {
     const next = !emp.isActive;
     const ok = await alertConfirm(
-      next ? t("Activate Account") : t("Deactivate Account"),
-      next
-        ? t("Allow this employee to access the system?")
-        : t("Disable login for this employee? (Does not delete data)"),
-      next ? "Activate" : "Deactivate"
+      next ? t("pages.hrEmployees.alert.activateTitle") : t("pages.hrEmployees.alert.deactivateTitle"),
+      next ? t("pages.hrEmployees.alert.activateText") : t("pages.hrEmployees.alert.deactivateText"),
+      next ? t("pages.hrEmployees.activate") : t("pages.hrEmployees.deactivate")
     );
     if (!ok) return;
 
     try {
       await axiosClient.put(`/admin/employees/${emp.employeeId}`, {
         ...emp,
-        password: "", // backend should ignore if empty (same behavior as your UI)
+        password: "",
         isActive: next,
       });
-      await alertSuccess("Done", `Employee is now ${next ? "Active" : "Inactive"}.`);
+      await alertSuccess(
+        t("common.success"),
+        t(next ? "pages.hrEmployees.alert.activated" : "pages.hrEmployees.alert.deactivated")
+      );
       fetchEmployees();
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || err.message);
+      await alertError(t("common.error"), err.response?.data?.message || err.message);
     }
   };
 
@@ -206,8 +211,7 @@ export default function Employees() {
       const okQ = !s || hay.includes(s);
       const okRole = roleFilter === "all" || e.role === roleFilter;
       const okActive =
-        activeFilter === "all" ||
-        (activeFilter === "active" ? !!e.isActive : !e.isActive);
+        activeFilter === "all" || (activeFilter === "active" ? !!e.isActive : !e.isActive);
       return okQ && okRole && okActive;
     });
   }, [employees, q, roleFilter, activeFilter]);
@@ -216,8 +220,8 @@ export default function Employees() {
     <div className="page-card emp">
       <div className="emp-head">
         <div>
-          <h2 className="emp-title">{t("Employees")}</h2>
-          <p className="emp-sub">{t("Manage employees and leave quotas")}</p>
+          <h2 className="emp-title">{t("pages.hrEmployees.title")}</h2>
+          <p className="emp-sub">{t("pages.hrEmployees.subtitle")}</p>
         </div>
 
         <div className="emp-tools">
@@ -225,7 +229,7 @@ export default function Employees() {
             className="emp-input"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder={t("Search name, email, role...")}
+            placeholder={t("common.placeholders.searchNameEmailRole")}
           />
 
           <select
@@ -234,9 +238,9 @@ export default function Employees() {
             onChange={(e) => setRoleFilter(e.target.value)}
             style={{ maxWidth: 150 }}
           >
-            <option value="all">{t("All roles")}</option>
-            <option value="HR">{t("HR")}</option>
-            <option value="Worker">{t("Worker")}</option>
+            <option value="all">{t("pages.hrEmployees.filters.allRoles")}</option>
+            <option value="HR">{t("pages.hrEmployees.filters.hr")}</option>
+            <option value="Worker">{t("pages.hrEmployees.filters.worker")}</option>
           </select>
 
           <select
@@ -245,25 +249,34 @@ export default function Employees() {
             onChange={(e) => setActiveFilter(e.target.value)}
             style={{ maxWidth: 160 }}
           >
-            <option value="all">{t("All status")}</option>
-            <option value="active">{t("Active only")}</option>
-            <option value="inactive">{t("Inactive only")}</option>
+            <option value="all">{t("pages.hrEmployees.filters.allStatus")}</option>
+            <option value="active">{t("pages.hrEmployees.filters.activeOnly")}</option>
+            <option value="inactive">{t("pages.hrEmployees.filters.inactiveOnly")}</option>
           </select>
 
           <button
             className="emp-btn emp-btn-outline warn"
             onClick={handleSyncQuotas}
-            title={t("Sync Default Quotas")}
+            title={t("pages.hrEmployees.quotaModal.syncStandard")}
             disabled={loading}
           >
-            <FiRefreshCw className={loading ? "spin" : ""} />{t("Sync Default")}</button>
+            <FiRefreshCw className={loading ? "spin" : ""} />
+            {t("pages.hrEmployees.quotaModal.syncStandard")}
+          </button>
 
           <button className="emp-btn emp-btn-primary" onClick={openAddModal}>
-            <FiUserPlus />{t("Add New")}</button>
+            <FiUserPlus />
+            {t("pages.hrEmployees.buttons.addNew")}
+          </button>
 
-          <button className="emp-btn emp-btn-outline" onClick={fetchEmployees} disabled={loading} title={t("Refresh List")}>
+          <button
+            className="emp-btn emp-btn-outline"
+            onClick={fetchEmployees}
+            disabled={loading}
+            title={t("pages.hrEmployees.buttons.refreshList")}
+          >
             <FiRefreshCw className={loading ? "spin" : ""} />
-            <span className="hidden-mobile">{t("Refresh")}</span>
+            <span className="hidden-mobile">{t("pages.hrEmployees.buttons.refresh")}</span>
           </button>
         </div>
       </div>
@@ -272,61 +285,73 @@ export default function Employees() {
         <table className="table">
           <thead>
             <tr>
-              <th style={{ width: 80 }}>{t("ID")}</th>
-              <th>{t("Name")}</th>
-              <th>{t("Email / Role")}</th>
-              <th className="text-center" style={{ width: 320 }}>{t("Actions")}</th>
+              <th style={{ width: 80 }}>{t("pages.hrEmployees.table.id")}</th>
+              <th>{t("pages.hrEmployees.table.name")}</th>
+              <th>{t("pages.hrEmployees.table.emailRole")}</th>
+              <th className="text-center" style={{ width: 320 }}>
+                {t("pages.hrEmployees.table.actions")}
+              </th>
             </tr>
           </thead>
 
           <tbody>
-          {loading ? (
-            <tr>
-              <td colSpan="4" className="empty">{t("Loading...")}</td>
-            </tr>
-          ) : filtered.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="empty">{t("No employees found.")}</td>
-            </tr>
-          ) : (
-            filtered.map((emp) => (
-              <tr key={emp.employeeId}>
-                <td className="emp-mono emp-muted">{emp.employeeId}</td>
-                <td className="emp-strong">
-                  {emp.firstName} {emp.lastName}
-                </td>
-                <td>
-                  <div className="emp-muted mini">{emp.email}</div>
-                  <span className={`badge ${emp.role === "HR" ? "badge-role-hr" : "badge-role-worker"}`}>
-                    {emp.role}
-                  </span>
-                  {!emp.isActive && <span className="badge badge-danger">{t("Inactive")}</span>}
-                </td>
-
-                <td className="action-column">
-                  <div className="btn-group-row" style={{ justifyContent: "center", gap: 8 }}>
-                    <button className="emp-btn emp-btn-outline small info" onClick={() => openEditModal(emp)}>
-                      <FiEdit2 />{t("Edit")}
-                    </button>
-
-                    <button className="emp-btn emp-btn-outline small quota" onClick={() => openQuota(emp)}>
-                      <FiSettings />{t("Quota")}
-                    </button>
-
-                    <button
-                      className={`emp-btn emp-btn-outline small ${emp.isActive ? "warn" : "info"}`}
-                      onClick={() => toggleActive(emp)}
-                      title={emp.isActive ? t("Deactivate") : t("Activate")}
-                    >
-                      {emp.isActive ? <FiToggleLeft /> : <FiToggleRight />}
-                      {emp.isActive ? t("Deactivate") : t("Activate")}
-                    </button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan="4" className="empty">
+                  {t("common.loading")}
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan="4" className="empty">
+                  {t("pages.hrEmployees.noEmployeesFound")}
+                </td>
+              </tr>
+            ) : (
+              filtered.map((emp) => (
+                <tr key={emp.employeeId}>
+                  <td className="emp-mono emp-muted">{emp.employeeId}</td>
+                  <td className="emp-strong">
+                    {emp.firstName} {emp.lastName}
+                  </td>
+                  <td>
+                    <div className="emp-muted mini">{emp.email}</div>
+                    <span className={`badge ${emp.role === "HR" ? "badge-role-hr" : "badge-role-worker"}`}>
+                    {emp.role === "HR"
+                      ? t("pages.hrEmployees.filters.hr")
+                      : t("pages.hrEmployees.filters.worker")}
+                  </span>
+                    {!emp.isActive && (
+                      <span className="badge badge-danger">{t("pages.hrEmployees.badge.inactive")}</span>
+                    )}
+                  </td>
+
+                  <td className="action-column">
+                    <div className="btn-group-row" style={{ justifyContent: "center", gap: 8 }}>
+                      <button className="emp-btn emp-btn-outline small info" onClick={() => openEditModal(emp)}>
+                        <FiEdit2 />
+                        {t("pages.hrEmployees.buttons.edit")}
+                      </button>
+
+                      <button className="emp-btn emp-btn-outline small quota" onClick={() => openQuota(emp)}>
+                        <FiSettings />
+                        {t("pages.hrEmployees.quota")}
+                      </button>
+
+                      <button
+                        className={`emp-btn emp-btn-outline small ${emp.isActive ? "warn" : "info"}`}
+                        onClick={() => toggleActive(emp)}
+                        title={emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
+                      >
+                        {emp.isActive ? <FiToggleLeft /> : <FiToggleRight />}
+                        {emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
         </table>
       </div>
 
@@ -336,9 +361,11 @@ export default function Employees() {
           <form className="emp-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSaveEmployee}>
             <div className="emp-modal-head">
               <div>
-                <div className="emp-modal-title">{isEditMode ? t("Edit Employee") : t("Add New Employee")}</div>
+                <div className="emp-modal-title">
+                  {isEditMode ? t("pages.hrEmployees.edit.title") : t("pages.hrEmployees.add.title")}
+                </div>
                 <div className="emp-modal-sub">
-                  {isEditMode ? `ID: #${activeEmp.employeeId}` : t("Fill in details to create a new account")}
+                  {isEditMode ? `ID: #${activeEmp.employeeId}` : t("pages.hrEmployees.add.subtitle")}
                 </div>
               </div>
               <button className="emp-x" type="button" onClick={() => setEmpModalOpen(false)}>
@@ -349,7 +376,7 @@ export default function Employees() {
             <div className="emp-modal-body">
               <div className="form-row">
                 <div className="form-col">
-                  <label>{t("First Name")}</label>
+                  <label>{t("pages.hrEmployees.form.firstName")}</label>
                   <input
                     className="quota-input w-full"
                     value={empForm.firstName}
@@ -358,7 +385,7 @@ export default function Employees() {
                   />
                 </div>
                 <div className="form-col">
-                  <label>{t("Last Name")}</label>
+                  <label>{t("pages.hrEmployees.form.lastName")}</label>
                   <input
                     className="quota-input w-full"
                     value={empForm.lastName}
@@ -369,7 +396,7 @@ export default function Employees() {
               </div>
 
               <div className="form-col">
-                <label>{t("Email Address")}</label>
+                <label>{t("pages.hrEmployees.form.email")}</label>
                 <input
                   className="quota-input w-full"
                   type="email"
@@ -380,7 +407,9 @@ export default function Employees() {
               </div>
 
               <div className="form-col">
-                <label>Password {isEditMode && t("(leave blank to keep current)")}</label>
+                <label>
+                  {t("pages.hrEmployees.form.password")} {isEditMode && t("pages.hrEmployees.form.passwordHint")}
+                </label>
                 <input
                   className="quota-input w-full"
                   type="password"
@@ -392,19 +421,19 @@ export default function Employees() {
 
               <div className="form-row">
                 <div className="form-col">
-                  <label>{t("Role")}</label>
+                  <label>{t("pages.hrEmployees.form.role")}</label>
                   <select
                     className="quota-input w-full"
                     value={empForm.role}
                     onChange={(e) => setEmpForm({ ...empForm, role: e.target.value })}
                   >
-                    <option value="Worker">{t("Worker")}</option>
-                    <option value="HR">{t("HR")}</option>
+                    <option value="Worker">{t("pages.hrEmployees.filters.worker")}</option>
+                    <option value="HR">{t("pages.hrEmployees.filters.hr")}</option>
                   </select>
                 </div>
 
                 <div className="form-col">
-                  <label>{t("Joining Date")}</label>
+                  <label>{t("pages.hrEmployees.form.joiningDate")}</label>
                   <input
                     type="date"
                     className="quota-input w-full"
@@ -421,15 +450,17 @@ export default function Employees() {
                   checked={empForm.isActive}
                   onChange={(e) => setEmpForm({ ...empForm, isActive: e.target.checked })}
                 />
-                Account Active (allow system access)
+                {t("pages.hrEmployees.form.active")}
               </label>
             </div>
 
             <div className="emp-modal-actions">
               <button className="emp-btn emp-btn-outline" type="button" onClick={() => setEmpModalOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
-              <button className="emp-btn emp-btn-primary" type="submit">{t("Save")}</button>
+              <button className="emp-btn emp-btn-primary" type="submit">
+                {t("common.save")}
+              </button>
             </div>
           </form>
         </div>
@@ -441,7 +472,7 @@ export default function Employees() {
           <div className="emp-modal" onClick={(e) => e.stopPropagation()}>
             <div className="emp-modal-head">
               <div>
-                <div className="emp-modal-title">{t("Set Leave Quota")}</div>
+                <div className="emp-modal-title">{t("pages.hrEmployees.quotaModal.title")}</div>
                 <div className="emp-modal-sub">
                   {activeEmp?.firstName} {activeEmp?.lastName}
                 </div>
@@ -463,9 +494,9 @@ export default function Employees() {
                   fontSize: 13,
                 }}
               >
-                <div style={{ flex: 1 }}>{t("Leave Type / Used")}</div>
-                <div style={{ width: 85, textAlign: "center" }}>{t("This Year")}</div>
-                <div style={{ width: 85, textAlign: "center" }}>{t("Carried")}</div>
+                <div style={{ flex: 1 }}>{t("pages.hrEmployees.quotaModal.leaveTypeUsed")}</div>
+                <div style={{ width: 85, textAlign: "center" }}>{t("pages.hrEmployees.quotaModal.thisYear")}</div>
+                <div style={{ width: 85, textAlign: "center" }}>{t("pages.hrEmployees.quotaModal.carried")}</div>
               </div>
 
               {quotaRows.map((r) => (
@@ -485,7 +516,7 @@ export default function Employees() {
                       {r.typeName}
                     </div>
                     <div className="quota-mini" style={{ fontSize: 12, color: "#888" }}>
-                      Used: {r.usedDays} day(s)
+                      {t("pages.hrEmployees.quotaModal.usedLabel")}: {r.usedDays}
                     </div>
                   </div>
 
@@ -525,9 +556,7 @@ export default function Employees() {
                       onChange={(e) =>
                         setQuotaRows((prev) =>
                           prev.map((row) =>
-                            row.leaveTypeId === r.leaveTypeId
-                              ? { ...row, carriedOverDays: Number(e.target.value) }
-                              : row
+                            row.leaveTypeId === r.leaveTypeId ? { ...row, carriedOverDays: Number(e.target.value) } : row
                           )
                         )
                       }
@@ -535,18 +564,15 @@ export default function Employees() {
                   </div>
                 </div>
               ))}
-
-              <div style={{ marginTop: 12, fontSize: 11, color: "#666", fontStyle: "italic" }}>
-                * Green field = editable carried over days | Gray field = carry over not allowed (configure in Leave
-                Settings)
-              </div>
             </div>
 
             <div className="emp-modal-actions">
               <button className="emp-btn emp-btn-outline" onClick={() => setQuotaOpen(false)}>
-                Cancel
+                {t("common.cancel")}
               </button>
-              <button className="emp-btn emp-btn-primary" onClick={saveQuota}>{t("Save Quota")}</button>
+              <button className="emp-btn emp-btn-primary" onClick={saveQuota}>
+                {t("pages.hrEmployees.quotaModal.saveQuota")}
+              </button>
             </div>
           </div>
         </div>

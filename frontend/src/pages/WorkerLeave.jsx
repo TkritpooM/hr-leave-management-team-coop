@@ -249,7 +249,21 @@ export default function WorkerLeave() {
                     <tr key={req.requestId} className="wl-row" onClick={() => setActive(req)}>
                       <td className="wl-strong">{req.leaveType?.typeName}</td>
                       <td className="wl-small">
-                        {moment(req.startDate).format("DD MMM")} - {moment(req.endDate).format("DD MMM YYYY")}
+                        {(() => {
+                          const start = moment(req.startDate);
+                          const end = moment(req.endDate);
+                          const isSameDay = start.isSame(end, 'day');
+                          
+                          // เตรียม Label สำหรับครึ่งวัน
+                          let durationLabel = "";
+                          if (isSameDay) {
+                            if (req.startDuration === "HalfMorning") durationLabel = ` (${t("common.morning", "Morning")})`;
+                            else if (req.startDuration === "HalfAfternoon") durationLabel = ` (${t("common.afternoon", "Afternoon")})`;
+                          }
+
+                          if (isSameDay) return `${start.format("DD MMM YYYY")}${durationLabel}`;
+                          return `${start.format("DD MMM")} - ${end.format("DD MMM YYYY")}`;
+                        })()}
                       </td>
                       <td>
                         <div className="wl-days">
@@ -307,7 +321,8 @@ export default function WorkerLeave() {
                 <div>
                   <div className="wl-modal-title">{t("pages.workerLeave.Leave Request Details")}</div>
                   <div className="wl-modal-sub">
-                    {moment(active.startDate).format("DD MMM YYYY")} → {moment(active.endDate).format("DD MMM YYYY")}
+                    {moment(active.startDate).format("DD MMM YYYY")} 
+                    {moment(active.startDate).isSame(active.endDate, 'day') ? "" : ` → ${moment(active.endDate).format("DD MMM YYYY")}`}
                   </div>
                 </div>
                 <button className="wl-modal-x" type="button" onClick={() => setActive(null)}>
@@ -321,6 +336,16 @@ export default function WorkerLeave() {
                     <div className="wl-k">{t("pages.workerLeave.Type")}</div>
                     <div className="wl-v">{active.leaveType?.typeName || "-"}</div>
                   </div>
+                  {(active.startDuration !== 'Full' || active.endDuration !== 'Full') && (
+                    <div className="wl-kv">
+                      <div className="wl-k">{t("pages.workerLeave.Duration", "Duration")}</div>
+                      <div className="wl-v">
+                        {active.startDate === active.endDate 
+                          ? t(`common.${active.startDuration.toLowerCase()}`, active.startDuration)
+                          : `${t("common.start", "Start")}: ${active.startDuration}, ${t("common.end", "End")}: ${active.endDuration}`}
+                      </div>
+                    </div>
+                  )}
                   <div className="wl-kv">
                     <div className="wl-k">{t("pages.workerLeave.Status")}</div>
                     <div className="wl-v">

@@ -65,6 +65,8 @@ Add Employee Profile Update
 pnpx prisma@6 migrate dev --name profile_request
 Add Fixed change profile notif status
 pnpx prisma@6 migrate dev --name profile_status
+Add Break Policy
+pnpx prisma@6 migrate dev --name break_policy
 ```
 ### To Run Project
 ```bash

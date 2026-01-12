@@ -3,20 +3,19 @@ import { useLocation } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
-import { FiUser, FiCheck, FiX, FiInfo, FiExternalLink, FiClock } from "react-icons/fi";
+import { FiUser, FiCheck, FiX, FiExternalLink, FiClock } from "react-icons/fi";
 import moment from "moment";
 import "moment/locale/th";
-import "./HRLeaveApprovals.css";
+import "./HRLeaveApprovals.css"; 
 import { useTranslation } from "react-i18next";
 
 export default function HRProfileRequests() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
 
+  // 1. จัดการ Locale สำหรับ Moment และ UI
   const mLocale = useMemo(() => {
-    const lng = (i18n.resolvedLanguage || i18n.language || "en")
-      .toLowerCase()
-      .trim();
+    const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();
     return lng.startsWith("th") ? "th" : "en";
   }, [i18n.resolvedLanguage, i18n.language]);
 
@@ -32,329 +31,261 @@ export default function HRProfileRequests() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  // 2. ล้างตัวเลขแจ้งเตือนที่ Sidebar
+  const setSidebarUnreadZero = () => {
+    try {
+      localStorage.setItem("hr_unread_notifications", "0");
+      window.dispatchEvent(new Event("storage"));
+    } catch (_) {}
+  };
+
   const fetchRequests = async () => {
     try {
       setIsLoading(true);
-      // ✅ Backend: GET /api/auth/admin/profile-requests
       const res = await axiosClient.get("/auth/admin/profile-requests");
-      setRequests(res.data?.requests || res.data || []);
+      const fetchedData = res.data?.requests || res.data || [];
+      setRequests(fetchedData);
+
+      // ✅ Logic: autoOpenId จากหน้า Notification
+      if (location.state?.autoOpenId) {
+        const targetId = Number(location.state.autoOpenId);
+        const targetRequest = fetchedData.find(r => Number(r.requestId) === targetId);
+        if (targetRequest) {
+          setActive(targetRequest);
+          window.history.replaceState({}, document.title);
+        }
+      }
     } catch (err) {
-      alertError(
-        t("common.error", "Error"),
-        t("pages.hrProfileRequests.alert.loadFailed", "Failed to load profile requests.")
-      );
+      alertError(t("common.error"), t("pages.hrProfileRequests.alert.loadFailed"));
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchRequests();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { 
+    fetchRequests(); 
+    setSidebarUnreadZero(); 
   }, []);
 
-  // รองรับเข้ามาจาก HRNotifications (ถ้าส่ง state มาด้วย)
-  useEffect(() => {
-    const state = location.state;
-    const targetId = Number(state?.requestId);
-    if (!targetId) return;
-
-    const target = requests.find((r) => Number(r.requestId) === targetId);
-    if (target) {
-      setActive(target);
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state, requests]);
-
-  const filtered = useMemo(() => {
-    const qq = q.trim().toLowerCase();
-    if (!qq) return requests;
-    return requests.filter((r) => {
-      const emp = `${r.employee?.firstName || ""} ${r.employee?.lastName || ""}`.toLowerCase();
-      const oldN = `${r.currentFirstName || ""} ${r.currentLastName || ""}`.toLowerCase();
-      const newN = `${r.newFirstName || ""} ${r.newLastName || ""}`.toLowerCase();
-      const reason = String(r.reason || "").toLowerCase();
-      return emp.includes(qq) || oldN.includes(qq) || newN.includes(qq) || reason.includes(qq);
-    });
-  }, [requests, q]);
-
-  const paged = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, page, pageSize]);
-
-  const formatDateTime = (d) => {
-    if (!d) return "-";
-    return moment(d).locale(mLocale).format("DD MMM YYYY, HH:mm");
-  };
-
-  const statusKey = (s) => String(s || "").toLowerCase();
-
-  const handleAction = async (requestId, action) => {
-    const isApprove = action === "approve";
-
+  // 3. จัดการการอนุมัติ/ปฏิเสธ
+  const handleAction = async (requestId, actionType) => {
+    const isApprove = actionType === "approve";
     const ok = await alertConfirm(
-      isApprove
-        ? t("pages.hrProfileRequests.alert.confirmApproveTitle", "Approve request?")
-        : t("pages.hrProfileRequests.alert.confirmRejectTitle", "Reject request?"),
-      isApprove
-        ? t("pages.hrProfileRequests.alert.confirmApproveText", "This will update employee profile with the new name.")
-        : t("pages.hrProfileRequests.alert.confirmRejectText", "This will reject the request."),
-      t("common.confirm", "Confirm")
+      isApprove ? t("pages.hrProfileRequests.alert.confirmApproveTitle") : t("pages.hrProfileRequests.alert.confirmRejectTitle"),
+      isApprove ? t("pages.hrProfileRequests.alert.confirmApproveText") : t("pages.hrProfileRequests.alert.confirmRejectText"),
+      isApprove ? t("common.approve") : t("common.reject")
     );
     if (!ok) return;
 
     try {
-      // ✅ Backend: PUT /api/auth/admin/profile-approval/:requestId
-      const res = await axiosClient.put(`/auth/admin/profile-approval/${requestId}`, { action });
-      if (res.data?.success) {
-        await alertSuccess(
-          t("common.success", "Success"),
-          isApprove
-            ? t("pages.hrProfileRequests.alert.approved", "Request approved and profile updated.")
-            : t("pages.hrProfileRequests.alert.rejected", "Request rejected.")
-        );
-        setActive(null);
-        fetchRequests();
-      } else {
-        alertError(
-          t("common.error", "Error"),
-          res.data?.message || t("common.somethingWentWrong", "Something went wrong.")
-        );
-      }
+      await axiosClient.put(`/auth/admin/profile-approval/${requestId}`, { action: actionType });
+      await alertSuccess(t("common.success"), isApprove ? t("pages.hrProfileRequests.alert.approved") : t("pages.hrProfileRequests.alert.rejected"));
+      setActive(null);
+      fetchRequests();
     } catch (err) {
-      alertError(
-        t("common.error", "Error"),
-        err.response?.data?.message || t("common.somethingWentWrong", "Something went wrong.")
-      );
+      alertError(t("common.error"), err.response?.data?.message || t("common.somethingWentWrong"));
     }
   };
 
+  // 4. ระบบค้นหาและแบ่งหน้า
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    return requests.filter((r) => {
+      const name = `${r.employee?.firstName || ""} ${r.employee?.lastName || ""}`.toLowerCase();
+      const oldN = `${r.currentFirstName || r.oldFirstName || ""} ${r.currentLastName || r.oldLastName || ""}`.toLowerCase();
+      const newN = `${r.newFirstName || ""} ${r.newLastName || ""}`.toLowerCase();
+      const reason = String(r.reason || "").toLowerCase();
+      return name.includes(s) || oldN.includes(s) || newN.includes(s) || reason.includes(s);
+    });
+  }, [requests, q]);
+
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+
   return (
-    <div className="page-card">
-      <div className="la-header">
+    <div className="page-card hr-leave-approvals">
+      {/* Header Section */}
+      <header className="la-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 className="la-title">
-            {t("pages.hrProfileRequests.title", "Profile Update Requests")}
-          </h1>
-          <p className="la-subtitle">
-            {t(
-              "pages.hrProfileRequests.subtitle",
-              "Review and approve employee name change requests"
-            )}
-          </p>
+          <h1 className="la-title">{t("pages.hrProfileRequests.Profile Update Requests")}</h1>
+          <p className="la-subtitle">{t("pages.hrProfileRequests.Review and approve employee name change requests")}</p>
         </div>
-
         <button className="btn outline" onClick={fetchRequests} disabled={isLoading}>
-          {isLoading
-            ? t("common.loading", "Loading...")
-            : t("common.refreshList", "Refresh List")}
+          {isLoading ? t("common.loading") : t("common.refreshList")}
         </button>
-      </div>
+      </header>
 
-      <div style={{ margin: "16px 0" }}>
+      {/* Filter Input */}
+      <div style={{ marginBottom: "20px" }}>
         <input
           className="audit-input"
           value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setPage(1);
-          }}
-          placeholder={t(
-            "pages.hrProfileRequests.searchPlaceholder",
-            "Search employee / proposed name / reason..."
-          )}
+          onChange={(e) => { setQ(e.target.value); setPage(1); }}
+          placeholder={t("common.placeholders.searchEmployeeNameOrProposed")}
+          style={{ width: "320px", borderRadius: "12px" }}
         />
       </div>
 
+      {/* Table Section */}
       <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>
-              <th>{t("pages.hrProfileRequests.table.requestId", "Request ID")}</th>
-              <th>{t("pages.hrProfileRequests.table.employee", "Employee")}</th>
-              <th>{t("pages.hrProfileRequests.table.currentName", "Current Name")}</th>
-              <th>{t("pages.hrProfileRequests.table.proposedName", "Proposed Name")}</th>
-              <th>{t("pages.hrProfileRequests.table.requestDate", "Request Date")}</th>
-              <th>{t("pages.hrProfileRequests.table.status", "Status")}</th>
-              <th style={{ textAlign: "center" }}>
-                {t("pages.hrProfileRequests.table.actions", "Actions")}
-              </th>
+              <th>{t("pages.hrProfileRequests.Request ID")}</th>
+              <th>{t("pages.hrProfileRequests.Employee")}</th>
+              <th>{t("pages.hrProfileRequests.Current Name")}</th>
+              <th>{t("pages.hrProfileRequests.Proposed Name")}</th>
+              <th>{t("pages.hrProfileRequests.Request Date")}</th>
+              <th>{t("pages.hrProfileRequests.Status")}</th>
+              <th style={{ textAlign: "right" }}>{t("pages.hrProfileRequests.Actions")}</th>
             </tr>
           </thead>
-
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan="7" className="empty">
-                  {t("common.loading", "Loading...")}
-                </td>
-              </tr>
-            ) : paged.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="empty">
-                  {t("common.noPendingRequests", "No pending requests")}
-                </td>
-              </tr>
-            ) : (
+              <tr><td colSpan="7" className="empty">{t("common.loading")}</td></tr>
+            ) : paged.length > 0 ? (
               paged.map((r) => (
-                <tr key={r.requestId}>
-                  <td>{r.requestId}</td>
-
+                <tr key={r.requestId} className="hrla-row" onClick={() => setActive(r)}>
+                  <td>#{r.requestId}</td>
                   <td>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <div className="p-name-badge">
-                        <FiUser />
-                      </div>
+                      <div className="p-name-badge" style={{ background: '#f1f5f9', color: '#64748b', padding: '8px', borderRadius: '8px', display: 'flex' }}><FiUser /></div>
                       <div>
-                        <div style={{ fontWeight: 800 }}>
-                          {r.employee?.firstName || t("common.unknown", "Unknown")}{" "}
-                          {r.employee?.lastName || ""}
-                        </div>
-                        <div style={{ fontSize: 12, color: "#64748b" }}>
-                          {r.employee?.email || "-"}
-                        </div>
+                        <div style={{ fontWeight: 700 }}>{r.employee?.firstName} {r.employee?.lastName}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>ID: {r.employeeId}</div>
                       </div>
                     </div>
                   </td>
-
+                  <td style={{ color: '#64748b' }}>{r.oldFirstName || r.currentFirstName} {r.oldLastName || r.currentLastName}</td>
+                  <td style={{ fontWeight: 700, color: '#16a34a' }}>{r.newFirstName} {r.newLastName}</td>
                   <td>
-                    {r.currentFirstName} {r.currentLastName}
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      <FiClock style={{ marginBottom: -2, marginRight: 4 }} /> 
+                      {moment(r.requestedAt || r.createdAt).format("DD MMM YYYY")}
+                    </div>
                   </td>
-
-                  <td style={{ fontWeight: 800 }}>
-                    {r.newFirstName} {r.newLastName}
-                  </td>
-
-                  <td style={{ color: "#64748b" }}>
-                    <FiClock style={{ marginRight: 6 }} />
-                    {formatDateTime(r.createdAt)}
-                  </td>
-
-                  <td>
-                    <span className={`badge badge-${statusKey(r.status)}`}>
-                      {t(
-                        `common.requestStatus.${statusKey(r.status)}`,
-                        String(r.status || "-")
-                      )}
-                    </span>
-                  </td>
-
-                  <td style={{ textAlign: "center" }}>
-                    <button
-                      className="btn outline small"
-                      onClick={() => setActive(r)}
-                    >
-                      <FiInfo />
-                      <span style={{ marginLeft: 6 }}>
-                        {t("common.details", "Details")}
-                      </span>
-                    </button>
+                  <td><span className="badge badge-pending">{t("pages.workerLeave.Pending")}</span></td>
+                  <td style={{ textAlign: "right" }}>
+                    <div style={{ display: "inline-flex", gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                      <button className="btn small outline" onClick={() => setActive(r)}>{t("common.details")}</button>
+                      <button className="btn small primary" style={{ background: '#16a34a' }} onClick={() => handleAction(r.requestId, "approve")}><FiCheck /></button>
+                      <button className="btn small outline danger" style={{ borderColor: '#ef4444', color: '#ef4444' }} onClick={() => handleAction(r.requestId, "reject")}><FiX /></button>
+                    </div>
                   </td>
                 </tr>
               ))
+            ) : (
+              <tr><td colSpan="7" className="empty">{t("common.noPendingRequests")}</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
       <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
-        <Pagination
-          total={filtered.length}
-          page={page}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
+        <Pagination total={filtered.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
+      {/* ✅ FIXED MODAL OVERLAY (เด้งขึ้นมาลอยทับหน้าจอ) */}
       {active && (
-        <div className="p-modal-backdrop" onClick={() => setActive(null)}>
-          <div className="p-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="p-modal-head">
-              <div>
-                <div className="p-modal-title">
-                  {t("pages.hrProfileRequests.modal.title", "Request Details")}
-                </div>
-                <div className="p-modal-sub">
-                  {t("pages.hrProfileRequests.modal.subtitle", "Compare details before approval")}
+        <div 
+          className="p-modal-overlay" 
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', zIndex: 1000
+          }}
+          onClick={() => setActive(null)}
+        >
+          <div 
+            className="p-modal-content" 
+            style={{ 
+              background: '#fff', width: '95%', maxWidth: '600px', borderRadius: '20px',
+              overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+              animation: 'modalFadeIn 0.3s ease-out'
+            }} 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-modal-header" style={{ padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ background: '#eff6ff', color: '#3b82f6', padding: '10px', borderRadius: '12px', display: 'flex' }}><FiUser size={20} /></div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>{t("pages.hrProfileRequests.Request Details")}</h3>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{t("pages.hrProfileRequests.Compare details before approval")}</p>
                 </div>
               </div>
-
-              <button className="p-x" onClick={() => setActive(null)} aria-label={t("common.close", "Close")}>
+              <button onClick={() => setActive(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <FiX />
               </button>
             </div>
-
-            <div className="p-modal-body">
-              <div className="p-grid">
-                <div className="p-card">
-                  <div className="p-card-title">
-                    {t("pages.hrProfileRequests.modal.currentNameOld", "Current Name (Old)")}
-                  </div>
-                  <div className="p-card-value">
-                    {active.currentFirstName} {active.currentLastName}
+            
+            {/* Modal Body */}
+            <div className="p-modal-body" style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="p-current-info">
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                    {t("pages.hrProfileRequests.Current Name (Old)")}
+                  </label>
+                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#475569' }}>
+                    {active.oldFirstName || active.currentFirstName} {active.oldLastName || active.currentLastName}
                   </div>
                 </div>
-
-                <div className="p-card">
-                  <div className="p-card-title">
-                    {t("pages.hrProfileRequests.modal.proposedNameNew", "Proposed Name (New)")}
-                  </div>
-                  <div className="p-card-value highlight">
+                <div className="p-current-info">
+                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                    {t("pages.hrProfileRequests.Proposed Name (New)")}
+                  </label>
+                  <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '10px', border: '1px solid #bcf0da', fontSize: '14px', fontWeight: 700 }}>
                     {active.newFirstName} {active.newLastName}
                   </div>
                 </div>
+              </div>
 
-                <div className="p-card full">
-                  <div className="p-card-title">
-                    {t("pages.hrProfileRequests.modal.reason", "Reason for change")}
-                  </div>
-                  <div className="p-card-value">
-                    {active.reason || t("common.noData", "—")}
-                  </div>
-                </div>
-
-                <div className="p-card full">
-                  <div className="p-card-title">
-                    {t("pages.hrProfileRequests.modal.supportingDocument", "Supporting Document")}
-                  </div>
-
-                  {active.attachmentUrl ? (
-                    <a
-                      href={active.attachmentUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="p-attach"
-                    >
-                      <FiExternalLink />
-                      <span style={{ marginLeft: 6 }}>
-                        {t("pages.hrProfileRequests.modal.viewAttachment", "View Attachment")}
-                      </span>
-                    </a>
-                  ) : (
-                    <div className="p-card-value">
-                      {t("common.noAttachment", "No attachment")}
-                    </div>
-                  )}
+              <div style={{ marginTop: '24px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                  {t("pages.hrProfileRequests.Reason for change")}
+                </label>
+                <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '12px', fontSize: '14px', border: '1px solid #f1f5f9', color: '#334155', lineHeight: '1.5' }}>
+                  {active.reason || t("common.noDataAvailable")}
                 </div>
               </div>
 
-              <div className="p-modal-footer" style={{ marginTop: 20 }}>
-                <button
-                  type="button"
-                  className="p-btn-cancel"
+              {active.attachmentUrl && (
+                <div style={{ marginTop: '24px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                      {t("pages.hrProfileRequests.Supporting Document")}
+                    </label>
+                    <a 
+                      href={`http://localhost:8000/uploads/profiles/${active.attachmentUrl}`} 
+                      target="_blank" rel="noreferrer"
+                      style={{ 
+                        display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: '#fff', 
+                        border: '1.5px solid #e2e8f0', borderRadius: '14px', textDecoration: 'none'
+                      }}
+                    >
+                      <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '10px', color: '#475569' }}><FiExternalLink size={18} /></div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{t("pages.hrProfileRequests.View Attachment")}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{t("pages.hrProfileRequests.Official document (PDF/Image)")}</div>
+                      </div>
+                      <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: '13px' }}>{t("pages.hrProfileRequests.Open")}</div>
+                    </a>
+                </div>
+              )}
+
+              {/* Modal Footer */}
+              <div className="p-modal-footer" style={{ marginTop: '32px', display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button 
+                  className="btn outline" 
+                  style={{ padding: '10px 24px', borderRadius: '12px', borderColor: '#e2e8f0', color: '#64748b', fontWeight: 600 }}
                   onClick={() => handleAction(active.requestId, "reject")}
                 >
-                  {t("pages.hrProfileRequests.actions.reject", "Reject Request")}
+                  {t("common.reject")}
                 </button>
-
-                <button
-                  type="button"
-                  className="p-btn-submit"
+                <button 
+                  className="btn primary" 
+                  style={{ padding: '10px 28px', borderRadius: '12px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 700 }}
                   onClick={() => handleAction(active.requestId, "approve")}
                 >
-                  {t("pages.hrProfileRequests.actions.approveUpdate", "Approve & Update Profile")}
+                  {t("common.approve")} & {t("common.save")}
                 </button>
               </div>
             </div>

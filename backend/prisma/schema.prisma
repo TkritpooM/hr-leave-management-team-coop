@@ -181,6 +181,8 @@ model AttendancePolicy {
   policyId       Int      @id @default(1) // กำหนดให้มี ID เดียวเสมอ
   startTime      String   @default("09:00")
   endTime        String   @default("18:00")
+  breakStartTime  String   @default("12:00") // เวลาเริ่มพัก (จุดเลิกงานของคนลาบ่าย)
+  breakEndTime    String   @default("13:00") // เวลาจบพัก (จุดเริ่มงานของคนลาเช้า)
   graceMinutes   Int      @default(5)
   workingDays    String   @default("mon,tue,wed,thu,fri") // เก็บเป็น String คั่นด้วย comma
   leaveGapDays   Int      @default(0) @map("leave_gap_days")
