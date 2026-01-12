@@ -15,6 +15,19 @@ const safeAudit = async (payload) => {
   try { await logAudit(payload); } catch (e) { console.error("AUDIT_LOG_FAIL:", e?.message || e); }
 };
 
+/** ---------------------------
+ * ✅ Helper: keep response shape same (status 200 for handled business errors)
+ * but message becomes i18n key, with optional meta for interpolation
+ * -------------------------- */
+const respondFail = (res, messageKey, meta = undefined, statusCode = undefined) => {
+  return res.status(200).json({
+    success: false,
+    message: messageKey,
+    meta: meta || undefined,
+    statusCode: statusCode || undefined
+  });
+};
+
 /**
  * Submit a new leave request
  */
@@ -27,20 +40,20 @@ const requestLeave = async (req, res, next) => {
     // 1. Validations (Basic)
     await leaveService.checkLeaveGapPolicy(employeeId, startDate);
     await leaveService.checkLeaveOverlap(employeeId, startDate, endDate);
-    
+
     // 🔥 FIX: ดึง Setting จาก Database และแปลงค่า
-    const policy = await prisma.attendancePolicy.findFirst(); 
-    
+    const policy = await prisma.attendancePolicy.findFirst();
+
     // Default เป็น จันทร์-ศุกร์ (1-5) ไว้ก่อนเผื่อไม่มี Policy
-    let activeWorkDays = [1, 2, 3, 4, 5]; 
+    let activeWorkDays = [1, 2, 3, 4, 5];
 
     // 🔥 ถ้ามีข้อมูลใน DB ให้แปลงจาก String "mon,tue,..." เป็น Array ตัวเลข [1, 2, ...]
     if (policy && policy.workingDays) {
-        const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
-        activeWorkDays = policy.workingDays
-            .split(',') // ตัดคำด้วย comma
-            .map(d => dayMap[d.trim().toLowerCase()]) // แปลงเป็นตัวเลข
-            .filter(n => n !== undefined); // กรองค่าที่อาจจะ undefined ออก
+      const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+      activeWorkDays = policy.workingDays
+        .split(',')
+        .map(d => dayMap[d.trim().toLowerCase()])
+        .filter(n => n !== undefined);
     }
 
     // 🔥 Loop เช็ควันหยุดตามค่า activeWorkDays ที่แปลงแล้ว
@@ -50,13 +63,21 @@ const requestLeave = async (req, res, next) => {
 
     while (curr.isSameOrBefore(endM, 'day')) {
       const dayOfWeek = curr.day(); // 0=Sun, 1=Mon, ...
-      
+
       // ถ้าวันที่ขอลา ไม่อยู่ในลิสต์วันทำงานที่ตั้งค่าไว้
       if (!activeWorkDays.includes(dayOfWeek)) {
-         return res.status(200).json({ 
-            success: false, 
-            message: `Cannot request leave on ${curr.format('dddd, DD MMM')} because it is a non-working day.` 
-         });
+        // ✅ i18n key + meta
+        return respondFail(
+          res,
+          "errors.leave.requestOnNonWorkingDay",
+          {
+            dayName: curr.format('dddd'),
+            dateText: curr.format('DD MMM'),
+            fullText: curr.format('dddd, DD MMM'),
+            date: curr.format('YYYY-MM-DD')
+          },
+          400
+        );
       }
       curr.add(1, 'days');
     }
@@ -65,7 +86,7 @@ const requestLeave = async (req, res, next) => {
     const totalDaysRequested = await leaveService.calculateTotalDays(startDate, endDate, startDuration, endDuration);
 
     if (totalDaysRequested <= 0) {
-      return res.status(200).json({ success: false, message: "Requested leave days must be greater than 0." });
+      return respondFail(res, "errors.leave.requestedDaysMustBeGreaterThanZero", undefined, 400);
     }
 
     const requestYear = moment(startDate).year();
@@ -100,11 +121,17 @@ const requestLeave = async (req, res, next) => {
       // 3. Create Notifications for HRs
       if (allHR.length > 0) {
         const empName = `${newRequest.employee.firstName} ${newRequest.employee.lastName}`;
+
+        // ✅ Store message as i18n key + meta (frontend should render via t(message, meta))
         await tx.notification.createMany({
           data: allHR.map(hr => ({
             employeeId: hr.employeeId,
             notificationType: 'NewRequest',
-            message: `New ${newRequest.leaveType.typeName} request from ${empName}`,
+            message: "notifications.leave.newRequestFromEmployee",
+            meta: {
+              leaveTypeName: newRequest.leaveType.typeName,
+              employeeName: empName
+            },
             relatedRequestId: newRequest.requestId
           }))
         });
@@ -119,7 +146,9 @@ const requestLeave = async (req, res, next) => {
         type: 'NOTIFICATION',
         data: {
           type: 'NewRequest',
-          message: `New leave request received (ID: ${result.newRequest.requestId})`,
+          // ✅ i18n message + meta
+          message: "notifications.leave.newRequestReceivedWithId",
+          meta: { requestId: result.newRequest.requestId },
           requestId: result.newRequest.requestId
         }
       });
@@ -150,7 +179,7 @@ const requestLeave = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Leave request submitted and HR notified.',
+      message: "success.leave.requestSubmittedAndHrNotified",
       request: result.newRequest
     });
   } catch (error) {
@@ -208,13 +237,16 @@ const cancelLeaveRequest = async (req, res, next) => {
       select: { employeeId: true, status: true, attachmentUrl: true }
     });
 
-    if (!leaveRequest) throw CustomError.notFound('Leave request not found.');
-    if (leaveRequest.employeeId !== employeeId) throw CustomError.forbidden('You can only cancel your own requests.');
+    if (!leaveRequest) throw CustomError.notFound('errors.leave.requestNotFound');
+    if (leaveRequest.employeeId !== employeeId) throw CustomError.forbidden('errors.leave.canOnlyCancelOwnRequest');
+
     if (leaveRequest.status !== 'Pending') {
-      return res.status(200).json({
-        success: false,
-        message: `Cannot cancel: Request has already been ${leaveRequest.status.toLowerCase()}.`
-      });
+      return respondFail(
+        res,
+        "errors.leave.cannotCancelAlreadyProcessed",
+        { status: leaveRequest.status },
+        400
+      );
     }
 
     const oldSnapshot = { status: leaveRequest.status, hasAttachment: !!leaveRequest.attachmentUrl };
@@ -263,7 +295,10 @@ const cancelLeaveRequest = async (req, res, next) => {
       ipAddress: getClientIp(req),
     });
 
-    res.status(200).json({ success: true, message: 'Leave request cancelled and attachment removed.' });
+    res.status(200).json({
+      success: true,
+      message: "success.leave.requestCancelledAndAttachmentRemoved"
+    });
   } catch (error) {
     next(error);
   }
@@ -291,9 +326,10 @@ const getRequestDetail = async (req, res, next) => {
     const requestId = parseInt(req.params.requestId);
     const request = await leaveModel.getLeaveRequestById(requestId);
 
-    if (!request) throw CustomError.notFound('Leave request not found.');
+    if (!request) throw CustomError.notFound('errors.leave.requestNotFound');
+
     if (req.user.role !== 'HR' && req.user.employeeId !== request.employeeId) {
-      throw CustomError.forbidden('Access denied.');
+      throw CustomError.forbidden('errors.common.accessDenied');
     }
 
     res.status(200).json({ success: true, request });
@@ -311,7 +347,7 @@ const handleApproval = async (req, res, next) => {
 
     const originalRequest = await leaveModel.getLeaveRequestById(requestId);
     if (!originalRequest || originalRequest.status !== 'Pending') {
-      throw CustomError.badRequest('Request not found or already processed.');
+      throw CustomError.badRequest('errors.leave.requestNotFoundOrProcessed');
     }
 
     const oldStatus = originalRequest.status;
@@ -334,14 +370,18 @@ const handleApproval = async (req, res, next) => {
         if (quota) {
           const availableDays = parseFloat(
             (
-              quota.totalDays.toNumber() + 
-              quota.carriedOverDays.toNumber() - 
+              quota.totalDays.toNumber() +
+              quota.carriedOverDays.toNumber() -
               quota.usedDays.toNumber()
             ).toFixed(2)
           );
 
           if (requestedDays > availableDays) {
-            throw CustomError.conflict(`Insufficient quota (Available: ${availableDays}, Requested: ${requestedDays})`);
+            // ✅ i18n key + meta (keep same logic: conflict)
+            throw CustomError.conflict(
+              "errors.leave.insufficientQuotaOnApproval",
+              { availableDays, requestedDays }
+            );
           }
 
           // อัปเดตยอดการใช้งาน (หักโควต้า)
@@ -350,9 +390,6 @@ const handleApproval = async (req, res, next) => {
             data: { usedDays: { increment: requestedDays } }
           });
         }
-        
-        // ถ้าไม่มีข้อมูลในตาราง LeaveQuota (เช่น ประเภทการลาที่ลาได้ไม่จำกัดและไม่ได้ตั้งค่าโควต้าไว้) 
-        // ระบบจะปล่อยให้ผ่าน (Approved) โดยไม่หักยอดโควต้าใดๆ
 
         finalStatus = 'Approved';
       }
@@ -366,7 +403,9 @@ const handleApproval = async (req, res, next) => {
         data: {
           employeeId,
           notificationType: finalStatus, // 'Approved' or 'Rejected'
-          message: `Your leave request (ID: ${requestId}) has been ${finalStatus.toLowerCase()}.`,
+          // ✅ i18n key + meta
+          message: "notifications.leave.requestStatusUpdatedWithId",
+          meta: { requestId, status: finalStatus },
           relatedRequestId: requestId
         }
       });
@@ -396,7 +435,8 @@ const handleApproval = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `Request has been ${result.updatedRequest.status.toLowerCase()} successfully.`,
+      message: "success.leave.requestProcessed",
+      meta: { status: result.updatedRequest.status.toLowerCase() },
       request: result.updatedRequest
     });
   } catch (error) {
@@ -491,7 +531,7 @@ const deleteLeaveRequest = async (req, res, next) => {
       select: { attachmentUrl: true, status: true, employeeId: true, leaveTypeId: true }
     });
 
-    if (!request) throw CustomError.notFound('Leave request not found.');
+    if (!request) throw CustomError.notFound('errors.leave.requestNotFound');
 
     const oldSnapshot = {
       requestId,
@@ -521,7 +561,10 @@ const deleteLeaveRequest = async (req, res, next) => {
       ipAddress: getClientIp(req),
     });
 
-    res.status(200).json({ success: true, message: 'Request and attachment deleted successfully.' });
+    res.status(200).json({
+      success: true,
+      message: "success.leave.requestAndAttachmentDeleted"
+    });
   } catch (error) { next(error); }
 };
 

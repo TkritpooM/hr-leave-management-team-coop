@@ -56,6 +56,13 @@ const QuickActionModal = ({
   const payload = requestData || data;
   if (!isOpen || !payload) return null;
 
+  // ✅ helper: translate message from backend (key or plain text) + meta
+  const translateApiMessage = (msgKeyOrText, rawMeta) => {
+    if (!msgKeyOrText) return "";
+    const meta = rawMeta || {};
+    return t(msgKeyOrText, { ...meta, defaultValue: msgKeyOrText });
+  };
+
   // ✅ helper: หา ID จากหลายชื่อ field (กันพัง)
   const pickId = (p) =>
     p?.requestId ??
@@ -130,21 +137,22 @@ const QuickActionModal = ({
 
     // Helper แปลงค่า Duration เป็นข้อความ (เช็คค่า Half ตาม Schema)
     const getDurationText = (dur) => {
-      if (dur === "HalfMorning") return ` (${t("pages.hrAttendancePage.halfMorning", "Morning")})`;
-      if (dur === "HalfAfternoon") return ` (${t("pages.hrAttendancePage.halfAfternoon", "Afternoon")})`;
-      return ""; // ถ้าเป็น Full ไม่ต้องแสดงอะไรต่อท้าย
+      if (dur === "HalfMorning")
+        return ` (${t("pages.hrAttendancePage.halfMorning", "Morning")})`;
+      if (dur === "HalfAfternoon")
+        return ` (${t("pages.hrAttendancePage.halfAfternoon", "Afternoon")})`;
+      return ""; // Full
     };
 
-    // 1. กรณีลาวันเดียวกัน (Same Day)
-    if (!e || !e.isValid() || s.isSame(e, 'day')) {
+    // 1) Same Day
+    if (!e || !e.isValid() || s.isSame(e, "day")) {
       const durLabel = getDurationText(payload?.startDuration);
       return `${s.format("DD MMM YYYY")}${durLabel}`;
     }
 
-    // 2. กรณีลาหลายวัน (Multi-day)
+    // 2) Multi-day
     const startLabel = `${s.format("DD MMM")}${getDurationText(payload?.startDuration)}`;
     const endLabel = `${e.format("DD MMM YYYY")}${getDurationText(payload?.endDuration)}`;
-
     return `${startLabel} - ${endLabel}`;
   };
 
@@ -206,26 +214,34 @@ const QuickActionModal = ({
         });
       }
 
+      const msgKeyOrText = res.data?.message;
+      const meta = res.data?.meta || res.data?.data || {};
+
       if (res.data?.success) {
         await alertSuccess(
           t("common.success", "Success"),
-          res.data?.message ||
-            t("components.quickActionModal.actionSuccess", "Action completed successfully.")
+          msgKeyOrText
+            ? translateApiMessage(msgKeyOrText, meta)
+            : t("components.quickActionModal.actionSuccess", "Action completed successfully.")
         );
         onClose?.();
         onActionSuccess?.();
       } else {
         alertError(
           t("common.error", "Error"),
-          res.data?.message ||
-            t("components.quickActionModal.actionFailed", "Failed to process request.")
+          msgKeyOrText
+            ? translateApiMessage(msgKeyOrText, meta)
+            : t("components.quickActionModal.actionFailed", "Failed to process request.")
         );
       }
     } catch (err) {
+      const msgKeyOrText = err?.response?.data?.message;
+      const meta = err?.response?.data?.meta || err?.response?.data?.data || {};
       alertError(
         t("common.error", "Error"),
-        err?.response?.data?.message ||
-          t("components.quickActionModal.actionFailed", "Failed to process request.")
+        msgKeyOrText
+          ? translateApiMessage(msgKeyOrText, meta)
+          : t("components.quickActionModal.actionFailed", "Failed to process request.")
       );
     } finally {
       setIsSubmitting(false);
@@ -291,7 +307,9 @@ const QuickActionModal = ({
                 </div>
                 <div className="qa-info-row">
                   <FiArrowRight className="qa-row-icon" />
-                  <span className="qa-label">{t("components.quickActionModal.newName", "New Name")}</span>
+                  <span className="qa-label">
+                    {t("components.quickActionModal.newName", "New Name")}
+                  </span>
                   <span className="qa-value" style={{ fontWeight: 800 }}>
                     {newName || "-"}
                   </span>
@@ -309,13 +327,17 @@ const QuickActionModal = ({
 
                 <div className="qa-info-row">
                   <FiFileText className="qa-row-icon" />
-                  <span className="qa-label">{t("components.quickActionModal.type", "Type")}</span>
+                  <span className="qa-label">
+                    {t("components.quickActionModal.type", "Type")}
+                  </span>
                   <span className="qa-value">{leaveType}</span>
                 </div>
 
                 <div className="qa-info-row">
                   <FiCalendar className="qa-row-icon" />
-                  <span className="qa-label">{t("components.quickActionModal.period", "Period")}</span>
+                  <span className="qa-label">
+                    {t("components.quickActionModal.period", "Period")}
+                  </span>
                   <span className="qa-value">{renderPeriod()}</span>
                 </div>
               </>
@@ -323,7 +345,11 @@ const QuickActionModal = ({
 
             {approvedByHR && (
               <div className="qa-info-row">
-                {isApproved ? <FiCheckCircle className="qa-row-icon" /> : <FiXCircle className="qa-row-icon" />}
+                {isApproved ? (
+                  <FiCheckCircle className="qa-row-icon" />
+                ) : (
+                  <FiXCircle className="qa-row-icon" />
+                )}
                 <span className="qa-label">
                   {isApproved
                     ? t("components.quickActionModal.approved", "Approved")
@@ -337,7 +363,12 @@ const QuickActionModal = ({
           </div>
 
           {attachmentUrl && (
-            <a href={attachmentHref} target="_blank" rel="noreferrer" className="qa-attachment-link">
+            <a
+              href={attachmentHref}
+              target="_blank"
+              rel="noreferrer"
+              className="qa-attachment-link"
+            >
               <FiPaperclip />
               <span className="qa-attachment-text">
                 {t("components.quickActionModal.viewDoc", "View Supporting Document")}

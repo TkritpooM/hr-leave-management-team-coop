@@ -8,7 +8,7 @@ import {
   FiCheck,
   FiInfo,
 } from "react-icons/fi";
-import "./WorkerNotifications.css"; // เรียกใช้ CSS ล่าสุดที่แยกไฟล์ไว้
+import "./WorkerNotifications.css";
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import QuickActionModal from "../components/QuickActionModal";
@@ -26,7 +26,9 @@ export default function WorkerNotifications() {
   const navigate = useNavigate();
 
   const mLocale = useMemo(() => {
-    const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();
+    const lng = (i18n.resolvedLanguage || i18n.language || "en")
+      .toLowerCase()
+      .trim();
     return lng.startsWith("th") ? "th" : "en";
   }, [i18n.resolvedLanguage, i18n.language]);
 
@@ -54,14 +56,22 @@ export default function WorkerNotifications() {
     return Number.isFinite(d.getTime()) ? d.getTime() : 0;
   };
 
+  // ✅ translate backend message (key or plain text) + meta
+  const translateNotiMessage = (msgKeyOrText, rawMeta) => {
+    if (!msgKeyOrText) return t("common.noDataAvailable");
+    const meta = rawMeta || {};
+    return t(msgKeyOrText, { ...meta, defaultValue: msgKeyOrText });
+  };
+
   const normalizeForModal = (n) => {
     const notiType = String(n?.notificationType || n?.type || "").toLowerCase();
 
     // ---- PROFILE REQUESTS ----
     const profileId = n?.relatedProfileRequestId || n?.profileUpdateRequest?.requestId;
     if (profileId || notiType.includes("profile")) {
-      const req = n?.profileUpdateRequest || 
-                  n?.employee?.profileUpdateRequests?.find((r) => Number(r.requestId) === Number(profileId));
+      const req =
+        n?.profileUpdateRequest ||
+        n?.employee?.profileUpdateRequests?.find((r) => Number(r.requestId) === Number(profileId));
 
       return {
         type: "PROFILE",
@@ -75,20 +85,28 @@ export default function WorkerNotifications() {
         approvedByHR: req?.approvedByHR ?? n?.approvedByHR,
         notificationId: n?.notificationId,
         message: n?.message,
+        meta: n?.meta,
         createdAt: n?.createdAt,
       };
     }
 
     // ---- LEAVE REQUESTS ----
     const leaveId = n?.relatedRequestId || n?.relatedRequest?.requestId;
-    if (leaveId || notiType.includes("leave") || notiType.includes("approval") || notiType.includes("rejection")) {
+    if (
+      leaveId ||
+      notiType.includes("leave") ||
+      notiType.includes("approval") ||
+      notiType.includes("rejection")
+    ) {
       const req = n?.relatedRequest;
       return {
         type: "LEAVE",
         requestId: req?.requestId ?? leaveId,
         leaveRequestId: req?.requestId ?? leaveId,
         status: req?.status ?? n?.status ?? "Pending",
-        employeeName: req?.employee ? `${req.employee.firstName} ${req.employee.lastName}`.trim() : n?.employeeName,
+        employeeName: req?.employee
+          ? `${req.employee.firstName} ${req.employee.lastName}`.trim()
+          : n?.employeeName,
         leaveType: req?.leaveType?.typeName ?? n?.leaveType,
         startDate: req?.startDate ?? n?.startDate,
         endDate: req?.endDate ?? n?.endDate,
@@ -99,6 +117,7 @@ export default function WorkerNotifications() {
         approvedByHR: req?.approvedByHR ?? n?.approvedByHR,
         notificationId: n?.notificationId,
         message: n?.message,
+        meta: n?.meta,
         createdAt: n?.createdAt,
       };
     }
@@ -107,6 +126,7 @@ export default function WorkerNotifications() {
       type: "GENERAL",
       isReadOnly: true,
       message: n?.message,
+      meta: n?.meta,
       createdAt: n?.createdAt,
       notificationId: n?.notificationId,
     };
@@ -170,7 +190,11 @@ export default function WorkerNotifications() {
   };
 
   const deleteNoti = async (id) => {
-    const ok = await alertConfirm(t("common.confirm"), t("pages.workerNotifications.alert.clearAllText"), t("common.confirm"));
+    const ok = await alertConfirm(
+      t("common.confirm"),
+      t("pages.workerNotifications.alert.clearAllText"),
+      t("common.confirm")
+    );
     if (!ok) return;
     try {
       await axiosClient.delete(`/notifications/${id}`);
@@ -198,7 +222,8 @@ export default function WorkerNotifications() {
   const renderTypeIcon = (type) => {
     const key = String(type || "").toLowerCase();
     if (key.includes("late")) return <FiAlertCircle style={{ color: "#ef4444" }} />;
-    if (key.includes("leave") || key.includes("approval") || key.includes("rejection")) return <FiInfo style={{ color: "#3b82f6" }} />;
+    if (key.includes("leave") || key.includes("approval") || key.includes("rejection"))
+      return <FiInfo style={{ color: "#3b82f6" }} />;
     if (key.includes("profile")) return <FiInfo style={{ color: "#8b5cf6" }} />;
     return <FiBell style={{ color: "#64748b" }} />;
   };
@@ -207,7 +232,8 @@ export default function WorkerNotifications() {
     const key = String(type || "").toLowerCase();
     if (key.includes("late")) return t("pages.workerNotifications.type.lateWarning");
     if (key.includes("profile")) return t("pages.workerNotifications.type.profile");
-    if (key.includes("leave") || key.includes("approval") || key.includes("rejection")) return t("pages.workerNotifications.type.leave");
+    if (key.includes("leave") || key.includes("approval") || key.includes("rejection"))
+      return t("pages.workerNotifications.type.leave");
     return t("pages.workerNotifications.type.general");
   };
 
@@ -225,7 +251,11 @@ export default function WorkerNotifications() {
             <span>{t("pages.workerNotifications.refresh")}</span>
           </button>
 
-          <button className="btn outline small" onClick={handleMarkAllRead} disabled={notifications.length === 0}>
+          <button
+            className="btn outline small"
+            onClick={handleMarkAllRead}
+            disabled={notifications.length === 0}
+          >
             <FiCheckCircle />
             <span>{t("pages.workerNotifications.markAllRead")}</span>
           </button>
@@ -244,18 +274,31 @@ export default function WorkerNotifications() {
               <th style={{ width: "180px" }}>{t("pages.workerNotifications.table.type")}</th>
               <th>{t("pages.workerNotifications.table.message")}</th>
               <th style={{ width: "200px" }}>{t("pages.workerNotifications.table.time")}</th>
-              <th style={{ textAlign: "center", width: "150px" }}>{t("pages.workerNotifications.table.action")}</th>
+              <th style={{ textAlign: "center", width: "150px" }}>
+                {t("pages.workerNotifications.table.action")}
+              </th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
-              <tr><td colSpan="4" className="empty">{t("common.loading")}</td></tr>
+              <tr>
+                <td colSpan="4" className="empty">
+                  {t("common.loading")}
+                </td>
+              </tr>
             ) : pagedNotifications.length === 0 ? (
-              <tr><td colSpan="4" className="empty">{t("pages.workerNotifications.noNotificationsFound")}</td></tr>
+              <tr>
+                <td colSpan="4" className="empty">
+                  {t("pages.workerNotifications.noNotificationsFound")}
+                </td>
+              </tr>
             ) : (
               pagedNotifications.map((n) => (
-                <tr key={n.notificationId || n.id || `${n.notificationType}-${n._ts}`} className={n.isRead ? "read" : "unread"}>
+                <tr
+                  key={n.notificationId || n.id || `${n.notificationType}-${n._ts}`}
+                  className={n.isRead ? "read" : "unread"}
+                >
                   <td>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       {renderTypeIcon(n.notificationType)}
@@ -265,20 +308,30 @@ export default function WorkerNotifications() {
                       )}
                     </div>
                   </td>
-                  <td style={{ color: "#334155", lineHeight: "1.5" }}>{n.message}</td>
+
+                  {/* ✅ FIX: translate message (key+meta) with fallback to old text */}
+                  <td style={{ color: "#334155", lineHeight: "1.5" }}>
+                    {translateNotiMessage(n.message, n.meta)}
+                  </td>
+
                   <td style={{ color: "#64748b", fontSize: "13px" }}>
                     {moment(n.createdAt).locale(mLocale).format("DD MMM YYYY, HH:mm")}
                   </td>
+
                   <td style={{ textAlign: "center" }}>
                     <div className="action-btns-group">
                       <button className="btn outline small" onClick={() => openQuick(n)}>
                         <FiCheck />
                         <span>{t("pages.workerNotifications.view")}</span>
                       </button>
-                      <button 
-                        className="btn danger small" 
-                        style={{ padding: '6px' }} 
-                        onClick={(e) => { e.stopPropagation(); deleteNoti(n.notificationId); }}
+
+                      <button
+                        className="btn danger small"
+                        style={{ padding: "6px" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNoti(n.notificationId);
+                        }}
                       >
                         <FiTrash2 size={14} />
                       </button>

@@ -162,7 +162,7 @@ export default function WorkerLeave() {
             <div className="wl-card" key={item.quotaId}>
               <h4 className="wl-card-title">{item.leaveType?.typeName}</h4>
               <div className="wl-big">{item.availableDays}</div>
-              <div className="wl-muted">Remaining from {item.totalDays} days</div>
+              <div className="wl-muted">{t("pages.workerLeave.Remaining from {{total}} days", { total: item.totalDays })}</div>
             </div>
           ))
         )}
@@ -197,9 +197,9 @@ export default function WorkerLeave() {
               <option value="cancelled">{t("pages.workerLeave.Cancelled")}</option>
             </select>
             <select className="wl-select" value={type} onChange={(e) => setType(e.target.value)}>
-              {typeOptions.map((t) => (
-                <option key={t} value={t}>{t === "all" ? "All types" : t}</option>
-              ))}
+              {typeOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt === "all" ? t("pages.workerLeave.All types") : opt}</option>
+            ))}
             </select>
             <select className="wl-select" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="newest">{t("pages.workerLeave.Newest first")}</option>
@@ -292,7 +292,7 @@ export default function WorkerLeave() {
                       <td style={{ textAlign: "center" }}>
                         <div className="wl-actions" onClick={(e) => e.stopPropagation()}>
                           <button className="wl-btn-detail" type="button" onClick={() => setActive(req)}>
-                            Details
+                            {t("pages.workerLeave.Details")}
                           </button>
                           {normStatus(req.status) === "pending" && (
                             <button
@@ -300,7 +300,7 @@ export default function WorkerLeave() {
                               type="button"
                               onClick={() => handleCancelLeave(req.requestId)}
                             >
-                              Cancel
+                              {t("common.cancel")}
                             </button>
                           )}
                         </div>

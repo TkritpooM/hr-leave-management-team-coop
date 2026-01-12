@@ -27,15 +27,28 @@ function getMonthMatrix(year, monthIndex) {
   return weeks;
 }
 
-// 🔥 เพิ่ม Helper Function แปลง "mon,tue" -> [1, 2]
+// 🔥 Helper Function แปลง "mon,tue" -> [1, 2]
 const parseWorkingDays = (str) => {
   if (!str) return [1, 2, 3, 4, 5]; // Default Mon-Fri
-  const dayMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
-  return str.split(',').map(d => dayMap[d.trim().toLowerCase()]).filter(n => n !== undefined);
+  const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+  return str
+    .split(",")
+    .map((d) => dayMap[d.trim().toLowerCase()])
+    .filter((n) => n !== undefined);
 };
 
 export default function WorkerCalendar() {
   const { t, i18n } = useTranslation();
+
+  const mLocale = useMemo(() => {
+    const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();
+    return lng.startsWith("th") ? "th" : "en";
+  }, [i18n.resolvedLanguage, i18n.language]);
+
+  useEffect(() => {
+    moment.locale(mLocale);
+  }, [mLocale]);
+
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState(toISODate(new Date()));
@@ -49,14 +62,11 @@ export default function WorkerCalendar() {
   const [selectedDailyData, setSelectedDailyData] = useState(null);
 
   const [specialHolidays, setSpecialHolidays] = useState([]);
-  
-  // 🔥 State เก็บวันทำงาน (Array ตัวเลข)
-  const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]); 
 
-  const weeks = useMemo(
-    () => getMonthMatrix(viewYear, viewMonth),
-    [viewYear, viewMonth]
-  );
+  // 🔥 State เก็บวันทำงาน (Array ตัวเลข)
+  const [workingDays, setWorkingDays] = useState([1, 2, 3, 4, 5]);
+
+  const weeks = useMemo(() => getMonthMatrix(viewYear, viewMonth), [viewYear, viewMonth]);
 
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
@@ -74,19 +84,21 @@ export default function WorkerCalendar() {
 
       setAttendance(attRes.data.records || []);
       setLeaves(leaveRes.data.requests || []);
-      
+
       const policy = policyRes.data.policy;
 
-      // 🔥 เรียกใช้ฟังก์ชันแปลงค่าจาก String เป็น Array
+      // 🔥 แปลงค่าจาก String เป็น Array
       if (policy?.workingDays) {
-          const days = parseWorkingDays(policy.workingDays);
-          setWorkingDays(days);
+        const days = parseWorkingDays(policy.workingDays);
+        setWorkingDays(days);
       }
-      
-      setSpecialHolidays(policy?.specialHolidays || []);
 
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+      setSpecialHolidays(policy?.specialHolidays || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -126,7 +138,7 @@ export default function WorkerCalendar() {
 
           map[key].push({
             type: "leave",
-            leaveType: l.leaveType?.typeName || "Leave",
+            leaveType: l.leaveType?.typeName || t("common.leave", "Leave"),
             colorCode: l.leaveType?.colorCode || "#3b82f6",
             status: l.status,
             reason: l.reason || "-",
@@ -145,11 +157,25 @@ export default function WorkerCalendar() {
         }
       });
     return map;
-  }, [leaves]);
+  }, [leaves, t]);
 
-  const monthName = new Date(viewYear, viewMonth, 1).toLocaleString("en-US", {
-    month: "long",
-  });
+  // ✅ แสดงชื่อเดือนตามภาษา
+  const monthName = useMemo(() => {
+    return moment({ year: viewYear, month: viewMonth, day: 1 }).locale(mLocale).format("MMMM");
+  }, [viewYear, viewMonth, mLocale]);
+
+  const weekdays = useMemo(
+    () => [
+      t("pages.workerCalendar.weekdays.sun"),
+      t("pages.workerCalendar.weekdays.mon"),
+      t("pages.workerCalendar.weekdays.tue"),
+      t("pages.workerCalendar.weekdays.wed"),
+      t("pages.workerCalendar.weekdays.thu"),
+      t("pages.workerCalendar.weekdays.fri"),
+      t("pages.workerCalendar.weekdays.sat"),
+    ],
+    [t]
+  );
 
   const goPrevMonth = () => {
     const m = viewMonth - 1;
@@ -158,6 +184,7 @@ export default function WorkerCalendar() {
       setViewYear((y) => y - 1);
     } else setViewMonth(m);
   };
+
   const goNextMonth = () => {
     const m = viewMonth + 1;
     if (m > 11) {
@@ -173,12 +200,12 @@ export default function WorkerCalendar() {
     const att = attByDate[isoDate];
     const lvs = leaveByDate[isoDate] || [];
     const leave = lvs.length > 0 ? lvs[0] : null;
-    
+
     const todayStr = toISODate(new Date());
     const isFuture = isoDate > todayStr;
     const dayOfWeek = moment(isoDate).day();
-    
-    const isWorkingDay = workingDays.includes(dayOfWeek); 
+
+    const isWorkingDay = workingDays.includes(dayOfWeek);
     const isHoliday = specialHolidays.includes(isoDate);
 
     let modalData = null;
@@ -186,18 +213,17 @@ export default function WorkerCalendar() {
     if (isHoliday) {
       modalData = {
         type: "holiday",
-        status: "Company Holiday",
-        reason: "This is a pre-announced company non-working day.",
+        status: t("pages.workerCalendar.modal.holiday.status"),
+        reason: t("pages.workerCalendar.modal.holiday.reason"),
       };
     } else if (leave) {
       modalData = {
         type: "leave",
         status: leave.status,
-        employeeName: "You",
+        employeeName: t("pages.workerCalendar.modal.common.you"),
         leaveType: leave.leaveType,
         startDate: leave.startDate,
         endDate: leave.endDate,
-        // ✅ ส่งค่า Duration และเช็คว่าเป็นวันแรกหรือวันสุดท้ายของช่วงลาหรือไม่
         startDuration: leave.startDuration,
         endDuration: leave.endDuration,
         isStartDay: leave.isStartDay,
@@ -210,20 +236,22 @@ export default function WorkerCalendar() {
     } else if (!isWorkingDay) {
       modalData = {
         type: "weekend",
-        status: "Non-Working Day",
-        reason: "Off-day according to company schedule.",
+        status: t("pages.workerCalendar.modal.weekend.status"),
+        reason: t("pages.workerCalendar.modal.weekend.reason"),
       };
     } else if (isFuture) {
       modalData = {
         type: "future",
-        status: "Upcoming Date",
-        reason: "This date has not arrived yet.",
+        status: t("pages.workerCalendar.modal.future.status"),
+        reason: t("pages.workerCalendar.modal.future.reason"),
       };
     } else if (att) {
       modalData = {
         type: "attendance",
-        status: att.isLate ? "Late" : "Normal",
-        employeeName: "You",
+        status: att.isLate
+          ? t("pages.workerCalendar.tags.late")
+          : t("pages.workerCalendar.tags.normal"),
+        employeeName: t("pages.workerCalendar.modal.common.you"),
         checkIn: att.checkInTime,
         checkOut: att.checkOutTime,
         reason: "-",
@@ -231,9 +259,9 @@ export default function WorkerCalendar() {
     } else {
       modalData = {
         type: "nodata",
-        status: "No Data",
-        employeeName: "You",
-        reason: "No attendance or leave record found.",
+        status: t("pages.workerCalendar.modal.noData.status"),
+        employeeName: t("pages.workerCalendar.modal.common.you"),
+        reason: t("pages.workerCalendar.modal.noData.reason"),
       };
     }
 
@@ -245,29 +273,42 @@ export default function WorkerCalendar() {
     <div className="page-card wc">
       <header className="wc-head">
         <div>
-          <h1 className="wc-title">{t("pages.workerCalendar.My Calendar")}</h1>
+          <h1 className="wc-title">{t("pages.workerCalendar.title")}</h1>
           <p className="wc-sub">
-            Attendance + Leave (monthly view){loading ? " • Loading..." : ""}
+            {t("pages.workerCalendar.subtitle")}
+            {loading ? ` • ${t("common.loading")}` : ""}
           </p>
         </div>
+
         <div className="wc-top-actions">
-          <button className="nav-btn" onClick={goPrevMonth} type="button">‹</button>
-          <div className="month-label">{monthName} {viewYear}</div>
-          <button className="nav-btn" onClick={goNextMonth} type="button">›</button>
+          <button className="nav-btn" onClick={goPrevMonth} type="button" aria-label={t("pages.workerCalendar.prevMonth")}>
+            ‹
+          </button>
+
+          <div className="month-label">
+            {monthName} {viewYear}
+          </div>
+
+          <button className="nav-btn" onClick={goNextMonth} type="button" aria-label={t("pages.workerCalendar.nextMonth")}>
+            ›
+          </button>
+
           <button
             className="btn outline small"
             onClick={() => handleDateClick(toISODate(new Date()))}
             type="button"
           >
-            Today
+            {t("pages.workerCalendar.today")}
           </button>
         </div>
       </header>
 
       <div className="calendar">
         <div className="calendar-head">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div className="cal-cell head" key={d}>{d}</div>
+          {weekdays.map((d, idx) => (
+            <div className="cal-cell head" key={`${d}-${idx}`}>
+              {d}
+            </div>
           ))}
         </div>
 
@@ -284,15 +325,11 @@ export default function WorkerCalendar() {
 
             let cellClass = "cal-cell";
             if (!inMonth) cellClass += " muted";
-            if (!isWorkingDay) cellClass += " non-working"; // ใส่ class สีเทา
+            if (!isWorkingDay) cellClass += " non-working";
             if (iso === selectedDate) cellClass += " selected";
 
             return (
-              <div
-                key={iso}
-                className={cellClass}
-                onClick={() => handleDateClick(iso)}
-              >
+              <div key={iso} className={cellClass} onClick={() => handleDateClick(iso)}>
                 <div className="cal-date-row">
                   <div className="cal-date">{d.getDate()}</div>
                 </div>
@@ -300,7 +337,7 @@ export default function WorkerCalendar() {
                 <div className="wc-tags">
                   {att && (
                     <span className={`wc-tag ${att.isLate ? "late" : "ok"}`}>
-                      {att.isLate ? "Late" : "Present"}
+                      {att.isLate ? t("pages.workerCalendar.tags.late") : t("pages.workerCalendar.tags.present")}
                     </span>
                   )}
 
@@ -322,17 +359,19 @@ export default function WorkerCalendar() {
                   ))}
 
                   {specialHolidays.includes(iso) && (
-                    <span 
-                      className="wc-tag" 
-                      style={{ 
+                    <span
+                      className="wc-tag"
+                      style={{
                         backgroundColor: "#64748b",
                         color: "#fff",
                         fontSize: "10px",
                         padding: "2px 4px",
                         display: "block",
-                        marginTop: "2px"
+                        marginTop: "2px",
                       }}
-                    >{t("pages.workerCalendar.Company Holiday")}</span>
+                    >
+                      {t("pages.workerCalendar.companyHoliday")}
+                    </span>
                   )}
                 </div>
               </div>

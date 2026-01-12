@@ -155,6 +155,7 @@ model Notification {
   employeeId          Int       @map("employee_id")
   notificationType    String    @map("notification_type") // 'NewRequest', 'Approval', 'Rejection', 'LateWarning'
   message             String
+  meta             Json?
   relatedRequestId    Int?      @map("related_request_id")
   relatedProfileRequestId   Int?    @map("related_profile_request_id")
   isRead              Boolean   @map("is_read") @default(false)

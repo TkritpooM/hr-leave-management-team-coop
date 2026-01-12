@@ -1,10 +1,45 @@
 {
-  "errors": {
+  "notifications": {
     "leave": {
-      "insufficientQuota": "Insufficient quota. You currently have {{pendingDays}} day(s) pending approval. (Available including carry-over: {{available}} day(s), requested: {{requestedDays}} day(s))"
+      "newRequestFromEmployee": "New leave request: {{leaveTypeName}} from {{employeeName}}",
+      "newRequestReceivedWithId": "New leave request received (ID: {{requestId}}).",
+      "requestStatusUpdatedWithId": "Your leave request (ID: {{requestId}}) has been {{status}}."
+    }
+  },
+  "success": {
+    "leave": {
+      "requestSubmittedAndHrNotified": "Leave request submitted successfully. HR has been notified.",
+      "requestCancelledAndAttachmentRemoved": "Leave request cancelled successfully. Attachment removed (if any).",
+      "requestProcessed": "Leave request has been {{status}}.",
+      "requestAndAttachmentDeleted": "Leave request deleted successfully. Attachment removed (if any)."
+    }
+  },
+  "errors": {
+    "common": {
+      "accessDenied": "Access denied."
+    },
+    "leave": {
+      "leaveGapFromPrevious": "You must wait at least {{gapDays}} day(s) after your previous leave ended on {{lastLeaveDate}}.",
+      "leaveGapBeforeNext": "You must wait at least {{gapDays}} day(s) before your next leave starting on {{nextLeaveDate}}.",
+      "overlappingRequest": "You already have a leave request that overlaps with this period (pending or approved).",
+      "startAfterEnd": "The start date must not be later than the end date.",
+      "quotaNotSet": "Leave quota has not been configured for the current year.",
+      "insufficientQuota": "Insufficient quota. (Available including carry-over: {{available}} day(s), requested: {{requestedDays}} day(s))",
+      "requestOnNonWorkingDay": "Leave request is not allowed on non-working days ({{fullText}}).",
+      "requestedDaysMustBeGreaterThanZero": "Requested leave days must be greater than 0.",
+      "requestNotFound": "Leave request not found.",
+      "canOnlyCancelOwnRequest": "You can only cancel your own leave request.",
+      "cannotCancelAlreadyProcessed": "You cannot cancel this request because it is already {{status}}.",
+      "requestNotFoundOrProcessed": "This leave request was not found or has already been processed.",
+      "insufficientQuotaOnApproval": "Insufficient leave quota to approve this request. Available: {{availableDays}} day(s), requested: {{requestedDays}} day(s)."
     }
   },
   "common": {
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "start": "Start",
+    "end": "End",
+    "full": "Full Day",
     "leave": "Leave",
     "requestStatus": {
       "pending": "Pending",
@@ -142,6 +177,11 @@
   },
   "pages": {
     "workerLeave": {
+      "Duration": "Duration",
+      "Cancel Request": "Cancel Request",
+      "Remaining from {{total}} days": "Remaining from {{total}} days",
+      "Details": "Details",
+      "All types": "All types",
       "Days deducted": "Days deducted",
       "My Leave": "My Leave",
       "Leave Request Details": "Leave Request Details",
@@ -563,9 +603,48 @@
           "onTime": "On Time"
         }
     },
-    "workerCalendar": {
-      "Company Holiday": "Company Holiday",
-      "My Calendar": "My Calendar"
+   "workerCalendar": {
+      "title": "My Calendar",
+      "subtitle": "Attendance + Leave (monthly view)",
+      "today": "Today",
+      "prevMonth": "Previous month",
+      "nextMonth": "Next month",
+      "companyHoliday": "Company Holiday",
+      "weekdays": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "tags": {
+        "present": "Present",
+        "late": "Late",
+        "normal": "Normal"
+      },
+      "modal": {
+        "common": {
+          "you": "You"
+        },
+        "holiday": {
+          "status": "Company Holiday",
+          "reason": "This is a pre-announced company non-working day."
+        },
+        "weekend": {
+          "status": "Non-Working Day",
+          "reason": "Off-day according to company schedule."
+        },
+        "future": {
+          "status": "Upcoming Date",
+          "reason": "This date has not arrived yet."
+        },
+        "noData": {
+          "status": "No Data",
+          "reason": "No attendance or leave record found."
+        }
+      }
     },
     "hrProfileRequests": {
       "Profile Update Requests": "Profile Update Requests",
@@ -649,11 +728,40 @@
       "cancel": "Cancel"
     },
     "hrNotifications": {
-      "HR Notifications": "HR Notifications",
-      "Clear All": "Clear All",
-      "Mark all read": "Mark all read",
-      "noNotifications": "No notifications",
-      "NEW": "NEW"
+      "title": "HR Notifications",
+      "subtitle": "Manage and review notifications.",
+      "actions": {
+        "refresh": "Refresh",
+        "markAllRead": "Mark all read",
+        "clearAll": "Clear all",
+        "view": "View"
+      },
+      "table": {
+        "type": "Type",
+        "message": "Message",
+        "time": "Time",
+        "action": "Action"
+      },
+      "badge": {
+        "new": "NEW"
+      },
+      "noNotifications": "No notifications yet.",
+      "types": {
+        "profileUpdate": "Profile Update",
+        "leaveRequest": "Leave Request",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "general": "General"
+       },
+      "alert": {
+        "loadFailed": "Failed to load notifications.",
+        "markedRead": "All notifications marked as read.",
+        "clearAllTitle": "Clear all notifications?",
+        "clearAllText": "This action cannot be undone.",
+        "cleared": "All notifications cleared.",
+        "clearFailed": "Failed to clear notifications.",
+        "deleteOneConfirmText": "Do you want to delete this notification?"
+      }
     },
     "workerNotifications": {
       "title": "Notifications",

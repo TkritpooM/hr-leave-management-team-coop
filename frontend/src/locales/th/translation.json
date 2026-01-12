@@ -1,10 +1,45 @@
 {
-  "errors": {
+   "success": {
     "leave": {
-      "insufficientQuota": "โควต้าการลาไม่เพียงพอ ขณะนี้คุณมี {{pendingDays}} วัน ที่รอการอนุมัติ (จำนวนวันที่ใช้ได้รวมวันสะสม: {{available}} วัน, ขอใช้ {{requestedDays}} วัน)"
+      "requestSubmittedAndHrNotified": "ส่งคำขอลาสำเร็จ และแจ้ง HR แล้ว",
+      "requestCancelledAndAttachmentRemoved": "ยกเลิกคำขอลาสำเร็จ และลบไฟล์แนบ (ถ้ามี) แล้ว",
+      "requestProcessed": "ดำเนินการคำขอลาเป็นสถานะ {{status}} แล้ว",
+      "requestAndAttachmentDeleted": "ลบคำขอลาสำเร็จ และลบไฟล์แนบ (ถ้ามี) แล้ว"
+    }
+  },
+  "notifications": {
+    "leave": {
+      "newRequestFromEmployee": "มีคำขอลาใหม่: {{leaveTypeName}} จาก {{employeeName}}",
+      "newRequestReceivedWithId": "ได้รับคำขอลาใหม่ (รหัส: {{requestId}})",
+      "requestStatusUpdatedWithId": "คำขอลาของคุณ (รหัส: {{requestId}}) ถูกเปลี่ยนสถานะเป็น {{status}} แล้ว"
+    }
+  },
+  "errors": {
+    "common": {
+      "accessDenied": "ไม่อนุญาตให้เข้าถึง"
+    },
+    "leave": {
+      "requestOnNonWorkingDay": "ไม่สามารถขอลาในวันนอกวันทำงานได้ ({{fullText}})",
+      "requestedDaysMustBeGreaterThanZero": "จำนวนวันลาที่ขอต้องมากกว่า 0",
+      "requestNotFound": "ไม่พบคำขอลา",
+      "canOnlyCancelOwnRequest": "คุณสามารถยกเลิกได้เฉพาะคำขอลาของตัวเองเท่านั้น",
+      "cannotCancelAlreadyProcessed": "ไม่สามารถยกเลิกคำขอนี้ได้ เนื่องจากสถานะเป็น {{status}} แล้ว",
+      "requestNotFoundOrProcessed": "ไม่พบคำขอลานี้ หรือถูกดำเนินการไปแล้ว",
+      "insufficientQuotaOnApproval": "โควต้าการลาไม่เพียงพอสำหรับการอนุมัติคำขอนี้ (คงเหลือ: {{availableDays}} วัน, ขอใช้: {{requestedDays}} วัน)",
+      "leaveGapFromPrevious": "ต้องเว้นระยะอย่างน้อย {{gapDays}} วันจากการลาครั้งก่อนเมื่อ {{lastLeaveDate}}",
+      "leaveGapBeforeNext": "ต้องเว้นระยะอย่างน้อย {{gapDays}} วันก่อนการลาครั้งถัดไปในวันที่ {{nextLeaveDate}}",
+      "overlappingRequest": "คุณมีคำขอลาซ้ำซ้อนในช่วงเวลานี้ (รออนุมัติหรืออนุมัติแล้ว)",
+      "startAfterEnd": "วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด",
+      "quotaNotSet": "ยังไม่ได้ตั้งค่าโควต้าการลาสำหรับปีปัจจุบัน",
+      "insufficientQuota": "โควต้าการลาไม่เพียงพอ  (จำนวนวันที่ใช้ได้รวมวันสะสม: {{available}} วัน, ขอใช้ {{requestedDays}} วัน)"
     }
   },
   "common": {
+    "morning": "ครึ่งวันเช้า",
+    "afternoon": "ครึ่งวันบ่าย",
+    "start": "เริ่ม",
+    "end": "สิ้นสุด",
+    "full": "เต็มวัน",
      "leave": "ลา",
       "requestStatus": {
       "pending": "รออนุมัติ",
@@ -139,6 +174,11 @@
   },
   "pages": {
     "workerLeave": {
+      "Duration": "ระยะเวลา",
+      "Cancel Request": "ยกเลิกคำขอนี้",
+      "Remaining from {{total}} days": "คงเหลือจากทั้งหมด {{total}} วัน",
+      "Details": "รายละเอียด",
+      "All types": "ทุกประเภท",
       "Days deducted": "จำนวนวันที่หัก",
       "My Leave": "การลาของฉัน",
       "Leave Request Details": "รายละเอียดคำขอลา",
@@ -567,9 +607,48 @@
         "onTime": "ตรงเวลา"
       }
     },
-    "workerCalendar": {
-      "Company Holiday": "วันหยุดบริษัท",
-      "My Calendar": "ปฏิทินของฉัน"
+     "workerCalendar": {
+      "title": "ปฏิทินของฉัน",
+      "subtitle": "การเข้างาน + การลา (มุมมองรายเดือน)",
+      "today": "วันนี้",
+      "prevMonth": "เดือนก่อนหน้า",
+      "nextMonth": "เดือนถัดไป",
+      "companyHoliday": "วันหยุดบริษัท",
+      "weekdays": {
+        "sun": "อา",
+        "mon": "จ",
+        "tue": "อ",
+        "wed": "พ",
+        "thu": "พฤ",
+        "fri": "ศ",
+        "sat": "ส"
+      },
+      "tags": {
+        "present": "มาทำงาน",
+        "late": "สาย",
+        "normal": "ปกติ"
+      },
+      "modal": {
+        "common": {
+          "you": "คุณ"
+        },
+        "holiday": {
+          "status": "วันหยุดบริษัท",
+          "reason": "วันนี้เป็นวันหยุดที่บริษัทประกาศล่วงหน้า"
+        },
+        "weekend": {
+          "status": "วันหยุด (ไม่ใช่วันทำงาน)",
+          "reason": "เป็นวันหยุดตามตารางการทำงานของบริษัท"
+        },
+        "future": {
+          "status": "วันที่กำลังจะมาถึง",
+          "reason": "วันนี้ยังมาไม่ถึง"
+        },
+        "noData": {
+          "status": "ไม่มีข้อมูล",
+          "reason": "ไม่พบข้อมูลการเข้างานหรือการลา"
+        }
+      }
     },
     "hrProfileRequests": {
       "Profile Update Requests": "คำร้องขอแก้ไขโปรไฟล์",
@@ -653,11 +732,40 @@
       "cancel": "ยกเลิก"
     },
     "hrNotifications": {
-      "HR Notifications": "การแจ้งเตือน (HR)",
-      "Clear All": "ล้างทั้งหมด",
-      "Mark all read": "ทำเครื่องหมายว่าอ่านแล้วทั้งหมด",
-      "noNotifications": "ไม่มีการแจ้งเตือน",
-      "NEW": "ใหม่"
+      "title": "การแจ้งเตือน (HR)",
+      "subtitle": "จัดการและตรวจสอบการแจ้งเตือน",
+      "actions": {
+        "refresh": "รีเฟรช",
+        "markAllRead": "ทำว่าอ่านแล้วทั้งหมด",
+        "clearAll": "ล้างทั้งหมด",
+        "view": "ดู"
+      },
+      "table": {
+        "type": "ประเภท",
+        "message": "ข้อความ",
+        "time": "เวลา",
+        "action": "การทำงาน"
+      },
+      "badge": {
+        "new": "ใหม่"
+      },
+      "noNotifications": "ยังไม่มีการแจ้งเตือน",
+      "types": {
+        "profileUpdate": "อัปเดตโปรไฟล์",
+        "leaveRequest": "คำขอลา",
+        "approved": "อนุมัติแล้ว",
+        "rejected": "ไม่อนุมัติ",
+        "general": "ทั่วไป"
+      },
+      "alert": {
+        "loadFailed": "โหลดการแจ้งเตือนไม่สำเร็จ",
+        "markedRead": "ทำว่าอ่านแล้วทั้งหมดเรียบร้อย",
+        "clearAllTitle": "ล้างการแจ้งเตือนทั้งหมด?",
+        "clearAllText": "การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+        "cleared": "ล้างการแจ้งเตือนทั้งหมดแล้ว",
+        "clearFailed": "ล้างการแจ้งเตือนไม่สำเร็จ",
+        "deleteOneConfirmText": "ต้องการลบการแจ้งเตือนนี้หรือไม่?"
+      }
     },
     "workerNotifications": {
       "title": "การแจ้งเตือน",
@@ -673,7 +781,7 @@
         "time": "เวลา",
         "action": "การทำงาน"
       },
-      "view": "ดูรายละเอียด",
+      "view": "ดู",
       "open": "เปิด",
       "modal": { "title": "การแจ้งเตือน" },
       "type": {
