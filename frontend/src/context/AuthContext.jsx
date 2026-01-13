@@ -43,16 +43,16 @@ export function AuthProvider({ children }) {
     const data = res.data;
 
     // รองรับรูปแบบ response หลายแบบ
-    const t = data?.token || data?.accessToken;
+    const receivedToken = data?.token || data?.accessToken;
     const u = data?.user || data?.employee || data?.data?.user;
 
-    if (!t) throw new Error(t("Token not found in response"));
+    if (!receivedToken) throw new Error(t("Token not found in response"));
 
-    localStorage.setItem("token", t);
+    localStorage.setItem("token", receivedToken);
     if (u) persistUser(u);
     else await fetchMe();
 
-    return { token: t, user: u };
+    return { token: receivedToken, user: u };
   };
 
   useEffect(() => {

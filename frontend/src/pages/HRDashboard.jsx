@@ -1,9 +1,9 @@
 // src/pages/HRDashboard.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import moment from "moment";
-import {
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar
+import { 
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar 
 } from "recharts";
 import {
   FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle,
@@ -15,7 +15,7 @@ import Pagination from "../components/Pagination";
 import axiosClient from "../api/axiosClient";
 import { alertError } from "../utils/sweetAlert";
 import AuditLogPanel from "../components/AuditLogPanel";
-import { useTranslation } from "react-i18next";
+
 
 /* ===== Helpers ===== */
 const pad2 = (n) => String(n).padStart(2, "0");
@@ -48,7 +48,13 @@ const parseWorkingDays = (str) => {
 };
 
 export default function HRDashboard() {
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
+  // ✅ เพิ่ม useEffect เพื่อ Sync ภาษาของ Moment กับ i18next
+  useEffect(() => {
+    if(i18n.language){
+      moment.locale(i18n.language); // เปลี่ยนเป็น 'th' หรือ 'en' ตามระบบ
+    }
+  }, [i18n.language]);
 
   const [tab, setTab] = useState("overview");
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
@@ -176,7 +182,7 @@ export default function HRDashboard() {
     const att = attendanceRecords.map((r) => ({ id: `att-${r.recordId}`, name: `${r.employee.firstName} ${r.employee.lastName}`, role: r.employee.role, checkIn: r.checkInTime ? moment(r.checkInTime).format("HH:mm") : "--:--", checkOut: r.checkOutTime ? moment(r.checkOutTime).format("HH:mm") : "--:--", statusKey: r.isLate ? "late" : "onTime", statusText: r.isLate ? t("common.status.late") : t("common.status.onTime") }));
     const leave = leaveRequests.map((l) => ({ id: `leave-${l.requestId}`, name: `${l.employee.firstName} ${l.employee.lastName}`, role: l.employee.role, checkIn: "--:--", checkOut: "--:--", statusKey: "leave", statusText: t("common.leaveWithType", { type: l.leaveType?.typeName || t("common.leave") }) }));
     return [...att, ...leave];
-  }, [attendanceRecords, leaveRequests, t]);
+  }, [attendanceRecords, leaveRequests, t, i18n.language]);
 
   return (
     <div className="page-card hr-dashboard">
@@ -277,49 +283,47 @@ export default function HRDashboard() {
                   {t("pages.hrDashboard.attendanceLeaveTrends")}
                 </h5>
                 <div className="chart-box-large">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart
-                      data={attendanceTrend}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
-                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Legend iconType="circle" />
-                      <Line
-                        type="monotone"
-                        dataKey="present"
-                        name={t("pages.hrDashboard.series.present")}
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="late"
-                        name={t("pages.hrDashboard.series.late")}
-                        stroke="#f59e0b"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="leave"
-                        name={t("pages.hrDashboard.series.leave")}
-                        stroke="#3b82f6"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="absent"
-                        name={t("pages.hrDashboard.series.absent")}
-                        stroke="#ef4444"
-                        strokeWidth={3}
-                        dot={{ r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                 <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={attendanceTrend}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
+                    <Legend iconType="circle" />
+                    <Line
+                      type="monotone"
+                      dataKey="present"
+                      name={t("pages.hrDashboard.series.present")}
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="late"
+                      name={t("pages.hrDashboard.series.late")}
+                      stroke="#f59e0b"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="leave"
+                      name={t("pages.hrDashboard.series.leave")}
+                      stroke="#3b82f6"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="absent"
+                      name={t("pages.hrDashboard.series.absent")}
+                      stroke="#ef4444"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
                 </div>
               </div>
 

@@ -1,5 +1,6 @@
 // src/pages/WorkerDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
+import "moment/locale/th"; // เพิ่มการ import locale ภาษาไทย
 import axiosClient from "../api/axiosClient";
 import { useNavigate } from "react-router-dom";
 import { FiClock, FiPlusCircle, FiCalendar } from "react-icons/fi";
@@ -82,7 +83,12 @@ function QuotaCard({ title, usedDays, totalDays, carriedOverDays }) {
 
 export default function WorkerDashboard() {
   const { t, i18n } = useTranslation();
+  useEffect(() => {
+    // เปลี่ยนภาษาของ moment ให้ตรงกับ i18next
+    moment.locale(i18n.language);
+  }, [i18n.language]);
   const navigate = useNavigate();
+
 
   const [now, setNow] = useState(new Date());
   const [checkedInAt, setCheckedInAt] = useState(null);
@@ -546,6 +552,7 @@ export default function WorkerDashboard() {
                     dateFormat="yyyy-MM-dd"
                     className="wa-datepicker-input"
                     required
+                    locale={i18n.language} // ✅ เพิ่มบรรทัดนี้ เพื่อให้ปฏิทินเปลี่ยนภาษา
                   />
 
                   <select
@@ -573,6 +580,7 @@ export default function WorkerDashboard() {
                     dateFormat="yyyy-MM-dd"
                     className="wa-datepicker-input"
                     required
+                     locale={i18n.language} // ✅ เพิ่มบรรทัดนี้ เพื่อให้ปฏิทินเปลี่ยนภาษา
                   />
 
                   <select
