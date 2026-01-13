@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus, FiToggleLeft, FiToggleRight } from "react-icons/fi";
+import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus, FiToggleLeft, FiToggleRight, FiClock } from "react-icons/fi";
 import "./HREmployees.css";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
@@ -22,6 +22,31 @@ export default function Employees() {
 
   const [activeEmp, setActiveEmp] = useState(null);
   const [quotaRows, setQuotaRows] = useState([]);
+
+  // History Modal State
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyMonth, setHistoryMonth] = useState(new Date().toISOString().slice(0, 7));
+
+  const fetchHistory = async (empId, month) => {
+    try {
+      setHistoryLoading(true);
+      const res = await axiosClient.get(`/timerecord/history/${empId}?month=${month}`);
+      setHistoryData(res.data.data || []);
+    } catch (err) {
+      console.error("Fetch History Error:", err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const openHistory = (emp) => {
+    setActiveEmp(emp);
+    setHistoryMonth(new Date().toISOString().slice(0, 7));
+    setHistoryOpen(true);
+    fetchHistory(emp.employeeId, new Date().toISOString().slice(0, 7));
+  };
 
   const [empForm, setEmpForm] = useState({
     firstName: "",
@@ -317,17 +342,21 @@ export default function Employees() {
                   <td>
                     <div className="emp-muted mini">{emp.email}</div>
                     <span className={`badge ${emp.role === "HR" ? "badge-role-hr" : "badge-role-worker"}`}>
-                    {emp.role === "HR"
-                      ? t("pages.hrEmployees.filters.hr")
-                      : t("pages.hrEmployees.filters.worker")}
-                  </span>
+                      {emp.role === "HR"
+                        ? t("pages.hrEmployees.filters.hr")
+                        : t("pages.hrEmployees.filters.worker")}
+                    </span>
                     {!emp.isActive && (
                       <span className="badge badge-danger">{t("pages.hrEmployees.badge.inactive")}</span>
                     )}
                   </td>
 
                   <td className="action-column">
-                    <div className="btn-group-row" style={{ justifyContent: "center", gap: 8 }}>
+                    <div className="btn-group-row" style={{ display: "flex", justifyContent: "center", gap: 8, flexWrap: "nowrap" }}>
+                      <button className="emp-btn emp-btn-outline small info" onClick={() => openHistory(emp)} title="History">
+                        <FiClock />
+                      </button>
+
                       <button className="emp-btn emp-btn-outline small info" onClick={() => openEditModal(emp)}>
                         <FiEdit2 />
                         {t("pages.hrEmployees.buttons.edit")}
@@ -354,6 +383,92 @@ export default function Employees() {
           </tbody>
         </table>
       </div>
+
+      {/* History Modal */}
+      {historyOpen && (
+        <div className="emp-modal-backdrop" onClick={() => setHistoryOpen(false)}>
+          <div className="emp-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 800 }}>
+            <div className="emp-modal-head">
+              <div>
+                <div className="emp-modal-title">{t("pages.hrEmployees.history.title")}</div>
+                <div className="emp-modal-sub">
+                  {activeEmp?.firstName} {activeEmp?.lastName} (ID: {activeEmp?.employeeId})
+                </div>
+              </div>
+              <button className="emp-x" onClick={() => setHistoryOpen(false)}>
+                ×
+              </button>
+            </div>
+
+            <div className="emp-modal-body">
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 15 }}>
+                <input
+                  type="month"
+                  className="quota-input"
+                  value={historyMonth}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setHistoryMonth(val);
+                    if (val && activeEmp) fetchHistory(activeEmp.employeeId, val);
+                  }}
+                />
+              </div>
+
+              <div className="table-wrap" style={{ maxHeight: 400, overflowY: "auto" }}>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>{t("pages.hrEmployees.history.date")}</th>
+                      <th>{t("pages.hrEmployees.history.day")}</th>
+                      <th>{t("pages.hrEmployees.history.status")}</th>
+                      <th>{t("pages.hrEmployees.history.in")}</th>
+                      <th>{t("pages.hrEmployees.history.out")}</th>
+                      <th>{t("pages.hrEmployees.history.details")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historyLoading ? (
+                      <tr><td colSpan={6} style={{ textAlign: "center", padding: 20 }}>{t("common.loadingRecords")}</td></tr>
+                    ) : historyData.length === 0 ? (
+                      <tr><td colSpan={6} style={{ textAlign: "center", padding: 20 }}>{t("common.noDataAvailable")}</td></tr>
+                    ) : (
+                      historyData.map((d, i) => (
+                        <tr key={i}>
+                          <td>{d.date}</td>
+                          <td>{t(`common.days.${d.day.toLowerCase().substring(0, 3)}`) || d.day}</td>
+                          <td>
+                            <span className="badge" style={{
+                              backgroundColor: d.color === 'green' ? '#dcfce7' :
+                                d.color === 'red' ? '#fee2e2' :
+                                  d.color === 'orange' ? '#ffedd5' :
+                                    d.color === 'blue' ? '#dbeafe' :
+                                      d.color === 'purple' ? '#f3e8ff' : '#f3f4f6',
+                              color: d.color === 'green' ? '#166534' :
+                                d.color === 'red' ? '#991b1b' :
+                                  d.color === 'orange' ? '#9a3412' :
+                                    d.color === 'blue' ? '#1e40af' :
+                                      d.color === 'purple' ? '#6b21a8' : '#374151'
+                            }}>
+                              {t(`pages.hrEmployees.history.statusTypes.${d.status}`) || d.status}
+                            </span>
+                          </td>
+                          <td>{d.checkIn}</td>
+                          <td>{d.checkOut}</td>
+                          <td style={{ fontSize: '0.9em', color: '#666' }}>{d.details}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="emp-modal-actions">
+              <button className="emp-btn emp-btn-secondary" onClick={() => setHistoryOpen(false)}>{t("common.close")}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Employee modal */}
       {empModalOpen && (

@@ -504,6 +504,24 @@
         "title": "Add New Employee",
         "subtitle": "Fill in details to create a new account"
       },
+      "history": {
+        "title": "Attendance History",
+        "date": "Date",
+        "day": "Day",
+        "status": "Status",
+        "in": "In",
+        "out": "Out",
+        "details": "Details",
+        "statusTypes": {
+          "Present": "Present",
+          "Late": "Late",
+          "Leave": "Leave",
+          "Absent": "Absent",
+          "Holiday": "Holiday",
+          "Weekend": "Weekend",
+          "Upcoming": "Upcoming"
+        }
+      },
       "title": "Employees",
       "subtitle": "Manage employees and leave quotas",
       "search": {
