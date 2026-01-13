@@ -35,28 +35,28 @@ const createApp = () => {
                 defaultSrc: ["'self'"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'"],
-                imgSrc: ["'self'", "data:", "blob:", "http://localhost:8000"],
+                imgSrc: ["'self'", "data:", "blob:", process.env.FRONTEND_URL || "http://localhost:5173", "http://localhost:8000"],
                 // 🔥 เพิ่มส่วนนี้เพื่อให้ iframe ยอมรับ PDF จาก Backend
-                frameSrc: ["'self'", "http://localhost:8000"], 
+                frameSrc: ["'self'", "http://localhost:8000"],
                 connectSrc: ["'self'", "http://localhost:8000"],
                 objectSrc: ["'self'", "data:", "http://localhost:8000"], // สำหรับ <object> หรือ <embed>
-                "frame-ancestors": ["'self'", "http://localhost:5173"],
+                "frame-ancestors": ["'self'", process.env.FRONTEND_URL || "http://localhost:5173"],
             },
         },
         crossOriginEmbedderPolicy: false,
     }));
-    
+
     // 🔥 แก้จุดสำคัญ: ต้องระบุ URL Frontend ให้ชัดเจน (ห้ามใช้ *)
     app.use(cors({
-        origin: 'http://localhost:5173', // URL ของ React
+        origin: process.env.FRONTEND_URL || 'http://localhost:5173', // URL ของ React (มี Fallback)
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     }));
-    
+
     // 2. Body Parser
-    app.use(express.json()); 
-    app.use(express.urlencoded({ extended: true })); 
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
     // 3. Health Check
     app.get('/', (req, res) => {
@@ -65,7 +65,7 @@ const createApp = () => {
 
     // 4. API Routes
     app.use('/api/auth', authRoute);
-    app.use('/api/admin', adminRoute); 
+    app.use('/api/admin', adminRoute);
     app.use('/api/timerecord', timeRecordRoute);
     app.use('/api/leave', leaveRequestRoute);
     app.use('/api/notifications', notificationRoute);

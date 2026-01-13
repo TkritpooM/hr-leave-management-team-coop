@@ -1,9 +1,9 @@
 // src/pages/HRDashboard.jsx
 import React, { useMemo, useState, useEffect } from "react";
 import moment from "moment";
-import { 
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer, 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar 
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar
 } from "recharts";
 import {
   FiRefreshCw, FiCalendar, FiCheckCircle, FiXCircle,
@@ -39,7 +39,7 @@ function getMonthMatrix(year, monthIndex) {
 }
 
 const parseWorkingDays = (str) => {
-  if (!str) return [1, 2, 3, 4, 5]; 
+  if (!str) return [1, 2, 3, 4, 5];
   const dayMap = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
   return str
     .split(",")
@@ -271,53 +271,55 @@ export default function HRDashboard() {
           {/* ✅ ส่วนกราฟตกแต่งใหม่ให้กว้างขวางและมินิมอล */}
           {employeeReport.length > 0 && (
             <div className="analytics-charts-container">
-              
+
               <div className="report-card full-width">
                 <h5 className="card-title">
                   {t("pages.hrDashboard.attendanceLeaveTrends")}
                 </h5>
                 <div className="chart-box-large">
-                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={attendanceTrend}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} />
-                    <Legend iconType="circle" />
-                    <Line
-                      type="monotone"
-                      dataKey="present"
-                      name={t("pages.hrDashboard.series.present")}
-                      stroke="#10b981"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="late"
-                      name={t("pages.hrDashboard.series.late")}
-                      stroke="#f59e0b"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="leave"
-                      name={t("pages.hrDashboard.series.leave")}
-                      stroke="#3b82f6"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="absent"
-                      name={t("pages.hrDashboard.series.absent")}
-                      stroke="#ef4444"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={attendanceTrend}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
+                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
+                      <Tooltip />
+                      <Legend iconType="circle" />
+                      <Line
+                        type="monotone"
+                        dataKey="present"
+                        name={t("pages.hrDashboard.series.present")}
+                        stroke="#10b981"
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="late"
+                        name={t("pages.hrDashboard.series.late")}
+                        stroke="#f59e0b"
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="leave"
+                        name={t("pages.hrDashboard.series.leave")}
+                        stroke="#3b82f6"
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="absent"
+                        name={t("pages.hrDashboard.series.absent")}
+                        stroke="#ef4444"
+                        strokeWidth={3}
+                        dot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
@@ -336,10 +338,10 @@ export default function HRDashboard() {
                     {t("pages.hrDashboard.top5LateEmployees")}
                   </h5>
                   <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={[...employeeReport].sort((a,b) => b.lateCount - a.lateCount).slice(0,5)}>
+                    <BarChart data={[...employeeReport].sort((a, b) => b.lateCount - a.lateCount).slice(0, 5)}>
                       <XAxis dataKey="name" fontSize={10} tickFormatter={(v) => v.split(' ')[0]} />
                       <YAxis fontSize={10} />
-                      <Tooltip cursor={{fill: 'transparent'}} />
+                      <Tooltip cursor={{ fill: 'transparent' }} />
                       <Bar dataKey="lateCount" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -380,6 +382,8 @@ export default function HRDashboard() {
     </div>
   );
 }
+
+
 
 function Card({ title, value, tone, icon }) {
   const themes = { green: { bg: "#f0fdf4", border: "#22c55e", fg: "#166534" }, blue: { bg: "#eff6ff", border: "#3b82f6", fg: "#1e40af" }, red: { bg: "#fef2f2", border: "#ef4444", fg: "#991b1b" }, amber: { bg: "#fffbeb", border: "#f59e0b", fg: "#92400e" }, gray: { bg: "#f8fafc", border: "#e2e8f0", fg: "#334155" } };

@@ -27,16 +27,18 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ 
+const upload = multer({
     storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 } // จำกัด 5MB เหมือนระบบลา
 });
 
 const router = express.Router();
 
-// --- 1. Register Route (สมัครสมาชิก) ---
+// --- 1. Register Route (สมัครสมาชิก - HR Only) ---
 router.post(
     '/register',
+    authenticateToken, // ต้อง Login ก่อน
+    authorizeRole(['HR']), // ต้องเป็น HR เท่านั้น
     [
         // Validation Checks using express-validator
         body('email').isEmail().withMessage('Invalid email format.'),
@@ -67,8 +69,8 @@ router.get('/me', authenticateToken, authController.getMe);
 router.put('/update-profile', authenticateToken, authController.updateProfile);
 
 router.post(
-    '/request-profile-update', 
-    authenticateToken, 
+    '/request-profile-update',
+    authenticateToken,
     upload.single('attachment'), // คีย์ไฟล์ชื่อ 'attachment'
     authController.requestProfileUpdate
 );
