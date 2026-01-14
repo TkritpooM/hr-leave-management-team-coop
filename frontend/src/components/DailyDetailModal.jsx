@@ -135,7 +135,7 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
         {/* Content Body */}
         <div style={{ maxHeight: "65vh", minHeight: "350px", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column" }}>
           {isHoliday && (summary.presentCount || 0) === 0 && activeTab === "present" ? (
-            <HolidayEmptyState t={t} isWeekend={isWeekend} isSpecial={isSpecialHoliday} />
+            <HolidayEmptyState t={t} isWeekend={isWeekend} isSpecial={isSpecialHoliday} desc={data.specialHolidayDesc} />
           ) : (
             isFuture && activeTab === "present" && (summary.presentCount || 0) === 0 && (
               <EmptyState message={t("components.dailyDetailModal.futureNoData", "No attendance data expected yet for this future date.")} icon={<FiSunrise size={48} />} />
@@ -241,10 +241,10 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
 
 /* --- Sub-components & Styles --- */
 
-const HolidayEmptyState = ({ t, isWeekend, isSpecial }) => (
+const HolidayEmptyState = ({ t, isWeekend, isSpecial, desc }) => (
   <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px", textAlign: "center" }}>
     <div style={{ background: "#f8fafc", padding: "24px", borderRadius: "50%", marginBottom: "16px" }}><FiCoffee size={48} color="#94a3b8" /></div>
-    <h4 style={{ margin: "0 0 8px", color: "#1e293b" }}>{isSpecial ? t("components.dailyDetailModal.companySpecialHolidayTitle", "Company Special Holiday") : t("components.dailyDetailModal.weekendBreakTitle", "Weekend Break")}</h4>
+    <h4 style={{ margin: "0 0 8px", color: "#1e293b" }}>{isSpecial ? (desc || t("components.dailyDetailModal.companySpecialHolidayTitle", "Company Special Holiday")) : t("components.dailyDetailModal.weekendBreakTitle", "Weekend Break")}</h4>
     <p style={{ margin: 0, color: "#64748b", maxWidth: "320px" }}>{isSpecial ? t("components.dailyDetailModal.companySpecialHolidayDesc", "Today is an officially announced non-working day.") : t("components.dailyDetailModal.weekendBreakDesc", "Enjoy the weekend! This is a scheduled non-working day.")}</p>
   </div>
 );

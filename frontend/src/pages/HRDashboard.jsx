@@ -96,10 +96,15 @@ export default function HRDashboard() {
       if (policyRes.data.policy?.workingDays) setWorkingDays(parseWorkingDays(policyRes.data.policy.workingDays));
       setSpecialHolidays(holidays);
       const mapping = {};
-      holidays.forEach((hDate) => {
+      holidays.forEach((hStr) => {
+        const [hDate, hDesc] = hStr.split("|");
         const ds = moment(hDate).format("YYYY-MM-DD");
         if (!mapping[ds]) mapping[ds] = [];
-        mapping[ds].push({ name: t("pages.hrDashboard.companyHoliday"), isHoliday: true, colorCode: "#64748b" });
+        mapping[ds].push({
+          name: hDesc || t("pages.hrDashboard.companyHoliday"),
+          isHoliday: true,
+          colorCode: "#64748b"
+        });
       });
       approved.forEach((leave) => {
         let curr = moment(leave.startDate).startOf("day");
@@ -162,7 +167,15 @@ export default function HRDashboard() {
     try {
       setLoading(true);
       const res = await axiosClient.get(`/timerecord/daily-detail?date=${dateStr}`);
-      setDailyData({ ...res.data.data, isSpecialHoliday: specialHolidays.includes(dateStr) });
+      const holidayEntry = specialHolidays.find(h => h.split("|")[0] === dateStr);
+      const isSpecial = !!holidayEntry;
+      const holidayDesc = isSpecial ? (holidayEntry.split("|")[1] || "") : "";
+
+      setDailyData({
+        ...res.data.data,
+        isSpecialHoliday: isSpecial,
+        specialHolidayDesc: holidayDesc
+      });
       setSelectedDate(dateStr);
       setDailyModalOpen(true);
     } catch (err) { alertError(t("common.error"), t("pages.hrDashboard.unableToLoadData")); } finally { setLoading(false); }

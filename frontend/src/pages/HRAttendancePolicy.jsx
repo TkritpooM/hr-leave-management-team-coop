@@ -76,9 +76,9 @@ export default function HRAttendancePolicy() {
   // ✅ แก้ไข: Logic การเปลี่ยนเวลาเริ่มพัก และบังคับเวลาจบพัก +1 ชม.
   const handleBreakStartChange = (val) => {
     const newBreakEnd = moment(val, "HH:mm").add(1, "hours").format("HH:mm");
-    setPolicy((p) => ({ 
-      ...p, 
-      breakStartTime: val, 
+    setPolicy((p) => ({
+      ...p,
+      breakStartTime: val,
       breakEndTime: newBreakEnd // อัปเดตให้หลัง 1 ชม. อัตโนมัติ
     }));
   };
@@ -137,18 +137,25 @@ export default function HRAttendancePolicy() {
   };
 
   const addHoliday = () => {
-    const d = holidayInput.trim();
+    const rawinput = holidayInput.trim();
+    if (!rawinput) return;
+    const [d, desc] = rawinput.split("|");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
+
     setPolicy((p) => {
-      const set = new Set(p.specialHolidays || []);
-      set.add(d);
-      return { ...p, specialHolidays: Array.from(set).sort() };
+      // Remove any existing entry for this date before adding new one
+      const others = (p.specialHolidays || []).filter(h => h.split("|")[0] !== d);
+      const newEntry = desc ? `${d}|${desc}` : d;
+      return { ...p, specialHolidays: [...others, newEntry].sort() };
     });
     setHolidayInput("");
   };
 
-  const removeHoliday = (d) => {
-    setPolicy((p) => ({ ...p, specialHolidays: (p.specialHolidays || []).filter((x) => x !== d) }));
+  const removeHoliday = (entryToRemove) => {
+    setPolicy((p) => ({
+      ...p,
+      specialHolidays: (p.specialHolidays || []).filter((x) => x !== entryToRemove)
+    }));
   };
 
   return (
@@ -231,22 +238,34 @@ export default function HRAttendancePolicy() {
           <h3 className="hrp-card-title">{t("pages.attendancePolicy.specialHolidaysTitle")}</h3>
           <div className="hrp-holiday-row">
             <DatePicker
-              selected={holidayInput ? new Date(`${holidayInput}T00:00:00`) : null}
+              selected={holidayInput ? new Date(`${holidayInput.split("|")[0]}T00:00:00`) : null}
               onChange={(date) => {
                 if (!date) {
                   setHolidayInput("");
                   return;
                 }
-                // ✅ แก้ไข: ใช้การดึงส่วนประกอบวันที่โดยตรงแทน ISOString เพื่อป้องกันวันที่ลดลง 1 วัน
                 const year = date.getFullYear();
                 const month = String(date.getMonth() + 1).padStart(2, '0');
                 const day = String(date.getDate()).padStart(2, '0');
-                setHolidayInput(`${year}-${month}-${day}`);
+                setHolidayInput((prev) => {
+                  const desc = prev.split("|")[1] || "";
+                  return `${year}-${month}-${day}|${desc}`;
+                });
               }}
               dateFormat="yyyy-MM-dd"
               locale={enUS}
               placeholderText={t("pages.attendancePolicy.selectHolidayDate")}
               className="hrp-holiday-input"
+            />
+            <input
+              type="text"
+              placeholder={t("pages.attendancePolicy.holidayDesc", "Description")}
+              value={holidayInput.split("|")[1] || ""}
+              onChange={(e) => {
+                const datePart = holidayInput.split("|")[0];
+                setHolidayInput(`${datePart}|${e.target.value}`);
+              }}
+              style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", flex: 1 }}
             />
             <button className="btn outline" type="button" onClick={addHoliday}>{t("common.add")}</button>
           </div>
@@ -254,12 +273,16 @@ export default function HRAttendancePolicy() {
             <div className="hrp-empty">{t("pages.attendancePolicy.noHolidays")}</div>
           ) : (
             <div className="hrp-holiday-list">
-              {policy.specialHolidays.map((d) => (
-                <div className="hrp-holiday" key={d}>
-                  <span className="hrp-holiday-date">{d}</span>
-                  <button className="hrp-holiday-x" type="button" onClick={() => removeHoliday(d)}>✕</button>
-                </div>
-              ))}
+              {policy.specialHolidays.map((entry) => {
+                const [d, desc] = entry.split("|");
+                return (
+                  <div className="hrp-holiday" key={entry} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <span className="hrp-holiday-date">{d}</span>
+                    {desc && <span style={{ fontSize: "0.85em", color: "#64748b" }}>- {desc}</span>}
+                    <button className="hrp-holiday-x" type="button" onClick={() => removeHoliday(entry)}>✕</button>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
