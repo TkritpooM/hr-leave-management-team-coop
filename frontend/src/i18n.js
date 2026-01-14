@@ -4,8 +4,9 @@ import LanguageDetector from "i18next-browser-languagedetector";
 
 import en from "./locales/en/translation.json";
 import th from "./locales/th/translation.json";
+import jp from "./locales/jp/translation.json";
 
-export const SUPPORTED_LANGS = ["en", "th"];
+export const SUPPORTED_LANGS = ["en", "th", "jp"];
 
 i18n
   .use(LanguageDetector)
@@ -14,6 +15,7 @@ i18n
     resources: {
       en: { translation: en },
       th: { translation: th },
+      jp: { translation: jp },
     },
     supportedLngs: SUPPORTED_LANGS,
     fallbackLng: "en",

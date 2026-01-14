@@ -208,8 +208,8 @@ export default function AppSidebar() {
   const [langOpen, setLangOpen] = useState(false);
 
   const LANGS = [
-    { code: "th", short: "TH", label: tt("common.thai", "ไทย") },
     { code: "en", short: "EN", label: tt("common.english", "English") },
+    { code: "jp", short: "JP", label: tt("common.japanese", "Japanese") },
   ];
 
   const activeLang = LANGS.find((x) => (i18n.language || "").startsWith(x.code)) || LANGS[0];

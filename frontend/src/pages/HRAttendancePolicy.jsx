@@ -181,11 +181,11 @@ export default function HRAttendancePolicy() {
 
           <div className="hrp-row">
             <div className="hrp-field">
-              <label>เวลาเริ่มพัก (Break Start)</label>
+              <label>{t("pages.attendancePolicy.breakstart")}</label>
               <input type="time" value={policy.breakStartTime} onChange={(e) => handleBreakStartChange(e.target.value)} />
             </div>
             <div className="hrp-field">
-              <label>เวลาจบพัก (Break End)</label>
+              <label>{t("pages.attendancePolicy.breakend")}</label>
               {/* ✅ บังคับไม่ให้เลือกเวลาก่อนหน้า Break Start */}
               <input type="time" min={policy.breakStartTime} value={policy.breakEndTime} onChange={(e) => setPolicy((p) => ({ ...p, breakEndTime: e.target.value }))} />
             </div>
