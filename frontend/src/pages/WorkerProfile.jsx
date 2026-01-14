@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import moment from "moment";
-import { 
-  FiUser, FiMail, FiCalendar, FiShield, 
+import {
+  FiUser, FiMail, FiCalendar, FiShield,
   FiBriefcase, FiRefreshCw, FiEdit2, FiCheck, FiX, FiLock, FiUpload
 } from "react-icons/fi";
 import "./WorkerProfile.css";
@@ -16,7 +16,7 @@ export default function WorkerProfile() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
   const [loading, setLoading] = useState(!profile);
-  
+
   // State สำหรับโหมดแก้ไขเดิม (รหัสผ่าน)
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -74,18 +74,18 @@ export default function WorkerProfile() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-        const token = localStorage.getItem("token");
-        const res = await axios.put("http://localhost:8000/api/auth/update-profile", formData, {
+      const token = localStorage.getItem("token");
+      const res = await axios.put("http://localhost:8000/api/auth/update-profile", formData, {
         headers: { Authorization: `Bearer ${token}` },
-        });
-        
-        if (res.data.success) {
+      });
+
+      if (res.data.success) {
         await alertSuccess("Success", "Profile updated successfully.");
         setIsEditing(false);
-        await fetchProfile(); 
-        }
+        await fetchProfile();
+      }
     } catch (err) {
-        await alertError("Error", (err.response?.data?.message || "Update failed."));
+      await alertError("Error", (err.response?.data?.message || "Update failed."));
     }
   };
 
@@ -102,7 +102,7 @@ export default function WorkerProfile() {
     try {
       setIsSubmittingRequest(true);
       const token = localStorage.getItem("token");
-      
+
       const sendData = new FormData();
       sendData.append("newFirstName", requestData.newFirstName);
       sendData.append("newLastName", requestData.newLastName);
@@ -110,7 +110,7 @@ export default function WorkerProfile() {
       if (requestData.attachment) sendData.append("attachment", requestData.attachment);
 
       const res = await axios.post("http://localhost:8000/api/auth/request-profile-update", sendData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data"
         },
@@ -122,7 +122,12 @@ export default function WorkerProfile() {
         fetchProfile(); // เพื่อโหลดสถานะ Pending (ถ้ามี)
       }
     } catch (err) {
-      await alertError("Error", err.response?.data?.message || "Failed to submit request.");
+      const msg = err.response?.data?.message || "Failed to submit request.";
+      if (msg === "You already have pending request.") {
+        await alertError(t("common.error"), t("pages.workerProfile.alert.duplicateRequest") || "คำขอเดิมของคุณกำลังรอการอนุมัติอยู่ครับ");
+      } else {
+        await alertError(t("common.error"), msg);
+      }
     } finally {
       setIsSubmittingRequest(false);
     }
@@ -146,11 +151,11 @@ export default function WorkerProfile() {
             <div className="avatar-circle">
               {profile.profileImageUrl ? (
                 <img src={profile.profileImageUrl} alt={t("pages.workerProfile.Profile")} />
-              ) : ( initials.toUpperCase() )}
+              ) : (initials.toUpperCase())}
             </div>
             <h2 className="display-name">{profile.firstName} {profile.lastName}</h2>
             <span className="badge-role">{profile.role || "Worker"}</span>
-            
+
             {/* ✅ แสดงสถานะ Pending */}
             {hasPendingRequest ? (
               <div className="status-pill pending">
@@ -163,8 +168,8 @@ export default function WorkerProfile() {
             )}
 
             {/* ✅ ปุ่มยื่นคำร้องใหม่ */}
-            <button 
-              className="btn outline full-width" 
+            <button
+              className="btn outline full-width"
               style={{ marginTop: '20px', gap: '8px' }}
               onClick={() => setIsRequestModalOpen(true)}
               disabled={hasPendingRequest}
@@ -220,23 +225,23 @@ export default function WorkerProfile() {
               <div className="info-field-list">
                 <div className="info-box">
                   <label>{t("pages.workerProfile.Current password")}</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     className="edit-input"
                     placeholder={t("auth.placeholders.currentPassword")}
                     value={formData.currentPassword}
-                    onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                     required
                   />
                 </div>
                 <div className="info-box">
                   <label>{t("pages.workerProfile.New password")}</label>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     className="edit-input"
                     placeholder={t("auth.placeholders.newPassword")}
                     value={formData.newPassword}
-                    onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                     required
                   />
                 </div>
@@ -259,7 +264,7 @@ export default function WorkerProfile() {
               </div>
               <button className="p-modal-close" onClick={() => setIsRequestModalOpen(false)}><FiX /></button>
             </div>
-            
+
             <form onSubmit={handleSubmitRequest} className="p-modal-form">
               <div className="p-current-info">
                 <label>{t("pages.workerProfile.Current Name")}</label>
@@ -269,19 +274,19 @@ export default function WorkerProfile() {
               <div className="p-form-row">
                 <div className="p-input-group">
                   <label>{t("pages.workerProfile.New First Name")}</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={requestData.newFirstName}
-                    onChange={e => setRequestData({...requestData, newFirstName: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, newFirstName: e.target.value })}
                     placeholder={t("pages.workerProfile.First name")}
                   />
                 </div>
                 <div className="p-input-group">
                   <label>{t("pages.workerProfile.New Last Name")}</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={requestData.newLastName}
-                    onChange={e => setRequestData({...requestData, newLastName: e.target.value})}
+                    onChange={e => setRequestData({ ...requestData, newLastName: e.target.value })}
                     placeholder={t("pages.workerProfile.Last name")}
                   />
                 </div>
@@ -289,20 +294,20 @@ export default function WorkerProfile() {
 
               <div className="p-input-group">
                 <label>{t("pages.workerProfile.Reason")}</label>
-                <textarea 
+                <textarea
                   rows="2"
                   value={requestData.reason}
-                  onChange={e => setRequestData({...requestData, reason: e.target.value})}
+                  onChange={e => setRequestData({ ...requestData, reason: e.target.value })}
                   placeholder={t("pages.workerProfile.examples.nameChange")}
                 ></textarea>
               </div>
 
               <div className="p-upload-zone">
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   id="p-file"
                   hidden
-                  onChange={e => setRequestData({...requestData, attachment: e.target.files[0]})}
+                  onChange={e => setRequestData({ ...requestData, attachment: e.target.files[0] })}
                 />
                 <label htmlFor="p-file">
                   <FiUpload />

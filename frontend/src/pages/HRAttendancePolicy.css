@@ -226,3 +226,75 @@
 }
 
 .hrp-shift-toggle input{ accent-color: #16a34a; }
+
+/* =========================================================
+   ✅ Policy Filter Bar (match modal DatePicker style)
+========================================================= */
+.policy-filter-bar{
+  background: #f1f5f9;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.policy-filter-label{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.policy-filter-sep{
+  color:#94a3b8;
+  font-weight: 700;
+}
+
+/* make datepicker wrappers behave in flex */
+.policy-filter-bar .react-datepicker-wrapper,
+.policy-filter-bar .react-datepicker__input-container{
+  width: auto;
+}
+
+/* ✅ SAME CLASS AS MODAL: wa-datepicker-input */
+.wa-datepicker-input{
+  width: 140px;
+  height: 34px;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #334155;
+  outline: none;
+  font-weight: 600;
+}
+
+.wa-datepicker-input:focus{
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.policy-filter-clear{
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+
+.policy-filter-clear:hover{
+  background: rgba(239, 68, 68, 0.08);
+}
+

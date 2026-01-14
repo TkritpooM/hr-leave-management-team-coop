@@ -435,6 +435,70 @@
 
 
 
+/* =========================================================
+   ✅ FIX: Japanese (CJK) layout issues (anti-wrap / anti-squeeze)
+   - กันตัวอักษรญี่ปุ่นแตกบรรทัดกลางคำ
+   - กันปุ่มในแถว action ถูกบีบจนต้องขึ้นบรรทัดใหม่
+   - เพิ่ม font fallback JP เพื่อให้ metric นิ่งขึ้น
+========================================================= */
+
+/* Better font fallback for Japanese + stable metrics */
+.page-card.emp,
+.emp-title,
+.emp-sub,
+.table,
+.emp-btn,
+.emp-input,
+.quota-input {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo,
+    Arial, sans-serif;
+  line-height: 1.25;
+}
+
+/* Prevent Japanese text from breaking inside buttons */
+.emp-btn,
+.emp-btn * {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+/* Keep action buttons on one line and prevent squeezing */
+.action-column .btn-group-row {
+  flex-wrap: nowrap !important;
+}
+.action-column .emp-btn {
+  flex-shrink: 0;
+}
+
+/* Toolbar responsive behavior */
+.emp-tools {
+  width: 100%;
+}
+.emp-tools .emp-input {
+  flex: 1;
+  min-width: 260px;
+}
+.emp-tools select.emp-input,
+.emp-tools .emp-btn {
+  flex-shrink: 0;
+}
+
+/* Table header: avoid uppercase styling on JP */
+.table th {
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+/* Buttons size tune for CJK */
+.emp-btn.small {
+  padding: 9px 14px;
+  line-height: 1.1;
+}
+
+
+
 /* Anim */
 .spin{ animation: spin 1s linear infinite; }
 @keyframes spin{ from{ transform: rotate(0deg);} to{ transform: rotate(360deg);} }

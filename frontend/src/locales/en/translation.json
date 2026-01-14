@@ -35,6 +35,11 @@
     }
   },
   "common": {
+    "required": "Required",
+    "filter": "Filter",
+    "clear": "Clear",
+    "noRecordsFound": "No records found.",
+    "datePlaceholder": "yyyy-MM-dd",
     "morning": "Morning",
     "afternoon": "Afternoon",
     "start": "Start",
@@ -65,7 +70,7 @@
     "language": "Language",
     "english": "English",
     "thai": "Thai",
-    "japanese":"Japanese",
+    "japanese": "Japanese",
     "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "HR",
@@ -835,12 +840,35 @@
       "nameChangeHint": "Submit a request to update your official name.",
       "examples": {
         "nameChange": "e.g. Marriage or legal change"
+      },
+      "alert": {
+        "duplicateRequest": "You already have a pending request awaiting approval."
       }
     },
     "auth": {
       "Password123": "Password123"
     },
     "attendancePolicy": {
+      "noHolidaysInRange": "No holidays found in this range.",
+      "console": {
+        "loadError": "Load policy error"
+      },
+      "manageHolidays": "Manage",
+      "holidayDesc": "Description",
+      "companyHoliday": "Company Holiday",
+      "clickDayHint": "Click any date to add or edit a holiday description.",
+      "addHoliday": "Add Holiday",
+      "editHoliday": "Edit Holiday Description",
+      "enterDescFor": "Enter description for {{date}}",
+      "tipsTitle": "Policy Insights",
+      "tip1": "Grace minutes apply to late check-ins automatically.",
+      "tip2": "Changes to working days affect new calculations immediately.",
+      "tip3": "Ensure break times do not overlap with start/end shifts.",
+      "errors": {
+        "breakStartAfterStart": "Break Start must be after Start Time.",
+        "breakEndAfterBreakStart": "Break End must be after Break Start.",
+        "endAfterBreakEnd": "End Time must be after Break End."
+      },
       "title": "Attendance Policy",
       "subtitle": "Configure working hours, working days, and special holidays.",
       "workPolicyTitle": "Work Policy",
