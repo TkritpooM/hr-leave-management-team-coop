@@ -65,6 +65,7 @@
     "language": "Language",
     "english": "English",
     "thai": "Thai",
+    "japanese":"Japanese",
     "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "HR",
@@ -863,7 +864,9 @@
       "resetTitle": "Reset Policy",
       "resetDesc": "This will revert policy settings to default.",
       "resetSuccess": "Policy reset successfully.",
-      "resetFail": "Failed to reset policy."
+      "resetFail": "Failed to reset policy.",
+      "breakstart": "Break Start",
+      "breakend": "Break End"
     }
   },
   "components": {
