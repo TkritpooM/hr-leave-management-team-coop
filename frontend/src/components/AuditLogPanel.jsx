@@ -8,6 +8,7 @@ import {
   FiFilter,
   FiX,
   FiTrash2,
+  FiDownload,
 } from "react-icons/fi";
 
 import Pagination from "./Pagination";
@@ -297,6 +298,47 @@ export default function AuditLogPanel() {
     [rows, i18n.resolvedLanguage, i18n.language]
   );
 
+  const handleExportCSV = () => {
+    if (!normalizedData || normalizedData.length === 0) {
+      alertError(t("common.error"), t("common.noDataAvailable"));
+      return;
+    }
+
+    const headers = [
+      t("components.auditLogPanel.timestamp", "Timestamp"),
+      t("components.auditLogPanel.user", "User"),
+      t("components.auditLogPanel.modal.role", "Role"),
+      t("components.auditLogPanel.category", "Category"),
+      t("components.auditLogPanel.activity", "Activity"),
+      t("components.auditLogPanel.modal.target", "Target"),
+      "Details"
+    ];
+
+    const csvRows = normalizedData.map(log => [
+      moment(log.createdAt).format("YYYY-MM-DD HH:mm:ss"),
+      log.__user,
+      log?.performer?.role || "-",
+      log.__catLabel,
+      log.__actLabel,
+      `"${(log.__summary || "").replace(/"/g, '""')}"`,
+      `"${(JSON.stringify(log.newValue || {})).replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...csvRows.map(r => r.join(","))
+    ].join("\n");
+
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `audit_logs_${moment().format("YYYYMMDD_HHmm")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <section className="audit-wrapper">
       <div className="audit-card">
@@ -397,6 +439,16 @@ export default function AuditLogPanel() {
             </div>
 
             <div className="audit-action-btns">
+              <button
+                className="btn outline small"
+                onClick={handleExportCSV}
+                title="Export CSV"
+                disabled={loading || normalizedData.length === 0}
+              >
+                <FiDownload />
+                Export CSV
+              </button>
+
               <button
                 className="btn outline small"
                 onClick={handleClearFilters}
