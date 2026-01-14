@@ -258,7 +258,7 @@ export default function Employees() {
     const csvContent = [
       headers.join(","),
       ...historyData.map(row => [
-        row.date,
+        `\t${row.date}`,
         row.day,
         row.status,
         row.checkIn,
