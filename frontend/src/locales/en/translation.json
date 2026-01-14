@@ -504,6 +504,7 @@
         "addNew": "Add New",
         "refresh": "Refresh",
         "refreshList": "Refresh List",
+        "departments": "Departments",
         "edit": "Edit"
       },
       "add": {
@@ -539,7 +540,8 @@
         "worker": "Worker",
         "allStatus": "All status",
         "activeOnly": "Active only",
-        "inactiveOnly": "Inactive only"
+        "inactiveOnly": "Inactive only",
+        "allDepartments": "All Departments"
       },
       "table": {
         "id": "ID",
@@ -598,6 +600,19 @@
         "quotaSaveFailed": "Unable to update quota.",
         "activated": "Employee is now Active.",
         "deactivated": "Employee is now Inactive."
+      },
+      "dept": {
+        "title": "Manage Departments",
+        "namePlaceholder": "Department Name",
+        "descPlaceholder": "Description (Optional)",
+        "name": "Name",
+        "stats": "Stats",
+        "employeesCount": "{{count}} Employees",
+        "updated": "Department updated.",
+        "created": "Department created.",
+        "confirmDelete": "Delete this department?",
+        "deleted": "Department deleted.",
+        "desc": "Description"
       }
     },
     "workerAttendancePage": {

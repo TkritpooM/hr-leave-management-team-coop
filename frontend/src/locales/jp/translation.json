@@ -70,7 +70,7 @@
     "language": "言語",
     "english": "英語",
     "thai": "タイ語",
-    "japanese":"日本語",
+    "japanese": "日本語",
     "somethingWentWrong": "問題が発生しました。",
     "role": {
       "HR": "人事(HR)",
@@ -504,6 +504,7 @@
         "addNew": "新規追加",
         "refresh": "更新",
         "refreshList": "一覧を更新",
+        "departments": "部門",
         "edit": "編集"
       },
       "add": {
@@ -539,7 +540,8 @@
         "worker": "従業員",
         "allStatus": "すべてのステータス",
         "activeOnly": "有効のみ",
-        "inactiveOnly": "無効のみ"
+        "inactiveOnly": "無効のみ",
+        "allDepartments": "すべての部門"
       },
       "table": {
         "id": "ID",
@@ -598,6 +600,19 @@
         "quotaSaveFailed": "クォータを更新できませんでした。",
         "activated": "従業員は有効になりました。",
         "deactivated": "従業員は無効になりました。"
+      },
+      "dept": {
+        "title": "部門管理",
+        "namePlaceholder": "部門名",
+        "descPlaceholder": "説明 (任意)",
+        "name": "部門名",
+        "stats": "統計",
+        "employeesCount": "{{count}} 従業員",
+        "updated": "部門を更新しました。",
+        "created": "部門を作成しました。",
+        "confirmDelete": "この部門を削除しますか？",
+        "deleted": "部門を削除しました。",
+        "desc": "説明"
       }
     },
     "workerAttendancePage": {
@@ -842,14 +857,11 @@
         "nameChange": "例：結婚や法的変更"
       }
     },
-    "auth": {
-      "Password123": "Password123"
-    },
     "attendancePolicy": {
       "noHolidaysInRange": "この期間内の休日が見つかりません。",
       "console": {
         "loadError": "勤怠ポリシーの読み込みエラー"
-      },  
+      },
       "manageHolidays": "管理",
       "holidayDesc": "説明",
       "companyHoliday": "会社休日",

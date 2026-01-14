@@ -496,6 +496,7 @@
         "addNew": "เพิ่มพนักงาน",
         "refresh": "รีเฟรช",
         "refreshList": "รีเฟรชรายการ",
+        "departments": "แผนก",
         "edit": "แก้ไข"
       },
       "add": {
@@ -531,7 +532,8 @@
         "worker": "พนักงาน",
         "allStatus": "ทุกสถานะ",
         "activeOnly": "ใช้งานอยู่เท่านั้น",
-        "inactiveOnly": "ปิดใช้งานเท่านั้น"
+        "inactiveOnly": "ปิดใช้งานเท่านั้น",
+        "allDepartments": "ทุกแผนก"
       },
       "table": {
         "id": "รหัส",
@@ -587,6 +589,19 @@
         "quotaSaveFailed": "ไม่สามารถอัปเดตโควต้าได้",
         "activated": "พนักงานถูกตั้งค่าเป็น “เปิดใช้งาน” แล้ว",
         "deactivated": "พนักงานถูกตั้งค่าเป็น “ปิดใช้งาน” แล้ว"
+      },
+      "dept": {
+        "title": "จัดการแผนก",
+        "namePlaceholder": "ชื่อแผนก",
+        "descPlaceholder": "รายละเอียด (ไม่บังคับ)",
+        "name": "ชื่อแผนก",
+        "stats": "สถิติ",
+        "employeesCount": "{{count}} พนักงาน",
+        "updated": "อัปเดตแผนกเรียบร้อยแล้ว",
+        "created": "สร้างแผนกเรียบร้อยแล้ว",
+        "confirmDelete": "ต้องการลบแผนกนี้ใช่หรือไม่?",
+        "deleted": "ลบแผนกเรียบร้อยแล้ว",
+        "desc": "รายละเอียด"
       }
     },
     "workerAttendancePage": {

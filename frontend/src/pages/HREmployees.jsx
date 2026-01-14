@@ -989,7 +989,7 @@ function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh }) {
                         {d.description && <div style={{ fontSize: "0.8rem", color: "#64748b" }}>{d.description}</div>}
                       </td>
                       <td style={{ padding: "10px 15px" }}>
-                        <span className="badge badge-info">{d._count?.employees || 0} Employees</span>
+                        <span className="badge badge-info">{t("pages.hrEmployees.dept.employeesCount", { count: d._count?.employees || 0 })}</span>
                       </td>
                       <td style={{ width: 120, textAlign: "right", padding: "10px 15px" }}>
                         <div className="btn-group-row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
