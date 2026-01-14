@@ -5,7 +5,7 @@ import axiosClient from "../api/axiosClient";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
 import moment from "moment";
-import { FiCalendar, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiTrash2, FiFilter, FiX } from "react-icons/fi";
 
 const defaultPolicy = {
   startTime: "09:00",
@@ -44,6 +44,10 @@ export default function HRAttendancePolicy() {
   const [saving, setSaving] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
 
+  // Filter States
+  const [filterStart, setFilterStart] = useState("");
+  const [filterEnd, setFilterEnd] = useState("");
+
   useEffect(() => {
     const fetchPolicy = async () => {
       try {
@@ -71,6 +75,18 @@ export default function HRAttendancePolicy() {
     const on = DAYS.filter((d) => policy.workingDays?.[d.key]).map((d) => d.label);
     return on.length ? on.join(", ") : "—";
   }, [policy.workingDays, DAYS]);
+
+  // Filter Logic
+  const filteredHolidays = useMemo(() => {
+    let list = [...(policy.specialHolidays || [])];
+    if (filterStart) {
+      list = list.filter(h => h.split("|")[0] >= filterStart);
+    }
+    if (filterEnd) {
+      list = list.filter(h => h.split("|")[0] <= filterEnd);
+    }
+    return list.sort();
+  }, [policy.specialHolidays, filterStart, filterEnd]);
 
   // ✅ แก้ไข: Logic การเปลี่ยนเวลาเริ่มพัก และบังคับเวลาจบพัก +1 ชม.
   const handleBreakStartChange = (val) => {
@@ -214,30 +230,107 @@ export default function HRAttendancePolicy() {
             </div>
             <div className="hrp-hint" style={{ marginTop: "12px" }}>{t("pages.attendancePolicy.leaveGapExample")}</div>
           </div>
+
+          <div className="hrp-divider" style={{ margin: "24px 0" }} />
+
+          <div className="policy-tips">
+            <h4 style={{ fontSize: "0.95rem", color: "#334155", marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ display: "inline-block", width: "6px", height: "6px", borderRadius: "50%", background: "#3b82f6" }}></span>
+              {t("pages.attendancePolicy.tipsTitle", "Policy Insights")}
+            </h4>
+            <ul style={{ margin: 0, paddingLeft: "16px", color: "#64748b", fontSize: "0.85rem", lineHeight: "1.6" }}>
+              <li>{t("pages.attendancePolicy.tip1", "Grace minutes apply to late check-ins automatically.")}</li>
+              <li>{t("pages.attendancePolicy.tip2", "Changes to working days affect new calculations immediately.")}</li>
+              <li>{t("pages.attendancePolicy.tip3", "Ensure break times do not overlap with start/end shifts.")}</li>
+            </ul>
+          </div>
         </section>
 
         <section className="hrp-card">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <h3 className="hrp-card-title" style={{ margin: 0 }}>{t("pages.attendancePolicy.specialHolidaysTitle")}</h3>
             <button className="btn outline small" onClick={() => setShowHolidayModal(true)}>
-              <FiCalendar /> {t("pages.attendancePolicy.manageHolidays", "Manage Holidays")}
+              <FiCalendar /> {t("pages.attendancePolicy.manageHolidays", "Manage")}
             </button>
+          </div>
+
+          <div style={{ background: "#f1f5f9", padding: "10px", borderRadius: "8px", marginBottom: "16px", display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#475569", fontSize: "0.9rem" }}>
+              <FiFilter /> <span>{t("common.filter", "Filter")}:</span>
+            </div>
+            <input
+              type="date"
+              value={filterStart}
+              onChange={(e) => setFilterStart(e.target.value)}
+              style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "4px 8px", fontSize: "0.85rem", color: "#334155" }}
+            />
+            <span style={{ color: "#94a3b8" }}>-</span>
+            <input
+              type="date"
+              value={filterEnd}
+              onChange={(e) => setFilterEnd(e.target.value)}
+              style={{ border: "1px solid #cbd5e1", borderRadius: "6px", padding: "4px 8px", fontSize: "0.85rem", color: "#334155" }}
+            />
+            {(filterStart || filterEnd) && (
+              <button
+                onClick={() => { setFilterStart(""); setFilterEnd(""); }}
+                style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", display: "flex", alignItems: "center", fontSize: "0.85rem", fontWeight: "600" }}
+              >
+                <FiX /> {t("common.clear", "Clear")}
+              </button>
+            )}
           </div>
 
           {!policy.specialHolidays || policy.specialHolidays.length === 0 ? (
             <div className="hrp-empty">{t("pages.attendancePolicy.noHolidays")}</div>
           ) : (
-            <div className="hrp-holiday-list">
-              {[...policy.specialHolidays].sort().map((entry) => {
-                const [d, desc] = entry.split("|");
-                return (
-                  <div className="hrp-holiday" key={entry} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <span className="hrp-holiday-date">{d}</span>
-                    {desc && <span style={{ fontSize: "0.85em", color: "#64748b" }}>- {desc}</span>}
-                  </div>
-                );
-              })}
-            </div>
+            <>
+              {filteredHolidays.length === 0 ? (
+                <div className="hrp-empty" style={{ padding: "20px" }}>{t("common.noRecordsFound", "No holidays found in this range.")}</div>
+              ) : (
+                <div className="hrp-holiday-grid" style={{ display: "grid", gap: "12px", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
+                  {filteredHolidays.map((entry) => {
+                    const [d, desc] = entry.split("|");
+                    const mDate = moment(d);
+                    return (
+                      <div key={entry} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "16px",
+                        background: "#f8fafc",
+                        padding: "12px",
+                        borderRadius: "12px",
+                        border: "1px solid #e2e8f0"
+                      }}>
+                        <div style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          background: "#fff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "10px",
+                          width: "50px",
+                          height: "54px",
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.03)"
+                        }}>
+                          <span style={{ fontSize: "0.65rem", textTransform: "uppercase", color: "#64748b", fontWeight: "700" }}>{mDate.format("MMM")}</span>
+                          <span style={{ fontSize: "1.1rem", fontWeight: "700", color: "#0f172a", lineHeight: "1" }}>{mDate.format("DD")}</span>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#334155" }}>
+                            {desc || t("pages.attendancePolicy.companyHoliday", "Company Holiday")}
+                          </div>
+                          <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>
+                            {mDate.format("dddd, YYYY")}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>
