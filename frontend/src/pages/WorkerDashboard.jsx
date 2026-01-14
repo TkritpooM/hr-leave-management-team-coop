@@ -137,6 +137,7 @@ export default function WorkerDashboard() {
         setPolicy(policyRes.data.policy);
         if (policyRes.data.policy.workingDays)
           setWorkingDays(parseWorkingDays(policyRes.data.policy.workingDays));
+        // Keep raw strings to preserve descriptions
         setSpecialHolidays(policyRes.data.policy.specialHolidays || []);
       }
 
@@ -169,8 +170,8 @@ export default function WorkerDashboard() {
         setIsFullDayLeave(isFull);
         setIsHalfDayAfternoon(
           approvedToday.endDuration === "HalfAfternoon" ||
-            (approvedToday.startDate === approvedToday.endDate &&
-              approvedToday.startDuration === "HalfAfternoon")
+          (approvedToday.startDate === approvedToday.endDate &&
+            approvedToday.startDuration === "HalfAfternoon")
         );
       }
     } catch (err) {
@@ -328,10 +329,14 @@ export default function WorkerDashboard() {
   const isWorkingDate = (date) => {
     const day = date.getDay();
     const dateStr = toISODate(date);
-    return workingDays.includes(day) && !specialHolidays.includes(dateStr);
+    // Check if dateStr matches any holiday date part
+    const isHoliday = specialHolidays.some(h => h.split("|")[0] === dateStr);
+    return workingDays.includes(day) && !isHoliday;
   };
 
-  const isTodaySpecialHoliday = useMemo(() => specialHolidays.includes(todayStr), [specialHolidays]);
+  const isTodaySpecialHoliday = useMemo(() =>
+    specialHolidays.some(h => h.split("|")[0] === todayStr)
+    , [specialHolidays]);
 
   // ✅ 1. เพิ่มตัวแปรตรวจสอบเงื่อนไขเวลา (เลียนแบบหน้า HR)
   const isAfterWorkHours = useMemo(() => {
@@ -408,14 +413,14 @@ export default function WorkerDashboard() {
             {isFullDayLeave
               ? t("pages.workerDashboard.button.onLeave")
               : isTodaySpecialHoliday
-              ? t("pages.workerDashboard.button.holiday")
-              : isAfterWorkHours && !checkedInAt
-              ? t("pages.workerDashboard.button.timeExpired")
-              : isTooEarly
-              ? t("pages.workerDashboard.button.tooEarly")
-              : checkedInAt
-              ? t("pages.workerDashboard.checkedIn")
-              : t("pages.workerDashboard.Check In")}
+                ? t("pages.workerDashboard.button.holiday")
+                : isAfterWorkHours && !checkedInAt
+                  ? t("pages.workerDashboard.button.timeExpired")
+                  : isTooEarly
+                    ? t("pages.workerDashboard.button.tooEarly")
+                    : checkedInAt
+                      ? t("pages.workerDashboard.checkedIn")
+                      : t("pages.workerDashboard.Check In")}
           </button>
         </div>
 
@@ -435,14 +440,13 @@ export default function WorkerDashboard() {
           >
             {isBeforeEndTime && checkedInAt && !checkedOutAt
               ? t("pages.hrAttendancePage.waitUntil", {
-                  time: isHalfDayAfternoon ? policy.breakStartTime : policy.endTime,
-                  defaultValue: `Wait until ${
-                    isHalfDayAfternoon ? policy.breakStartTime : policy.endTime
+                time: isHalfDayAfternoon ? policy.breakStartTime : policy.endTime,
+                defaultValue: `Wait until ${isHalfDayAfternoon ? policy.breakStartTime : policy.endTime
                   }`,
-                })
+              })
               : checkedOutAt
-              ? t("pages.workerDashboard.checkedOut")
-              : t("pages.workerDashboard.Check Out")}
+                ? t("pages.workerDashboard.checkedOut")
+                : t("pages.workerDashboard.Check Out")}
           </button>
         </div>
 

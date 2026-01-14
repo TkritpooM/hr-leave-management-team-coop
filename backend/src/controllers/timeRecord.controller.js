@@ -286,8 +286,20 @@ const getDailyDetail = async (req, res, next) => {
     const endOfTargetDate = moment(date).endOf('day').toDate();
 
     const policy = await prisma.attendancePolicy.findFirst();
-    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).format('YYYY-MM-DD'));
-    const isSpecialHoliday = specialHolidays.includes(targetDateStr);
+    const specialHolidaysRaw = policy?.specialHolidays || [];
+    // Extract dates for checking
+    const specialHolidayDates = specialHolidaysRaw.map(h => {
+      const d = h.split("|")[0];
+      return moment(d).format('YYYY-MM-DD');
+    });
+    const isSpecialHoliday = specialHolidayDates.includes(targetDateStr);
+
+    // Find description
+    let specialHolidayDesc = "";
+    if (isSpecialHoliday) {
+      const raw = specialHolidaysRaw.find(h => moment(h.split("|")[0]).format('YYYY-MM-DD') === targetDateStr);
+      if (raw) specialHolidayDesc = raw.split("|")[1] || "";
+    }
 
     const allEmployees = await prisma.employee.findMany({
       where: { isActive: true },
@@ -308,7 +320,7 @@ const getDailyDetail = async (req, res, next) => {
       include: {
         employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } },
         leaveType: true,
-        approvedByHR: { select: { firstName: true, lastName: true } }
+        approvedByHR: { select: { firstName: true, lastName: true, role: true } }
       }
     });
 
@@ -335,6 +347,7 @@ const getDailyDetail = async (req, res, next) => {
         leaves: leaves,
         absent: absent,
         isSpecialHoliday: isSpecialHoliday,
+        specialHolidayDesc: specialHolidayDesc,
         summary: {
           total: allEmployees.length,
           presentCount: attendance.length,
@@ -359,7 +372,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
 
     // --- 1. Prepare Date Range & Holidays ---
     const policy = await prisma.attendancePolicy.findFirst();
-    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).format('YYYY-MM-DD'));
+    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h.split("|")[0]).format('YYYY-MM-DD'));
     const effectiveEnd = end.isAfter(today) ? today : end;
 
     // Calculate Working Days in this period (Loop 30 days = OK)
@@ -630,7 +643,7 @@ const getEmployeeAttendanceHistory = async (req, res, next) => {
 
     // 2. Fetch Policy (for holidays)
     const policy = await prisma.attendancePolicy.findFirst();
-    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h).tz(tz).format('YYYY-MM-DD'));
+    const specialHolidays = (policy?.specialHolidays || []).map(h => moment(h.split("|")[0]).tz(tz).format('YYYY-MM-DD'));
 
     // 3. Fetch Records
     const attendance = await prisma.timeRecord.findMany({

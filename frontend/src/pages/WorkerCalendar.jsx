@@ -206,7 +206,8 @@ export default function WorkerCalendar() {
     const dayOfWeek = moment(isoDate).day();
 
     const isWorkingDay = workingDays.includes(dayOfWeek);
-    const isHoliday = specialHolidays.includes(isoDate);
+    const holidayEntry = specialHolidays.find(h => h.split("|")[0] === isoDate);
+    const isHoliday = !!holidayEntry;
 
     let modalData = null;
 
@@ -214,7 +215,7 @@ export default function WorkerCalendar() {
       modalData = {
         type: "holiday",
         status: t("pages.workerCalendar.modal.holiday.status"),
-        reason: t("pages.workerCalendar.modal.holiday.reason"),
+        reason: (holidayEntry.split("|")[1]) || t("pages.workerCalendar.modal.holiday.reason"),
       };
     } else if (leave) {
       modalData = {
@@ -358,21 +359,28 @@ export default function WorkerCalendar() {
                     </span>
                   ))}
 
-                  {specialHolidays.includes(iso) && (
-                    <span
-                      className="wc-tag"
-                      style={{
-                        backgroundColor: "#64748b",
-                        color: "#fff",
-                        fontSize: "10px",
-                        padding: "2px 4px",
-                        display: "block",
-                        marginTop: "2px",
-                      }}
-                    >
-                      {t("pages.workerCalendar.companyHoliday")}
-                    </span>
-                  )}
+                  {(() => {
+                    const holiday = specialHolidays.find(h => h.split("|")[0] === iso);
+                    if (holiday) {
+                      const hDesc = holiday.split("|")[1];
+                      return (
+                        <span
+                          className="wc-tag"
+                          style={{
+                            backgroundColor: "#64748b",
+                            color: "#fff",
+                            fontSize: "10px",
+                            padding: "2px 4px",
+                            display: "block",
+                            marginTop: "2px",
+                          }}
+                        >
+                          {hDesc || t("pages.workerCalendar.companyHoliday")}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
             );

@@ -65,6 +65,7 @@
     "language": "ภาษา",
     "english": "อังกฤษ",
     "thai": "ไทย",
+    "japanese":"ญี่ปุ่น",
     "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "ฝ่ายบุคคล (HR)",
@@ -860,7 +861,9 @@
       "resetTitle": "รีเซ็ตนโยบาย",
       "resetDesc": "การดำเนินการนี้จะย้อนค่ากลับเป็นค่าเริ่มต้น",
       "resetSuccess": "รีเซ็ตนโยบายสำเร็จ",
-      "resetFail": "รีเซ็ตนโยบายไม่สำเร็จ"
+      "resetFail": "รีเซ็ตนโยบายไม่สำเร็จ",
+      "breakstart": "เวลาเริ่มพัก",
+      "breakend": "เวลาจบพัก"
     }
   },
   "components": {
