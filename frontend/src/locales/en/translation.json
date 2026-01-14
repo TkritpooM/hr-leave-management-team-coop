@@ -65,7 +65,7 @@
     "language": "Language",
     "english": "English",
     "thai": "Thai",
-    "japanese":"Japanese",
+    "japanese": "Japanese",
     "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "HR",
@@ -835,6 +835,9 @@
       "nameChangeHint": "Submit a request to update your official name.",
       "examples": {
         "nameChange": "e.g. Marriage or legal change"
+      },
+      "alert": {
+        "duplicateRequest": "You already have a pending request awaiting approval."
       }
     },
     "auth": {

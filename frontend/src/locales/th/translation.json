@@ -65,7 +65,7 @@
     "language": "ภาษา",
     "english": "อังกฤษ",
     "thai": "ไทย",
-    "japanese":"ญี่ปุ่น",
+    "japanese": "ญี่ปุ่น",
     "somethingWentWrong": "Something went wrong.",
     "role": {
       "HR": "ฝ่ายบุคคล (HR)",
@@ -556,9 +556,6 @@
         "password": "รหัสผ่าน",
         "passwordHint": "(เว้นว่างเพื่อคงรหัสเดิม)"
       },
-      "edit": {
-        "title": "แก้ไขข้อมูลพนักงาน"
-      },
       "quotaModal": {
         "title": "โควต้าการลา",
         "loadYear": "โหลด",
@@ -832,6 +829,9 @@
       "nameChangeHint": "ส่งคำขอเพื่อแก้ไขชื่อทางการของคุณ",
       "examples": {
         "nameChange": "เช่น แต่งงาน หรือเปลี่ยนชื่อทางกฎหมาย"
+      },
+      "alert": {
+        "duplicateRequest": "คำขอเดิมของคุณกำลังรอการอนุมัติอยู่ครับ"
       }
     },
     "auth": {
