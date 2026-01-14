@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./HRAttendancePolicy.css";
-import { alertConfirm, alertSuccess, alertError } from "../utils/sweetAlert";
+import { alertConfirm, alertSuccess, alertError, alertInput } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
-import moment from "moment"; // เพิ่ม moment เพื่อช่วยจัดการเรื่องเวลา [+1 hr]
+import moment from "moment";
+import { FiCalendar, FiChevronLeft, FiChevronRight, FiTrash2 } from "react-icons/fi";
 
 const defaultPolicy = {
   startTime: "09:00",
@@ -42,8 +41,8 @@ export default function HRAttendancePolicy() {
   );
 
   const [policy, setPolicy] = useState(defaultPolicy);
-  const [holidayInput, setHolidayInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
 
   useEffect(() => {
     const fetchPolicy = async () => {
@@ -136,26 +135,9 @@ export default function HRAttendancePolicy() {
     }
   };
 
-  const addHoliday = () => {
-    const rawinput = holidayInput.trim();
-    if (!rawinput) return;
-    const [d, desc] = rawinput.split("|");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return;
-
-    setPolicy((p) => {
-      // Remove any existing entry for this date before adding new one
-      const others = (p.specialHolidays || []).filter(h => h.split("|")[0] !== d);
-      const newEntry = desc ? `${d}|${desc}` : d;
-      return { ...p, specialHolidays: [...others, newEntry].sort() };
-    });
-    setHolidayInput("");
-  };
-
-  const removeHoliday = (entryToRemove) => {
-    setPolicy((p) => ({
-      ...p,
-      specialHolidays: (p.specialHolidays || []).filter((x) => x !== entryToRemove)
-    }));
+  const handleSaveHolidays = (newHolidays) => {
+    setPolicy(p => ({ ...p, specialHolidays: newHolidays }));
+    setShowHolidayModal(false);
   };
 
   return (
@@ -235,57 +217,168 @@ export default function HRAttendancePolicy() {
         </section>
 
         <section className="hrp-card">
-          <h3 className="hrp-card-title">{t("pages.attendancePolicy.specialHolidaysTitle")}</h3>
-          <div className="hrp-holiday-row">
-            <DatePicker
-              selected={holidayInput ? new Date(`${holidayInput.split("|")[0]}T00:00:00`) : null}
-              onChange={(date) => {
-                if (!date) {
-                  setHolidayInput("");
-                  return;
-                }
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                setHolidayInput((prev) => {
-                  const desc = prev.split("|")[1] || "";
-                  return `${year}-${month}-${day}|${desc}`;
-                });
-              }}
-              dateFormat="yyyy-MM-dd"
-              locale={enUS}
-              placeholderText={t("pages.attendancePolicy.selectHolidayDate")}
-              className="hrp-holiday-input"
-            />
-            <input
-              type="text"
-              placeholder={t("pages.attendancePolicy.holidayDesc", "Description")}
-              value={holidayInput.split("|")[1] || ""}
-              onChange={(e) => {
-                const datePart = holidayInput.split("|")[0];
-                setHolidayInput(`${datePart}|${e.target.value}`);
-              }}
-              style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", flex: 1 }}
-            />
-            <button className="btn outline" type="button" onClick={addHoliday}>{t("common.add")}</button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <h3 className="hrp-card-title" style={{ margin: 0 }}>{t("pages.attendancePolicy.specialHolidaysTitle")}</h3>
+            <button className="btn outline small" onClick={() => setShowHolidayModal(true)}>
+              <FiCalendar /> {t("pages.attendancePolicy.manageHolidays", "Manage Holidays")}
+            </button>
           </div>
+
           {!policy.specialHolidays || policy.specialHolidays.length === 0 ? (
             <div className="hrp-empty">{t("pages.attendancePolicy.noHolidays")}</div>
           ) : (
             <div className="hrp-holiday-list">
-              {policy.specialHolidays.map((entry) => {
+              {[...policy.specialHolidays].sort().map((entry) => {
                 const [d, desc] = entry.split("|");
                 return (
                   <div className="hrp-holiday" key={entry} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                     <span className="hrp-holiday-date">{d}</span>
                     {desc && <span style={{ fontSize: "0.85em", color: "#64748b" }}>- {desc}</span>}
-                    <button className="hrp-holiday-x" type="button" onClick={() => removeHoliday(entry)}>✕</button>
                   </div>
                 );
               })}
             </div>
           )}
         </section>
+      </div>
+
+      <HolidayManagerModal
+        isOpen={showHolidayModal}
+        onClose={() => setShowHolidayModal(false)}
+        initialHolidays={policy.specialHolidays}
+        onSave={handleSaveHolidays}
+      />
+    </div>
+  );
+}
+
+function HolidayManagerModal({ isOpen, onClose, initialHolidays, onSave }) {
+  const { t } = useTranslation();
+  const [viewDate, setViewDate] = useState(moment());
+  const [holidays, setHolidays] = useState([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setHolidays([...(initialHolidays || [])]);
+      setViewDate(moment());
+    }
+  }, [isOpen, initialHolidays]);
+
+  const calendarDays = useMemo(() => {
+    const start = viewDate.clone().startOf("month").startOf("week");
+    const end = viewDate.clone().endOf("month").endOf("week");
+    const days = [];
+    let day = start.clone();
+
+    let count = 0;
+    while (day.isSameOrBefore(end) && count < 42) {
+      days.push(day.clone());
+      day.add(1, "day");
+      count++;
+    }
+    return days;
+  }, [viewDate]);
+
+  const toggleDay = async (d) => {
+    const dateStr = d.format("YYYY-MM-DD");
+    const existingIndex = holidays.findIndex(h => h.split("|")[0] === dateStr);
+
+    if (existingIndex >= 0) {
+      const currentDesc = holidays[existingIndex].split("|")[1] || "";
+      const val = await alertInput(
+        t("pages.attendancePolicy.editHoliday", "Edit Holiday Description"),
+        t("pages.attendancePolicy.holidayDesc", "Description"),
+        currentDesc
+      );
+
+      if (val === undefined) return;
+      if (val === "") {
+        setHolidays(prev => prev.filter((_, i) => i !== existingIndex));
+      } else {
+        const newEntry = `${dateStr}|${val}`;
+        setHolidays(prev => {
+          const copy = [...prev];
+          copy[existingIndex] = newEntry;
+          return copy;
+        });
+      }
+    } else {
+      const val = await alertInput(
+        t("pages.attendancePolicy.addHoliday", "Add Holiday"),
+        t("pages.attendancePolicy.enterDescFor", { date: dateStr, defaultValue: `Enter description for ${dateStr}` })
+      );
+      if (val) {
+        setHolidays(prev => [...prev, `${dateStr}|${val}`]);
+      }
+    }
+  };
+
+  const removeHoliday = (e, dateStr) => {
+    e.stopPropagation();
+    setHolidays(prev => prev.filter(h => h.split("|")[0] !== dateStr));
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" style={{ maxWidth: "600px", width: "95%" }} onClick={e => e.stopPropagation()}>
+        <div className="modal-head-row">
+          <h3>{t("pages.attendancePolicy.manageHolidays", "Manage Special Holidays")}</h3>
+          <button className="close-x" onClick={onClose}>&times;</button>
+        </div>
+
+        <div className="calendar-top" style={{ marginBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button className="nav-btn" onClick={() => setViewDate(d => d.clone().subtract(1, 'month'))}><FiChevronLeft /></button>
+          <h4 style={{ margin: 0 }}>{viewDate.format("MMMM YYYY")}</h4>
+          <button className="nav-btn" onClick={() => setViewDate(d => d.clone().add(1, 'month'))}><FiChevronRight /></button>
+        </div>
+
+        <div className="calendar-grid" style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "5px", marginBottom: "20px" }}>
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
+            <div key={d} style={{ textAlign: "center", fontSize: "0.8rem", color: "#64748b", fontWeight: "600", padding: "5px" }}>{d}</div>
+          ))}
+          {calendarDays.map(d => {
+            const dateStr = d.format("YYYY-MM-DD");
+            const entry = holidays.find(h => h.split("|")[0] === dateStr);
+            const isCurrentMonth = d.month() === viewDate.month();
+
+            return (
+              <div
+                key={dateStr}
+                onClick={() => toggleDay(d)}
+                style={{
+                  height: "60px",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  background: entry ? "#eff6ff" : (isCurrentMonth ? "#fff" : "#f8fafc"),
+                  borderColor: entry ? "#3b82f6" : "#e2e8f0",
+                  cursor: "pointer",
+                  padding: "4px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  opacity: isCurrentMonth ? 1 : 0.5
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: entry ? "bold" : "normal", color: entry ? "#2563eb" : "#1e293b" }}>{d.date()}</span>
+                  {entry && <FiTrash2 size={12} color="#ef4444" onClick={(e) => removeHoliday(e, dateStr)} />}
+                </div>
+                {entry && <div style={{ fontSize: "0.65rem", color: "#3b82f6", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{entry.split("|")[1]}</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ padding: "10px", background: "#f8fafc", borderRadius: "8px", fontSize: "0.85rem", color: "#64748b", marginBottom: "20px" }}>
+          {t("pages.attendancePolicy.clickDayHint", "Click any date to add or edit a holiday description.")}
+        </div>
+
+        <div className="modal-actions">
+          <button className="btn outline" onClick={onClose}>{t("common.cancel")}</button>
+          <button className="btn primary" onClick={() => onSave(holidays)}>{t("common.save")}</button>
+        </div>
       </div>
     </div>
   );

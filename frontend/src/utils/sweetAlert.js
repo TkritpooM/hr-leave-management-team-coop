@@ -68,3 +68,22 @@ export const alertInfo = (title, text = "") => {
     confirmButtonText: i18n.t("common.ok"),
   });
 };
+
+export const alertInput = async (title, label, defaultValue = "") => {
+  const { value: text } = await Swal.fire({
+    ...baseConfig,
+    title,
+    input: 'text',
+    inputLabel: label,
+    inputValue: defaultValue,
+    showCancelButton: true,
+    confirmButtonText: i18n.t("common.save"),
+    cancelButtonText: i18n.t("common.cancel"),
+    inputValidator: (value) => {
+      if (!value) {
+        return i18n.t("common.required", "Required");
+      }
+    }
+  });
+  return text;
+};
