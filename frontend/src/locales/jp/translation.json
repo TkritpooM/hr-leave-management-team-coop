@@ -35,6 +35,11 @@
     }
   },
   "common": {
+    "required": "必須",
+    "filter": "フィルター",
+    "clear": "クリア",
+    "noRecordsFound": "該当データが見つかりません。",
+    "datePlaceholder": "yyyy-mm-dd",
     "morning": "午前",
     "afternoon": "午後",
     "start": "開始",
@@ -841,6 +846,26 @@
       "Password123": "Password123"
     },
     "attendancePolicy": {
+      "noHolidaysInRange": "この期間内の休日が見つかりません。",
+      "console": {
+        "loadError": "勤怠ポリシーの読み込みエラー"
+      },  
+      "manageHolidays": "管理",
+      "holidayDesc": "説明",
+      "companyHoliday": "会社休日",
+      "clickDayHint": "日付をクリックして休日を追加／編集できます。",
+      "addHoliday": "休日を追加",
+      "editHoliday": "休日の説明を編集",
+      "enterDescFor": "{{date}} の説明を入力してください",
+      "tipsTitle": "ポリシーのヒント",
+      "tip1": "猶予時間(Grace minutes)は遅刻判定に自動で適用されます。",
+      "tip2": "勤務日の変更は新しい計算に即時反映されます。",
+      "tip3": "休憩時間が始業／終業と重ならないようにしてください。",
+      "errors": {
+        "breakStartAfterStart": "休憩開始は始業時刻より後に設定してください。",
+        "breakEndAfterBreakStart": "休憩終了は休憩開始より後に設定してください。",
+        "endAfterBreakEnd": "終業時刻は休憩終了より後に設定してください。"
+      },
       "title": "勤怠ポリシー",
       "subtitle": "勤務時間、稼働日、特別休日を設定します。",
       "workPolicyTitle": "勤務ポリシー",
