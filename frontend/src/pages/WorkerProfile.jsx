@@ -3,7 +3,7 @@ import axios from "axios";
 import moment from "moment";
 import {
   FiUser, FiMail, FiCalendar, FiShield,
-  FiBriefcase, FiRefreshCw, FiEdit2, FiCheck, FiX, FiLock, FiUpload
+  FiBriefcase, FiRefreshCw, FiEdit2, FiCheck, FiX, FiLock, FiUpload, FiLayers
 } from "react-icons/fi";
 import "./WorkerProfile.css";
 import { alertConfirm, alertError, alertSuccess, alertInfo } from "../utils/sweetAlert";
@@ -209,6 +209,10 @@ export default function WorkerProfile() {
                 <div className="info-box">
                   <label><FiCalendar />{t("pages.workerProfile.Start date")}</label>
                   <p>{profile.joiningDate ? moment(profile.joiningDate).format("DD MMM YYYY") : "-"}</p>
+                </div>
+                <div className="info-box">
+                  <label><FiLayers />{t("pages.workerProfile.Department", "Department")}</label>
+                  <p>{profile.department?.deptName || t("common.none", "None")}</p>
                 </div>
                 <div className={`info-box highlight ${profile.isActive ? 'ok' : 'danger'}`}>
                   <label><FiShield />{t("pages.workerProfile.Employment status")}</label>

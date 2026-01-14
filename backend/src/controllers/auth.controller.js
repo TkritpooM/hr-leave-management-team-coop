@@ -153,6 +153,11 @@ const getMe = async (req, res, next) => {
         joiningDate: true,
         isActive: true,
         profileImageUrl: true,
+        department: {
+          select: {
+            deptName: true
+          }
+        }
       }
     });
     res.status(200).json({ success: true, user });
@@ -313,7 +318,7 @@ const getAllProfileRequests = async (req, res, next) => {
 const handleProfileApproval = async (req, res, next) => {
   try {
     const { requestId } = req.params;
-    const { action } = req.body; 
+    const { action } = req.body;
     const hrId = req.user.employeeId;
 
     const result = await prisma.$transaction(async (tx) => {
