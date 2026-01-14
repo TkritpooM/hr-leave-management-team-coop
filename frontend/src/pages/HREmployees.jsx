@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus, FiToggleLeft, FiToggleRight, FiClock } from "react-icons/fi";
+import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus, FiToggleLeft, FiToggleRight, FiClock, FiDownload } from "react-icons/fi";
 import "./HREmployees.css";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
@@ -241,6 +241,45 @@ export default function Employees() {
     });
   }, [employees, q, roleFilter, activeFilter]);
 
+  const handleExportCSV = () => {
+    if (!historyData || historyData.length === 0) {
+      alertError(t("common.error"), t("common.noDataAvailable"));
+      return;
+    }
+
+    const headers = [
+      t("pages.hrEmployees.history.date"),
+      t("pages.hrEmployees.history.day"),
+      t("pages.hrEmployees.history.status"),
+      t("pages.hrEmployees.history.in"),
+      t("pages.hrEmployees.history.out"),
+      t("pages.hrEmployees.history.details")
+    ];
+
+    const rows = historyData.map(d => [
+      d.date,
+      t(`common.days.${d.day.toLowerCase().substring(0, 3)}`) || d.day,
+      t(`pages.hrEmployees.history.statusTypes.${d.status}`) || d.status,
+      d.checkIn || "-",
+      d.checkOut || "-",
+      `"${(d.details || "").replace(/"/g, '""')}"` // Escape quotes in details
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(r => r.join(","))
+    ].join("\n");
+
+    const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" }); // Add BOM for Excel
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `attendance_${activeEmp.firstName}_${historyMonth}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="page-card emp">
       <div className="emp-head">
@@ -401,7 +440,15 @@ export default function Employees() {
             </div>
 
             <div className="emp-modal-body">
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 15 }}>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 15, gap: 10 }}>
+                <button
+                  className="emp-btn emp-btn-outline small"
+                  onClick={handleExportCSV}
+                  title="Export CSV"
+                  disabled={historyLoading || !historyData.length}
+                >
+                  <FiDownload /> Export CSV
+                </button>
                 <input
                   type="month"
                   className="quota-input"
