@@ -1,0 +1,1095 @@
+{
+  "notifications": {
+    "leave": {
+      "newRequestFromEmployee": "新しい休暇申請: {{employeeName}}({{leaveTypeName}})",
+      "newRequestReceivedWithId": "新しい休暇申請を受信しました(ID: {{requestId}})。",
+      "requestStatusUpdatedWithId": "あなたの休暇申請(ID: {{requestId}})は{{status}}になりました。"
+    }
+  },
+  "success": {
+    "leave": {
+      "requestSubmittedAndHrNotified": "休暇申請を送信しました。人事(HR)に通知しました。",
+      "requestCancelledAndAttachmentRemoved": "休暇申請をキャンセルしました。添付ファイル(ある場合)も削除しました。",
+      "requestProcessed": "休暇申請は{{status}}されました。",
+      "requestAndAttachmentDeleted": "休暇申請を削除しました。添付ファイル(ある場合)も削除しました。"
+    }
+  },
+  "errors": {
+    "common": {
+      "accessDenied": "アクセスが拒否されました。"
+    },
+    "leave": {
+      "leaveGapFromPrevious": "前回の休暇が{{lastLeaveDate}}に終了しているため、最低{{gapDays}}日間は空ける必要があります。",
+      "leaveGapBeforeNext": "次の休暇が{{nextLeaveDate}}から開始予定のため、開始前に最低{{gapDays}}日間は空ける必要があります。",
+      "overlappingRequest": "この期間と重複する休暇申請(保留中または承認済み)が既にあります。",
+      "startAfterEnd": "開始日は終了日より後にできません。",
+      "quotaNotSet": "当年度の休暇枠(クォータ)が設定されていません。",
+      "insufficientQuota": "休暇枠が不足しています。(繰越を含む利用可能: {{available}}日、申請: {{requestedDays}}日)",
+      "requestOnNonWorkingDay": "非稼働日には休暇申請できません({{fullText}})。",
+      "requestedDaysMustBeGreaterThanZero": "申請日数は0より大きい必要があります。",
+      "requestNotFound": "休暇申請が見つかりません。",
+      "canOnlyCancelOwnRequest": "自分の休暇申請のみキャンセルできます。",
+      "cannotCancelAlreadyProcessed": "この申請は既に{{status}}のためキャンセルできません。",
+      "requestNotFoundOrProcessed": "この休暇申請は見つからないか、既に処理済みです。",
+      "insufficientQuotaOnApproval": "承認するには休暇枠が不足しています。利用可能: {{availableDays}}日、申請: {{requestedDays}}日。"
+    }
+  },
+  "common": {
+    "morning": "午前",
+    "afternoon": "午後",
+    "start": "開始",
+    "end": "終了",
+    "full": "終日",
+    "leave": "休暇",
+    "requestStatus": {
+      "pending": "保留中",
+      "approved": "承認済み",
+      "rejected": "却下",
+      "cancelled": "キャンセル"
+    },
+    "refreshList": "一覧を更新",
+    "details": "詳細",
+    "status": {
+      "pending": "保留中",
+      "waiting": "待機中",
+      "approved": "承認済み",
+      "rejected": "却下",
+      "late": "遅刻",
+      "onTime": "時間通り"
+    },
+    "all": "すべて",
+    "success": "成功",
+    "approve": "承認",
+    "reject": "却下",
+    "appName": "勤怠管理",
+    "language": "言語",
+    "english": "英語",
+    "thai": "タイ語",
+    "japanese":"日本語",
+    "somethingWentWrong": "問題が発生しました。",
+    "role": {
+      "HR": "人事(HR)",
+      "Worker": "従業員"
+    },
+    "user": "ユーザー",
+    "notifications": "通知",
+    "logout": "ログアウト",
+    "close": "閉じる",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "ok": "OK",
+    "loading": "読み込み中...",
+    "add": "追加",
+    "save": "保存",
+    "saving": "保存中...",
+    "saved": "保存済み",
+    "reset": "リセット",
+    "error": "エラー",
+    "space": " ",
+    "days": {
+      "mon": "月",
+      "tue": "火",
+      "wed": "水",
+      "thu": "木",
+      "fri": "金",
+      "sat": "土",
+      "sun": "日"
+    },
+    "loadingQuotas": "クォータを読み込み中...",
+    "loadingRecords": "記録を読み込み中...",
+    "loadingProfile": "プロフィールを読み込み中...",
+    "noDataAvailable": "データがありません。",
+    "noResults": "結果がありません。",
+    "noAttachment": "添付なし",
+    "previewNotAvailable": "このファイル形式はプレビューできません。",
+    "comingSoon": "近日公開...",
+    "noPendingRequests": "保留中の申請はありません。",
+    "reason": "理由。",
+    "placeholders": {
+      "enterReason": "理由を入力...",
+      "filterDateNoteTime": "日付・メモ・時刻で絞り込み...",
+      "searchNameEmailRole": "氏名、メール、役割で検索...",
+      "searchEmployeeTypeReason": "従業員／種類／理由で検索...",
+      "searchEmployeeNameOrProposed": "従業員名または提案名で検索..."
+    },
+    "previous": "前へ",
+    "next": "次へ",
+    "leaveWithType": "休暇({{type}})",
+    "daysShort": {
+      "sun": "SUN",
+      "mon": "MON",
+      "tue": "TUE",
+      "wed": "WED",
+      "thu": "THU",
+      "fri": "FRI",
+      "sat": "SAT"
+    }
+  },
+  "sidebar": {
+    "sections": {
+      "main": "メインメニュー",
+      "account": "アカウント",
+      "hrManagement": "人事管理"
+    },
+    "items": {
+      "dashboard": "ダッシュボード",
+      "myAttendance": "自分の勤怠",
+      "myCalendar": "自分のカレンダー",
+      "myLeaves": "自分の休暇",
+      "notifications": "通知",
+      "profile": "プロフィール",
+      "employeeAttendance": "従業員の勤怠",
+      "profileRequests": "プロフィール申請",
+      "leaveApprovals": "休暇承認",
+      "employees": "従業員",
+      "leaveQuotaSettings": "休暇クォータ設定",
+      "attendanceSettings": "勤怠設定"
+    },
+    "toggleSidebar": "サイドバーを切替",
+    "title": "サイドバー"
+  },
+  "auth": {
+    "login": {
+      "title": "ログイン",
+      "email": "メールアドレス",
+      "password": "パスワード",
+      "show": "表示",
+      "hide": "非表示",
+      "rememberMe": "ログイン状態を保持",
+      "signIn": "ログイン",
+      "signingIn": "ログイン中...",
+      "placeholders": {
+        "email": "you@example.com"
+      },
+      "testAccounts": "テストアカウント",
+      "hr": "人事(HR)",
+      "worker": "従業員"
+    },
+    "placeholders": {
+      "currentPassword": "現在のパスワードを入力...",
+      "newPassword": "新しいパスワードを入力..."
+    }
+  },
+  "alerts": {
+    "loginSuccessTitle": "ログインに成功しました",
+    "welcomeBack": "おかえりなさい {{name}}",
+    "loginFailedTitle": "ログインに失敗しました",
+    "loginFailedDefault": "サーバーに接続できないか、メール／パスワードが正しくありません。"
+  },
+  "pages": {
+    "workerLeave": {
+      "Duration": "期間",
+      "Cancel Request": "申請をキャンセル",
+      "Remaining from {{total}} days": "残り(合計{{total}}日から)",
+      "Details": "詳細",
+      "All types": "すべての種類",
+      "Days deducted": "差し引き日数",
+      "My Leave": "自分の休暇",
+      "Leave Request Details": "休暇申請の詳細",
+      "PDF preview": "PDFプレビュー",
+      "Download": "ダウンロード",
+      "No Quota Found": "クォータが見つかりません",
+      "Leave History": "休暇履歴",
+      "Days": "日数",
+      "Date Range": "期間",
+      "Reason": "理由",
+      "Action": "操作",
+      "Pending": "保留中",
+      "Start date ↓": "開始日 ↓",
+      "Search type / reason / date (YYYY-MM-DD)": "種類／理由／日付で検索(YYYY-MM-DD)",
+      "Type": "種類",
+      "deducted": "差し引き",
+      "Oldest first": "古い順",
+      "Status": "ステータス",
+      "Start date ↑": "開始日 ↑",
+      "Attachment preview": "添付プレビュー",
+      "Approved": "承認済み",
+      "View your leave balances and request history": "休暇残高と申請履歴を確認",
+      "Rejected": "却下",
+      "All status": "すべてのステータス",
+      "Open": "開く",
+      "Cancelled": "キャンセル",
+      "Reset": "リセット",
+      "Newest first": "新しい順",
+      "Search, filter and sort your requests": "検索・絞り込み・並べ替え",
+      "Attachment": "添付",
+      "askHrAssignQuota": "人事(HR)に休暇クォータの割り当てを依頼してください。"
+    },
+    "hrAttendancePage": {
+      "On Leave": "休暇中",
+      "Holiday": "休日",
+      "Time Expired": "時間切れ",
+      "Too Early": "早すぎます",
+      "duration": {
+        "full": "終日",
+        "halfMorning": "半日(午前)",
+        "halfAfternoon": "半日(午後)"
+      },
+      "hello": "こんにちは",
+      "hrFallback": "人事(HR)",
+      "lateThisMonth": "今月の遅刻：",
+      "checkIn": "出勤(チェックイン)",
+      "checkOut": "退勤(チェックアウト)",
+      "checkedIn": "出勤済み",
+      "checkInNow": "今すぐ出勤",
+      "checkOutBtn": "退勤",
+      "waitUntil": "{{time}}までお待ちください",
+      "leave": "休暇",
+      "manageLeaves": "休暇管理",
+      "requestLeave": "休暇申請",
+      "yourLeaveBalanceIncludingCarryOver": "休暇残高(繰越含む)",
+      "yourPersonalTimeHistory": "自分の勤怠履歴",
+      "yourPersonalLeaveHistory": "自分の休暇履歴",
+      "used": "使用済み",
+      "available": "利用可能",
+      "remaining": "残り",
+      "carriedOverBadge": "+{{days}}日 繰越",
+      "date": "日付",
+      "in": "出勤",
+      "out": "退勤",
+      "status": "ステータス",
+      "type": "種類",
+      "dateRange": "期間",
+      "days": "日数",
+      "action": "操作",
+      "noAttendanceRecords": "勤怠記録がありません",
+      "noLeaveHistoryYet": "休暇履歴がありません",
+      "cancel": "キャンセル",
+      "leaveType": "休暇種別",
+      "remainingDaysInOption": "(残り: {{remaining}}日)",
+      "startDate": "開始日",
+      "endDate": "終了日",
+      "datePlaceholder": "YYYY-MM-DD",
+      "actualLeaveDaysLabel": "実際の休暇日数：",
+      "weekendsHolidaysExcluded": "※ 週末と祝日は自動的に除外されます",
+      "detail": "詳細",
+      "attachmentOptional": "添付(任意)",
+      "chooseFile": "ファイルを選択",
+      "noFileSelected": "ファイル未選択",
+      "submitRequest": "申請を送信",
+      "daysCount": "{{count}}日",
+      "alert": {
+        "successTitle": "成功",
+        "failedTitle": "失敗",
+        "somethingWentWrong": "問題が発生しました",
+        "connectServerFailed": "サーバーへの接続に失敗しました。",
+        "checkInSuccess": "出勤に成功しました",
+        "checkInFailedTitle": "出勤に失敗しました",
+        "checkOutSuccess": "退勤に成功しました",
+        "checkOutFailedTitle": "退勤に失敗しました",
+        "unableLoadPolicy": "勤怠ポリシーを読み込めませんでした。",
+        "notTimeCheckOutTitle": "まだ退勤できません",
+        "policyCheckOutFrom": "ポリシー上、{{time}}から退勤可能です。",
+        "confirmCancelTitle": "キャンセル確認",
+        "confirmCancelMsg": "この休暇申請をキャンセルしますか？",
+        "cancelLeaveSuccess": "休暇申請をキャンセルしました。",
+        "unableCancelTitle": "キャンセルできません",
+        "leaveSubmitSuccess": "休暇申請を送信しました。"
+      }
+    },
+    "hrLeaveApprovals": {
+      "Leave Approvals": "休暇承認",
+      "subtitle": "従業員の休暇申請を確認し承認します。",
+      "ID": "ID",
+      "Employee": "従業員",
+      "Type": "種類",
+      "Date": "日付",
+      "Days": "日数",
+      "Reason": "理由",
+      "Attachment": "添付",
+      "Status": "ステータス",
+      "Action": "操作",
+      "deducted": "差し引き",
+      "Days deducted": "差し引き日数",
+      "Leave Request Details": "休暇申請の詳細",
+      "Open": "開く",
+      "Download": "ダウンロード",
+      "Attachment preview": "添付プレビュー",
+      "No file": "ファイルなし",
+      "label": "添付",
+      "title": "休暇承認",
+      "filters": {
+        "allTypes": "すべての種類"
+      },
+      "buttons": {
+        "refresh": "更新",
+        "rejectSelected": "選択を却下",
+        "approveSelected": "選択を承認",
+        "details": "詳細",
+        "close": "閉じる",
+        "open": "開く",
+        "download": "ダウンロード"
+      },
+      "actions": {
+        "approve": "承認",
+        "reject": "却下"
+      },
+      "modal": {
+        "title": "休暇申請の詳細"
+      },
+      "fields": {
+        "daysDeducted": "差し引き日数"
+      },
+      "defaults": {
+        "leave": "休暇"
+      },
+      "attachment": {
+        "noFile": "ファイルなし",
+        "previewAlt": "添付プレビュー",
+        "fileTypeLabel": "ファイル種類",
+        "previewNotSupportedLine1": "このブラウザではこの形式をプレビューできません。",
+        "previewNotSupportedLine2": "上の{{download}}または{{open}}をクリックしてください。",
+        "kind": {
+          "image": "画像",
+          "pdf": "PDF",
+          "word": "Word",
+          "zip": "ZIP",
+          "file": "ファイル"
+        }
+      },
+      "alert": {
+        "confirmTitle": "{{label}}の確認",
+        "confirmText": "{{count}}件の申請を{{label}}しますか？",
+        "doneText": "{{label}}が完了しました。"
+      }
+    },
+    "leaveTypeSettings": {
+      "title": "休暇設定",
+      "subtitle": "標準休暇クォータと繰越ポリシーを設定します",
+      "buttons": {
+        "processYearEnd": "年末処理",
+        "processCarryForwardTooltip": "翌年への繰越を処理",
+        "refresh": "更新",
+        "addType": "種類を追加",
+        "savePolicy": "ポリシー保存",
+        "edit": "編集",
+        "delete": "削除"
+      },
+      "table": {
+        "typeNamePolicy": "種類名・ポリシー",
+        "paidStatus": "有給区分",
+        "defaultDays": "標準日数",
+        "themeColor": "テーマ色",
+        "actions": "操作"
+      },
+      "paid": {
+        "paidLeave": "有給休暇",
+        "unpaidLeave": "無給休暇"
+      },
+      "daysLabel": "{{days}}日",
+      "badges": {
+        "carryForwardEnabled": "繰越有効(最大{{max}}日)",
+        "carryForwardDisabled": "繰越無効"
+      },
+      "modal": {
+        "addTitle": "休暇種類を追加",
+        "addSubtitle": "新しい休暇種類を作成",
+        "editTitle": "休暇種類を編集",
+        "editSubtitle": "内容とポリシーを更新"
+      },
+      "form": {
+        "typeName": "種類名",
+        "defaultQuotaDaysPerYear": "標準クォータ(年あたり日数)",
+        "paidLeave": "有給",
+        "enableCarryForward": "繰越を有効化",
+        "maxCarryOverDays": "最大繰越日数",
+        "themeColor": "カレンダー／チャート用テーマ色",
+        "hexPlaceholder": "#HEXCODE"
+      },
+      "yearEndPolicyTitle": "年末ポリシー({{year}})",
+      "yearEndPolicyIntro": "以下のポリシーを確認してください：",
+      "yearEndPolicyAccept": "理解し、続行に同意します。",
+      "yearEndPolicyMustAccept": "続行するにはポリシーへの同意が必要です。",
+      "confirmButtonText": "確認",
+      "cancelButtonText": "キャンセル",
+      "yearEndPolicy": {
+        "bullet1": "システムは{{year}}の残日数を使用して計算します。",
+        "bullet2": "繰越は「繰越有効」の種類にのみ適用されます。",
+        "bullet3": "繰越日数は各種類の最大繰越日数を超えません。",
+        "bullet4": "{{year}}の新しいクォータは全従業員に自動作成されます。",
+        "warningLabel": "注意：",
+        "bullet5": "この操作は元に戻せません。すべての保留中申請を先に処理してください。"
+      },
+      "examples": {
+        "leaveTypeName": "例：病気休暇"
+      },
+      "noLeaveTypesFound": "休暇種類が見つかりません",
+      "delete": {
+        "title": "休暇種類を削除",
+        "text": "この休暇種類を削除しますか？"
+      },
+      "alert": {
+        "fetchFailed": "休暇種類を取得できませんでした",
+        "saved": "休暇種類を保存しました",
+        "saveFailed": "休暇種類を保存できませんでした",
+        "deleted": "休暇種類を削除しました",
+        "deleteFailed": "削除できませんでした。しばらくしてから再試行してください",
+        "carryForwardSuccess": "{{year}}年への繰越処理が完了しました",
+        "carryForwardFailed": "年末繰越処理に失敗しました"
+      }
+    },
+    "hrDashboard": {
+      "attendanceLeaveTrends": "勤怠・休暇の推移",
+      "top5LateEmployees": "遅刻が多い上位5名",
+      "monthlyPerformanceComparison": "月次パフォーマンス比較",
+      "series": {
+        "present": "出勤",
+        "late": "遅刻",
+        "leave": "休暇",
+        "absent": "欠勤"
+      },
+      "selectedDateLabel": "選択",
+      "goToToday": "今日へ",
+      "tabs": {
+        "overview": "概要",
+        "performanceReports": "パフォーマンスレポート",
+        "auditLog": "監査ログ"
+      },
+      "companyHoliday": "会社休日",
+      "holidayShort": "休日",
+      "clickRunReportHint": "「レポート実行」をクリックして分析を読み込みます。",
+      "unableToFetchReport": "レポートデータを取得できませんでした。",
+      "unableToLoadData": "データを読み込めませんでした。",
+      "noDataToExport": "エクスポートするデータがありません。",
+      "topPerformance": "🏆 トップパフォーマンス",
+      "excellent": "優秀",
+      "leaveDistribution": "📊 休暇分布",
+      "csv": {
+        "employeeName": "従業員名",
+        "presentDays": "出勤日数",
+        "lateTimes": "遅刻回数",
+        "leaveDays": "休暇日数",
+        "absentDays": "欠勤日数",
+        "lateRate": "遅刻率"
+      },
+      "In": "出勤",
+      "Absent": "欠勤",
+      "Days Leave": "休暇日数",
+      "Days Absent": "欠勤日数",
+      "Days Present": "出勤日数",
+      "Present": "出勤",
+      "📊 Leave Distribution": "📊 休暇分布",
+      "Refresh": "更新",
+      "Rate": "率",
+      "Out": "退勤",
+      "On Leave": "休暇中",
+      "Start:": "開始：",
+      "End:": "終了：",
+      "Daily Attendance Records": "日次勤怠記録",
+      "HR Analytics": "人事分析",
+      "Role": "役割",
+      "Late": "遅刻",
+      "Oversee employee attendance, leaves and company holidays": "従業員の勤怠・休暇・会社休日を管理",
+      "Status": "ステータス",
+      "EXCELLENT": "優秀",
+      "Employee Performance Summary": "従業員パフォーマンス概要",
+      "Detailed performance and attendance trends": "詳細なパフォーマンスと勤怠推移",
+      "Export CSV": "CSV出力",
+      "Management Dashboard": "管理ダッシュボード",
+      "Times Late": "遅刻回数",
+      "Run Report": "レポート実行",
+      "Employee": "従業員",
+      "Late Rate": "遅刻率",
+      "🏆 Top Performance": "🏆 トップパフォーマンス",
+      "noRecordsForDate": "該当日の記録がありません。",
+      "noLeaveDataFound": "休暇データが見つかりません。"
+    },
+    "hrEmployees": {
+      "buttons": {
+        "addNew": "新規追加",
+        "refresh": "更新",
+        "refreshList": "一覧を更新",
+        "edit": "編集"
+      },
+      "add": {
+        "title": "従業員を追加",
+        "subtitle": "新しいアカウント作成のため詳細を入力"
+      },
+      "history": {
+        "title": "勤怠履歴",
+        "date": "日付",
+        "day": "曜日",
+        "status": "ステータス",
+        "in": "出勤",
+        "out": "退勤",
+        "details": "詳細",
+        "statusTypes": {
+          "Present": "出勤",
+          "Late": "遅刻",
+          "Leave": "休暇",
+          "Absent": "欠勤",
+          "Holiday": "休日",
+          "Weekend": "週末",
+          "Upcoming": "予定"
+        }
+      },
+      "title": "従業員",
+      "subtitle": "従業員と休暇クォータを管理",
+      "search": {
+        "placeholder": "従業員を検索..."
+      },
+      "filters": {
+        "allRoles": "すべての役割",
+        "hr": "人事(HR)",
+        "worker": "従業員",
+        "allStatus": "すべてのステータス",
+        "activeOnly": "有効のみ",
+        "inactiveOnly": "無効のみ"
+      },
+      "table": {
+        "id": "ID",
+        "name": "氏名",
+        "emailRole": "メール／役割",
+        "actions": "操作"
+      },
+      "badge": {
+        "inactive": "無効"
+      },
+      "activate": "有効化",
+      "deactivate": "無効化",
+      "quota": "クォータ",
+      "noEmployeesFound": "従業員が見つかりません",
+      "form": {
+        "firstName": "名",
+        "lastName": "姓",
+        "email": "メール",
+        "role": "役割",
+        "joiningDate": "入社日",
+        "active": "有効",
+        "password": "パスワード",
+        "passwordHint": "(空欄なら変更しません)"
+      },
+      "edit": {
+        "title": "従業員を編集"
+      },
+      "quotaModal": {
+        "title": "休暇クォータ",
+        "loadYear": "読込",
+        "syncStandard": "標準と同期",
+        "leaveTypeUsed": "休暇種類／使用",
+        "thisYear": "今年",
+        "carried": "繰越",
+        "maxCarryDays": "最大繰越",
+        "carryAllowed": "繰越可",
+        "usedLabel": "使用済み",
+        "carryHintAllowed": "許可",
+        "carryHintBlocked": "不可",
+        "saveQuota": "クォータ保存"
+      },
+      "alert": {
+        "loadFailed": "従業員の読み込みに失敗しました。",
+        "saved": "保存しました。",
+        "updated": "更新しました。",
+        "loadQuotaFailed": "クォータの読み込みに失敗しました。",
+        "quotaSaved": "クォータを保存しました。",
+        "activateTitle": "従業員を有効化しますか？",
+        "deactivateTitle": "従業員を無効化しますか？",
+        "activateText": "従業員は再びログインできるようになります。",
+        "deactivateText": "従業員はログインできなくなります。",
+        "syncTitle": "標準クォータと同期しますか？",
+        "syncText": "標準クォータを従業員に同期します。",
+        "synced": "同期しました。",
+        "syncFailed": "同期できませんでした。",
+        "quotaSaveFailed": "クォータを更新できませんでした。",
+        "activated": "従業員は有効になりました。",
+        "deactivated": "従業員は無効になりました。"
+      }
+    },
+    "workerAttendancePage": {
+      "Date": "日付",
+      "Check Out": "退勤",
+      "Status": "ステータス",
+      "Start Date": "開始日",
+      "My Attendance": "自分の勤怠",
+      "Attendance history with search, filter, and export options": "検索・絞り込み・エクスポート付きの勤怠履歴",
+      "End Date": "終了日",
+      "Note": "メモ",
+      "Refresh": "更新",
+      "Show only late": "遅刻のみ表示",
+      "Export CSV": "CSV出力",
+      "Search": "検索",
+      "Check In": "出勤",
+      "noRecordsInRange": "選択した期間の記録がありません。",
+      "Late this month": "今月の遅刻",
+      "status": {
+        "late": "遅刻",
+        "onTime": "時間通り"
+      }
+    },
+    "workerCalendar": {
+      "title": "自分のカレンダー",
+      "subtitle": "勤怠＋休暇(月表示)",
+      "today": "今日",
+      "prevMonth": "前の月",
+      "nextMonth": "次の月",
+      "companyHoliday": "会社休日",
+      "weekdays": {
+        "sun": "日",
+        "mon": "月",
+        "tue": "火",
+        "wed": "水",
+        "thu": "木",
+        "fri": "金",
+        "sat": "土"
+      },
+      "tags": {
+        "present": "出勤",
+        "late": "遅刻",
+        "normal": "通常"
+      },
+      "modal": {
+        "common": {
+          "you": "あなた"
+        },
+        "holiday": {
+          "status": "会社休日",
+          "reason": "事前に告知された会社の非稼働日です。"
+        },
+        "weekend": {
+          "status": "非稼働日",
+          "reason": "会社スケジュールに基づく休日です。"
+        },
+        "future": {
+          "status": "今後の日付",
+          "reason": "この日はまだ到来していません。"
+        },
+        "noData": {
+          "status": "データなし",
+          "reason": "勤怠または休暇記録が見つかりません。"
+        }
+      }
+    },
+    "hrProfileRequests": {
+      "Profile Update Requests": "プロフィール更新申請",
+      "Review and approve employee name change requests": "従業員の氏名変更申請を確認し承認します",
+      "Request ID": "申請ID",
+      "Employee": "従業員",
+      "Current Name": "現在の氏名",
+      "Proposed Name": "変更後の氏名",
+      "Request Date": "申請日",
+      "Status": "ステータス",
+      "Actions": "操作",
+      "Request Details": "申請の詳細",
+      "Compare details before approval": "承認前に内容を比較してください",
+      "Current Name (Old)": "現在の氏名(旧)",
+      "Proposed Name (New)": "変更後の氏名(新)",
+      "Reason for change": "変更理由",
+      "Supporting Document": "証明書類",
+      "View Attachment": "添付を表示",
+      "Official document (PDF/Image)": "公式書類(PDF／画像)",
+      "Open": "開く",
+      "title": "プロフィール申請",
+      "alert": {
+        "loadFailed": "プロフィール更新申請の読み込みに失敗しました。",
+        "confirmApproveTitle": "プロフィール更新を承認しますか？",
+        "confirmApproveText": "このプロフィール更新申請を承認しますか？",
+        "confirmRejectTitle": "プロフィール更新を却下しますか？",
+        "confirmRejectText": "このプロフィール更新申請を却下しますか？",
+        "approved": "プロフィール更新申請を承認しました。",
+        "rejected": "プロフィール更新申請を却下しました。"
+      }
+    },
+    "workerDashboard": {
+      "button": {
+        "onLeave": "休暇中",
+        "holiday": "休日",
+        "timeExpired": "時間切れ",
+        "tooEarly": "早すぎます"
+      },
+      "duration": {
+        "full": "終日",
+        "halfMorning": "午前",
+        "halfAfternoon": "午後"
+      },
+      "Leave": "休暇",
+      "Attendance History (Recent)": "勤怠履歴(最近)",
+      "Date": "日付",
+      "Check Out": "退勤",
+      "ATTACHMENT (OPTIONAL)": "添付(任意)",
+      "Leave Type": "休暇種別",
+      "Available": "利用可能",
+      "Remaining": "残り",
+      "Used": "使用済み",
+      "Submit Request": "申請を送信",
+      "Your Leave Entitlements (including carried over days)": "あなたの休暇枠(繰越を含む)",
+      "Create Leave Request": "休暇申請を作成",
+      "Status": "ステータス",
+      "Check In": "出勤",
+      "Leave Request": "休暇申請",
+      "Choose file": "ファイルを選択",
+      "noAttendanceRecordsFound": "勤怠記録が見つかりません。",
+      "weekendsExcludedNote": "※ 週末と祝日は自動的に除外されます。",
+      "hello": "こんにちは",
+      "workerFallback": "従業員",
+      "lateThisMonthLabel": "今月の遅刻：",
+      "timesSuffix": "回",
+      "checkedIn": "出勤済み",
+      "checkedOut": "退勤済み",
+      "viewAll": "すべて表示",
+      "late": "遅刻",
+      "onTime": "時間通り",
+      "startDate": "開始日",
+      "endDate": "終了日",
+      "remainingInOption": "(残り: {{remaining}}日)",
+      "daysToDeductFromQuota": "クォータから差し引く日数：",
+      "daySuffix": "日",
+      "reasonLabel": "理由",
+      "noFileSelected": "ファイル未選択",
+      "cancel": "キャンセル"
+    },
+    "hrNotifications": {
+      "title": "人事通知",
+      "subtitle": "通知を管理・確認します。",
+      "actions": {
+        "refresh": "更新",
+        "markAllRead": "すべて既読",
+        "clearAll": "すべて削除",
+        "view": "表示"
+      },
+      "table": {
+        "type": "種類",
+        "message": "メッセージ",
+        "time": "時刻",
+        "action": "操作"
+      },
+      "badge": {
+        "new": "NEW"
+      },
+      "noNotifications": "通知はまだありません。",
+      "types": {
+        "profileUpdate": "プロフィール更新",
+        "leaveRequest": "休暇申請",
+        "approved": "承認",
+        "rejected": "却下",
+        "general": "一般"
+      },
+      "alert": {
+        "loadFailed": "通知の読み込みに失敗しました。",
+        "markedRead": "すべての通知を既読にしました。",
+        "clearAllTitle": "すべての通知を削除しますか？",
+        "clearAllText": "この操作は元に戻せません。",
+        "cleared": "すべての通知を削除しました。",
+        "clearFailed": "通知の削除に失敗しました。",
+        "deleteOneConfirmText": "この通知を削除しますか？"
+      }
+    },
+    "workerNotifications": {
+      "title": "通知",
+      "subtitle": "あなた向けの更新・アラート・操作",
+      "refresh": "更新",
+      "markAllRead": "すべて既読",
+      "clearAll": "すべて削除",
+      "noNotificationsFound": "通知が見つかりません。",
+      "badge": {
+        "new": "NEW"
+      },
+      "table": {
+        "type": "種類",
+        "message": "メッセージ",
+        "time": "時刻",
+        "action": "操作"
+      },
+      "view": "表示",
+      "open": "開く",
+      "modal": {
+        "title": "通知"
+      },
+      "type": {
+        "lateWarning": "遅刻警告",
+        "leave": "休暇",
+        "general": "一般",
+        "profile": "プロフィール"
+      },
+      "alert": {
+        "loadFailed": "通知の読み込みに失敗しました。",
+        "clearAllTitle": "すべての通知を削除しますか？",
+        "clearAllText": "すべての通知を削除します。この操作は元に戻せません。",
+        "cleared": "すべての通知を削除しました。",
+        "clearFailed": "通知の削除に失敗しました。",
+        "markedRead": "すべて既読にしました。",
+        "markReadFailed": "既読処理に失敗しました。"
+      }
+    },
+    "workerProfile": {
+      "Employee ID": "従業員ID",
+      "Contact email": "連絡用メール",
+      "Employment status": "雇用ステータス",
+      "Update Password": "パスワード更新",
+      "Employment Information": "雇用情報",
+      "Reason": "理由",
+      "Pending Approval": "承認待ち",
+      "Last name": "姓",
+      "Profile": "プロフィール",
+      "Request Name Change": "氏名変更を申請",
+      "Change Password": "パスワード変更",
+      "Current Name": "現在の氏名",
+      "Current password": "現在のパスワード",
+      "New First Name": "新しい名",
+      "My Profile": "自分のプロフィール",
+      "First name": "名",
+      "User not found": "ユーザーが見つかりません",
+      "New Last Name": "新しい姓",
+      "New password": "新しいパスワード",
+      "Personal Information": "個人情報",
+      "Start date": "開始日",
+      "nameChangeHint": "公式氏名の更新申請を送信します。",
+      "examples": {
+        "nameChange": "例：結婚や法的変更"
+      }
+    },
+    "auth": {
+      "Password123": "Password123"
+    },
+    "attendancePolicy": {
+      "title": "勤怠ポリシー",
+      "subtitle": "勤務時間、稼働日、特別休日を設定します。",
+      "workPolicyTitle": "勤務ポリシー",
+      "startTime": "開始時刻",
+      "endTime": "終了時刻",
+      "graceMinutes": "猶予(分)",
+      "workingDays": "稼働日",
+      "currently": "現在",
+      "leaveGapTitle": "休暇間隔ポリシー",
+      "leaveGapDesc": "2つの休暇期間の最小間隔。",
+      "leaveGapLabel": "休暇間隔",
+      "days": "日",
+      "leaveGapExample": "例：2日 = 休暇と休暇の間に最低2日勤務が必要。",
+      "specialHolidaysTitle": "特別休日",
+      "selectHolidayDate": "休日の日付を選択",
+      "noHolidays": "特別休日なし",
+      "saveTitle": "ポリシー保存",
+      "saveDesc": "すべての従業員に即時適用されます。",
+      "savedSuccess": "ポリシーを保存しました。",
+      "savedFail": "ポリシーの保存に失敗しました。",
+      "resetTitle": "ポリシーリセット",
+      "resetDesc": "設定をデフォルトに戻します。",
+      "resetSuccess": "ポリシーをリセットしました。",
+      "resetFail": "ポリシーのリセットに失敗しました。",
+      "breakstart": "休憩開始時刻",
+      "breakend": "休憩終了時刻"
+    }
+  },
+  "components": {
+    "pagination": {
+      "range": "{{start}}-{{end}} / {{total}}",
+      "perPage": "{{n}} / ページ",
+      "pageXofY": "{{page}} / {{totalPages}}",
+      "first": "最初",
+      "prev": "前へ",
+      "next": "次へ",
+      "last": "最後",
+      "pageSizeAria": "ページサイズを選択",
+      "pageSizeTitle": "1ページの件数"
+    },
+    "sidebar": {
+      "App Sidebar": "アプリサイドバー"
+    },
+    "auditLogPanel": {
+      "System activities and history": "システム活動と履歴",
+      "Click row for data comparison": "行をクリックして変更内容を比較",
+      "Refresh": "更新",
+      "IP Address:": "IPアドレス：",
+      "Audit Log": "監査ログ",
+      "Action": "操作",
+      "BEFORE": "変更前",
+      "Clear all filters": "すべてのフィルターを解除",
+      "User": "ユーザー",
+      "From": "変更元",
+      "Clear": "解除",
+      "Timestamp": "日時",
+      "Activity": "内容",
+      "Category": "カテゴリ",
+      "To": "変更先",
+      "Role:": "役割：",
+      "Changes Snapshot": "変更スナップショット",
+      "Target:": "対象：",
+      "AFTER": "変更後",
+      "Close": "閉じる",
+      "General Information": "基本情報",
+      "User:": "ユーザー：",
+      "searchPlaceholder": "ユーザー、IDを検索...",
+      "title": "監査ログ",
+      "subtitle": "システム活動と履歴",
+      "category": "カテゴリ",
+      "action": "操作",
+      "from": "変更元",
+      "to": "変更先",
+      "clear": "解除",
+      "clearAllFilters": "すべてのフィルターを解除",
+      "refresh": "更新",
+      "timestamp": "日時",
+      "user": "ユーザー",
+      "activity": "内容",
+      "loading": "読み込み中...",
+      "noLogs": "ログが見つかりません",
+      "footerHint": "行をクリックすると詳細変更が表示されます",
+      "modal": {
+        "close": "閉じる",
+        "generalInfo": "基本情報",
+        "changes": "変更スナップショット",
+        "before": "変更前",
+        "after": "変更後",
+        "user": "ユーザー",
+        "role": "役割",
+        "ip": "IPアドレス",
+        "target": "対象"
+      },
+      "categories": {
+        "Leave": "休暇管理",
+        "Attendance": "勤怠",
+        "Quota": "クォータ",
+        "Holiday": "休日",
+        "Policy": "ポリシー",
+        "Employee": "従業員情報",
+        "Notification": "通知",
+        "Auth": "アカウント／認証",
+        "Report": "レポート",
+        "Other": "その他"
+      },
+      "actions": {
+        "LEAVE_REQUEST_CREATE": "休暇申請",
+        "LEAVE_REQUEST_CANCEL": "休暇キャンセル",
+        "LEAVE_REQUEST_APPROVE": "休暇承認",
+        "LEAVE_REQUEST_REJECT": "休暇却下",
+        "LEAVE_REQUEST_DELETE": "休暇削除",
+        "CHECKIN": "出勤",
+        "CHECKIN_LATE": "出勤(遅刻)",
+        "CHECKOUT": "退勤",
+        "LEAVE_TYPE_CREATE": "休暇種類を作成",
+        "LEAVE_TYPE_UPDATE": "休暇種類を更新",
+        "LEAVE_TYPE_DELETE": "休暇種類を削除",
+        "QUOTA_CREATE": "クォータを作成",
+        "QUOTA_UPDATE": "クォータを更新",
+        "EMPLOYEE_QUOTA_BULK_UPDATE": "クォータ一括更新",
+        "HOLIDAY_CREATE": "休日を追加",
+        "HOLIDAY_DELETE": "休日を削除",
+        "ATTENDANCE_POLICY_UPDATE": "勤怠ポリシーを更新",
+        "SYNC_DEFAULT_QUOTAS_ALL_EMPLOYEES": "全従業員の標準クォータを同期",
+        "PROCESS_YEAR_END_CARRY_FORWARD": "年末繰越処理",
+        "EMPLOYEE_CREATE": "従業員を追加",
+        "EMPLOYEE_UPDATE_BY_HR": "従業員情報を更新",
+        "PROFILE_UPDATE": "プロフィール更新",
+        "REGISTER": "アカウント登録",
+        "LOGIN_SUCCESS": "ログイン成功",
+        "EXPORT_ATTENDANCE_CSV": "勤怠CSVを出力",
+        "NOTIFICATION_MARK_READ": "通知を既読",
+        "NOTIFICATION_MARK_ALL_READ": "全通知を既読",
+        "NOTIFICATION_CLEAR_ALL": "全通知を削除",
+        "NOTIFICATION_DELETE_ONE": "通知を削除",
+        "PROFILE_UPDATE_REQUEST_SUBMIT": "プロフィール更新申請",
+        "PROFILE_UPDATE_REJECTED": "プロフィール更新申請を却下"
+      }
+    },
+    "dailyDetailModal": {
+      "dailyDetailsFor": "日次詳細：",
+      "workingOT": "勤務(残業)",
+      "present": "出勤",
+      "onLeave": "休暇中",
+      "absent": "欠勤",
+      "upcomingDate": "今後の日付",
+      "companyHoliday": "会社休日",
+      "weekend": "週末",
+      "regularWorkingDay": "通常稼働日",
+      "futureNoData": "将来の日付のため勤怠データはまだありません。",
+      "employee": "従業員",
+      "checkIn": "出勤",
+      "checkOut": "退勤",
+      "status": "ステータス",
+      "otWork": "残業",
+      "leaveType": "休暇種別",
+      "approvedBy": "承認者",
+      "noEmployeesOnLeave": "この日に休暇中の従業員はいません。",
+      "allAccounted": "本日の従業員状況はすべて確認済みです。",
+      "companySpecialHolidayTitle": "会社特別休日",
+      "companySpecialHolidayDesc": "本日は正式に告知された非稼働日です。",
+      "weekendBreakTitle": "週末休暇",
+      "weekendBreakDesc": "週末です。休日をお楽しみください。"
+    },
+    "quickActionModal": {
+      "missingRequestId": "申請IDがありません。",
+      "confirmApproveTitle": "申請を承認",
+      "confirmRejectTitle": "申請を却下",
+      "confirmApproveProfileText": "このプロフィール更新申請を承認しますか？",
+      "confirmRejectProfileText": "このプロフィール更新申請を却下しますか？",
+      "confirmApproveText": "この休暇申請を承認しますか？",
+      "confirmRejectText": "この休暇申請を却下しますか？",
+      "actionSuccess": "操作が正常に完了しました。",
+      "actionFailed": "申請の処理に失敗しました。",
+      "profileTitle": "プロフィール更新の詳細",
+      "leaveTitle": "休暇申請の詳細",
+      "currentName": "現在の氏名",
+      "newName": "新しい氏名",
+      "employee": "従業員",
+      "type": "種類",
+      "period": "期間",
+      "approved": "承認済み",
+      "rejected": "却下",
+      "viewDoc": "証明書類を表示",
+      "reason": "理由／メモ",
+      "noReason": "理由はありません。",
+      "close": "閉じる"
+    },
+    "workerModal": {
+      "Check In:": "出勤：",
+      "Close Window": "閉じる",
+      "Check Out:": "退勤：",
+      "Type:": "種類：",
+      "Approved by:": "承認者：",
+      "Status:": "ステータス：",
+      "Employee:": "従業員：",
+      "Notice:": "メモ：",
+      "Period:": "期間：",
+      "waitingForThisDate": "この日付を待機中...",
+      "dailyDetails": "日次詳細",
+      "noData": "データなし",
+      "officialNonWorkingDay": "公式の非稼働日",
+      "weeklyRestDay": "週休",
+      "restDayDescription": "休暇日の説明",
+      "noteReason": "メモ／理由",
+      "noSpecificDetails": "この日付の詳細はありません。",
+      "notice": "メモ",
+      "status": "ステータス",
+      "employee": "従業員",
+      "type": "種類",
+      "period": "期間",
+      "approvedBy": "承認者",
+      "checkIn": "出勤",
+      "checkOut": "退勤",
+      "closeWindow": "閉じる"
+    }
+  },
+  "auditFields": {
+    "startTime": "開始時刻",
+    "endTime": "終了時刻",
+    "graceMinutes": "猶予(分)",
+    "workingDays": "稼働日",
+    "specialHolidays": "特別休日",
+    "policyId": "ポリシーID",
+    "leaveGapDays": "休暇間隔(日)",
+    "updatedAt": "更新日時",
+    "createdAt": "作成日時",
+    "deletedAt": "削除日時",
+    "id": "ID",
+    "employeeId": "従業員ID",
+    "type": "種類",
+    "status": "ステータス",
+    "reason": "理由",
+    "amount": "数量",
+    "days": "日数",
+    "firstName": "名",
+    "lastName": "姓",
+    "email": "メール",
+    "role": "役割",
+    "isActive": "有効",
+    "password": "パスワード",
+    "address": "住所",
+    "phone": "電話",
+    "gender": "性別",
+    "maxCarryOverDays": "最大繰越日数",
+    "defaultQuotaDaysPerYear": "標準クォータ(年／日)",
+    "enableCarryForward": "繰越を有効化",
+    "typeName": "種類名",
+    "colorCode": "カラーコード",
+    "isPaid": "有給"
+  }
+}
