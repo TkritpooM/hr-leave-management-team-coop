@@ -1,3 +1,4 @@
+// frontend/src/pages/WorkerProfile.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import moment from "moment";
@@ -80,12 +81,18 @@ export default function WorkerProfile() {
       });
 
       if (res.data.success) {
-        await alertSuccess("Success", "Profile updated successfully.");
+        await alertSuccess(
+          t("common.success"),
+          t("pages.workerProfile.alert.profileUpdated")
+        );
         setIsEditing(false);
         await fetchProfile();
       }
     } catch (err) {
-      await alertError("Error", (err.response?.data?.message || "Update failed."));
+      await alertError(
+        t("common.error"),
+        (err.response?.data?.message || t("pages.workerProfile.alert.updateFailed"))
+      );
     }
   };
 
@@ -93,10 +100,16 @@ export default function WorkerProfile() {
   const handleSubmitRequest = async (e) => {
     e.preventDefault();
     if (!requestData.newFirstName || !requestData.newLastName) {
-      return alertError("Validation", "Please fill in both First and Last name.");
+      return alertError(
+        t("pages.workerProfile.alert.validationTitle"),
+        t("pages.workerProfile.alert.validationNameRequired")
+      );
     }
 
-    const ok = await alertConfirm("Confirm Request", "Are you sure you want to submit this name change request?");
+    const ok = await alertConfirm(
+      t("pages.workerProfile.alert.confirmTitle"),
+      t("pages.workerProfile.alert.confirmSubmit")
+    );
     if (!ok) return;
 
     try {
@@ -117,14 +130,20 @@ export default function WorkerProfile() {
       });
 
       if (res.data.success) {
-        await alertSuccess("Request Sent", "Your request has been submitted to HR.");
+        await alertSuccess(
+          t("pages.workerProfile.alert.requestSentTitle"),
+          t("pages.workerProfile.alert.requestSentDesc")
+        );
         setIsRequestModalOpen(false);
         fetchProfile(); // เพื่อโหลดสถานะ Pending (ถ้ามี)
       }
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to submit request.";
+      const msg = err.response?.data?.message || t("pages.workerProfile.alert.submitFailed");
       if (msg === "You already have pending request.") {
-        await alertError(t("common.error"), t("pages.workerProfile.alert.duplicateRequest") || "คำขอเดิมของคุณกำลังรอการอนุมัติอยู่ครับ");
+        await alertError(
+          t("common.error"),
+          t("pages.workerProfile.alert.duplicateRequest")
+        );
       } else {
         await alertError(t("common.error"), msg);
       }
@@ -134,7 +153,7 @@ export default function WorkerProfile() {
   };
 
   if (loading) return <div className="p-loader">{t("common.loadingProfile")}</div>;
-  if (!profile) return <div className="p-error">{t("pages.workerProfile.User not found")}</div>;
+  if (!profile) return <div className="p-error">{t("pages.workerProfile.userNotFound")}</div>;
 
   const initials = (profile.firstName?.charAt(0) || "U") + (profile.lastName?.charAt(0) || "");
   const hasPendingRequest = profile?.profileUpdateRequests?.some(r => r.status === 'Pending');
@@ -142,7 +161,7 @@ export default function WorkerProfile() {
   return (
     <div className="profile-page-container">
       <header className="profile-page-header">
-        <h1 className="profile-page-title">{t("pages.workerProfile.My Profile")}</h1>
+        <h1 className="profile-page-title">{t("pages.workerProfile.myProfile")}</h1>
       </header>
 
       <div className="profile-main-content">
@@ -150,20 +169,21 @@ export default function WorkerProfile() {
           <div className="avatar-section">
             <div className="avatar-circle">
               {profile.profileImageUrl ? (
-                <img src={profile.profileImageUrl} alt={t("pages.workerProfile.Profile")} />
+                <img src={profile.profileImageUrl} alt={t("pages.workerProfile.profile")} />
               ) : (initials.toUpperCase())}
             </div>
             <h2 className="display-name">{profile.firstName} {profile.lastName}</h2>
-            <span className="badge-role">{profile.role || "Worker"}</span>
+            <span className="badge-role">{profile.role || t("pages.workerProfile.role.worker")}</span>
 
             {/* ✅ แสดงสถานะ Pending */}
             {hasPendingRequest ? (
               <div className="status-pill pending">
-                <FiRefreshCw className="spin" />{t("pages.workerProfile.Pending Approval")}</div>
+                <FiRefreshCw className="spin" />{t("pages.workerProfile.pendingApproval")}
+              </div>
             ) : (
               <div className={`status-pill ${profile.isActive ? 'active' : 'inactive'}`}>
                 <span className="dot"></span>
-                {profile.isActive ? "Active Employee" : "Inactive"}
+                {profile.isActive ? t("pages.workerProfile.status.activeEmployee") : t("pages.workerProfile.status.inactive")}
               </div>
             )}
 
@@ -174,25 +194,27 @@ export default function WorkerProfile() {
               onClick={() => setIsRequestModalOpen(true)}
               disabled={hasPendingRequest}
             >
-              <FiEdit2 />{t("pages.workerProfile.Request Name Change")}</button>
+              <FiEdit2 />{t("pages.workerProfile.requestNameChange")}
+            </button>
           </div>
         </aside>
 
         <form className="profile-details-grid" onSubmit={handleUpdate}>
           <section className="info-section">
             <h3 className="section-header">
-              <FiUser />{t("pages.workerProfile.Personal Information")}</h3>
+              <FiUser />{t("pages.workerProfile.personalInformation")}
+            </h3>
             <div className="info-field-list">
               <div className="info-box">
-                <label>{t("pages.workerProfile.First name")}</label>
+                <label>{t("pages.workerProfile.firstName")}</label>
                 <p>{profile.firstName}</p>
               </div>
               <div className="info-box">
-                <label>{t("pages.workerProfile.Last name")}</label>
+                <label>{t("pages.workerProfile.lastName")}</label>
                 <p>{profile.lastName}</p>
               </div>
               <div className="info-box">
-                <label><FiMail />{t("pages.workerProfile.Contact email")}</label>
+                <label><FiMail />{t("pages.workerProfile.contactEmail")}</label>
                 <p>{profile.email}</p>
               </div>
             </div>
@@ -200,35 +222,41 @@ export default function WorkerProfile() {
 
           {!isEditing ? (
             <section className="info-section">
-              <h3 className="section-header"><FiBriefcase />{t("pages.workerProfile.Employment Information")}</h3>
+              <h3 className="section-header">
+                <FiBriefcase />{t("pages.workerProfile.employmentInformation")}
+              </h3>
               <div className="info-field-list">
                 <div className="info-box">
-                  <label>{t("pages.workerProfile.Employee ID")}</label>
+                  <label>{t("pages.workerProfile.employeeId")}</label>
                   <p>#{profile.employeeId}</p>
                 </div>
                 <div className="info-box">
-                  <label><FiCalendar />{t("pages.workerProfile.Start date")}</label>
+                  <label><FiCalendar />{t("pages.workerProfile.startDate")}</label>
                   <p>{profile.joiningDate ? moment(profile.joiningDate).format("DD MMM YYYY") : "-"}</p>
                 </div>
                 <div className="info-box">
-                  <label><FiLayers />{t("pages.workerProfile.Department", "Department")}</label>
+                  <label><FiLayers />{t("pages.workerProfile.department", "Department")}</label>
                   <p>{profile.department?.deptName || t("common.none", "None")}</p>
                 </div>
                 <div className={`info-box highlight ${profile.isActive ? 'ok' : 'danger'}`}>
-                  <label><FiShield />{t("pages.workerProfile.Employment status")}</label>
-                  <p>{profile.isActive ? "Active" : "Inactive"}</p>
+                  <label><FiShield />{t("pages.workerProfile.employmentStatus")}</label>
+                  <p>{profile.isActive ? t("pages.workerProfile.status.active") : t("pages.workerProfile.status.inactive")}</p>
                 </div>
               </div>
             </section>
           ) : (
             <section className="info-section edit-password-section">
               <div className="section-header-row">
-                <h3 className="section-header"><FiLock />{t("pages.workerProfile.Change Password")}</h3>
-                <button type="button" className="btn-close-edit" onClick={() => setIsEditing(false)}><FiX /></button>
+                <h3 className="section-header">
+                  <FiLock />{t("pages.workerProfile.changePassword")}
+                </h3>
+                <button type="button" className="btn-close-edit" onClick={() => setIsEditing(false)}>
+                  <FiX />
+                </button>
               </div>
               <div className="info-field-list">
                 <div className="info-box">
-                  <label>{t("pages.workerProfile.Current password")}</label>
+                  <label>{t("pages.workerProfile.currentPassword")}</label>
                   <input
                     type="password"
                     className="edit-input"
@@ -239,7 +267,7 @@ export default function WorkerProfile() {
                   />
                 </div>
                 <div className="info-box">
-                  <label>{t("pages.workerProfile.New password")}</label>
+                  <label>{t("pages.workerProfile.newPassword")}</label>
                   <input
                     type="password"
                     className="edit-input"
@@ -249,7 +277,9 @@ export default function WorkerProfile() {
                     required
                   />
                 </div>
-                <button type="submit" className="btn primary full-width">{t("pages.workerProfile.Update Password")}</button>
+                <button type="submit" className="btn primary full-width">
+                  {t("pages.workerProfile.updatePassword")}
+                </button>
               </div>
             </section>
           )}
@@ -263,41 +293,43 @@ export default function WorkerProfile() {
             <div className="p-modal-header">
               <div className="p-header-icon"><FiEdit2 /></div>
               <div className="p-header-text">
-                <h3>{t("pages.workerProfile.Request Name Change")}</h3>
+                <h3>{t("pages.workerProfile.requestNameChange")}</h3>
                 <p>{t("pages.workerProfile.nameChangeHint")}</p>
               </div>
-              <button className="p-modal-close" onClick={() => setIsRequestModalOpen(false)}><FiX /></button>
+              <button className="p-modal-close" onClick={() => setIsRequestModalOpen(false)}>
+                <FiX />
+              </button>
             </div>
 
             <form onSubmit={handleSubmitRequest} className="p-modal-form">
               <div className="p-current-info">
-                <label>{t("pages.workerProfile.Current Name")}</label>
+                <label>{t("pages.workerProfile.currentName")}</label>
                 <div className="p-name-badge">{profile.firstName} {profile.lastName}</div>
               </div>
 
               <div className="p-form-row">
                 <div className="p-input-group">
-                  <label>{t("pages.workerProfile.New First Name")}</label>
+                  <label>{t("pages.workerProfile.newFirstName")}</label>
                   <input
                     type="text"
                     value={requestData.newFirstName}
                     onChange={e => setRequestData({ ...requestData, newFirstName: e.target.value })}
-                    placeholder={t("pages.workerProfile.First name")}
+                    placeholder={t("pages.workerProfile.firstName")}
                   />
                 </div>
                 <div className="p-input-group">
-                  <label>{t("pages.workerProfile.New Last Name")}</label>
+                  <label>{t("pages.workerProfile.newLastName")}</label>
                   <input
                     type="text"
                     value={requestData.newLastName}
                     onChange={e => setRequestData({ ...requestData, newLastName: e.target.value })}
-                    placeholder={t("pages.workerProfile.Last name")}
+                    placeholder={t("pages.workerProfile.lastName")}
                   />
                 </div>
               </div>
 
               <div className="p-input-group">
-                <label>{t("pages.workerProfile.Reason")}</label>
+                <label>{t("pages.workerProfile.reason")}</label>
                 <textarea
                   rows="2"
                   value={requestData.reason}
@@ -315,14 +347,27 @@ export default function WorkerProfile() {
                 />
                 <label htmlFor="p-file">
                   <FiUpload />
-                  <span>{requestData.attachment ? requestData.attachment.name : "Upload supporting document"}</span>
+                  <span>
+                    {requestData.attachment
+                      ? requestData.attachment.name
+                      : t("pages.workerProfile.uploadSupportingDocument")}
+                  </span>
                 </label>
               </div>
 
               <div className="p-modal-footer">
-                <button type="button" className="p-btn-cancel" onClick={() => setIsRequestModalOpen(false)}>Cancel</button>
+                <button
+                  type="button"
+                  className="p-btn-cancel"
+                  onClick={() => setIsRequestModalOpen(false)}
+                >
+                  {t("common.cancel")}
+                </button>
+
                 <button type="submit" className="p-btn-submit" disabled={isSubmittingRequest}>
-                  {isSubmittingRequest ? "Sending..." : "Submit Request"}
+                  {isSubmittingRequest
+                    ? t("pages.workerProfile.alert.sending")
+                    : t("pages.workerProfile.submitRequest")}
                 </button>
               </div>
             </form>

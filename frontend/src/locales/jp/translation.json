@@ -831,30 +831,58 @@
       }
     },
     "workerProfile": {
-      "Employee ID": "従業員ID",
-      "Contact email": "連絡用メール",
-      "Employment status": "雇用ステータス",
-      "Update Password": "パスワード更新",
-      "Employment Information": "雇用情報",
-      "Reason": "理由",
-      "Pending Approval": "承認待ち",
-      "Last name": "姓",
-      "Profile": "プロフィール",
-      "Request Name Change": "氏名変更を申請",
-      "Change Password": "パスワード変更",
-      "Current Name": "現在の氏名",
-      "Current password": "現在のパスワード",
-      "New First Name": "新しい名",
-      "My Profile": "自分のプロフィール",
-      "First name": "名",
-      "User not found": "ユーザーが見つかりません",
-      "New Last Name": "新しい姓",
-      "New password": "新しいパスワード",
-      "Personal Information": "個人情報",
-      "Start date": "開始日",
-      "nameChangeHint": "公式氏名の更新申請を送信します。",
       "examples": {
         "nameChange": "例：結婚や法的変更"
+      },
+      "myProfile": "マイプロフィール",
+      "profile": "プロフィール",
+      "userNotFound": "ユーザーが見つかりません",
+
+      "personalInformation": "個人情報",
+      "employmentInformation": "雇用情報",
+
+      "firstName": "名",
+      "lastName": "姓",
+      "contactEmail": "連絡用メール",
+      "employeeId": "社員ID",
+      "startDate": "入社日",
+      "department": "部署",
+      "employmentStatus": "雇用ステータス",
+
+      "changePassword": "パスワード変更",
+      "currentPassword": "現在のパスワード",
+      "newPassword": "新しいパスワード",
+      "updatePassword": "パスワードを更新",
+
+      "requestNameChange": "氏名変更申請",
+      "nameChangeHint": "氏名変更を希望する場合は、人事へ申請してください",
+      "currentName": "現在の氏名",
+      "newFirstName": "新しい名",
+      "newLastName": "新しい姓",
+      "reason": "理由",
+      "uploadSupportingDocument": "証明書類をアップロード",
+      "submitRequest": "申請を送信",
+
+      "pendingApproval": "承認待ち",
+
+      "status": {
+        "active": "在職中",
+        "inactive": "無効",
+        "activeEmployee": "在職中の社員"
+      },
+
+      "alert": {
+        "profileUpdated": "プロフィールが正常に更新されました。",
+        "updateFailed": "更新に失敗しました。",
+        "validationTitle": "入力エラー",
+        "validationNameRequired": "名と姓の両方を入力してください。",
+        "confirmTitle": "申請確認",
+        "confirmSubmit": "氏名変更申請を送信してもよろしいですか？",
+        "requestSentTitle": "申請送信完了",
+        "requestSentDesc": "申請は人事部へ送信されました。",
+        "submitFailed": "申請の送信に失敗しました。",
+        "duplicateRequest": "すでに承認待ちの申請があります。",
+        "sending": "送信中..."
       }
     },
     "attendancePolicy": {
