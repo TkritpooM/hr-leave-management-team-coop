@@ -127,7 +127,7 @@ const requestLeave = async (req, res, next) => {
           data: allHR.map(hr => ({
             employeeId: hr.employeeId,
             notificationType: 'NewRequest',
-            message: "notifications.leave.newRequestFromEmployee",
+            message: "New notifications",
             meta: {
               leaveTypeName: newRequest.leaveType.typeName,
               employeeName: empName

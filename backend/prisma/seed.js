@@ -110,6 +110,14 @@ async function main() {
             isLate: false
         }
     });
+    //7-- create departments 
+        const departments = [
+            {deptName: "IT",description: "Information Technology"},
+            {deptName: "HR", description: "Human Resources"}
+        ];
+        for (const dept of departments){
+            await prisma.departments.create({data: dept})
+        }
     console.log('✅ Created sample Time Records.');
 
     console.log(`--- Seeding Process Finished Successfully ---`);

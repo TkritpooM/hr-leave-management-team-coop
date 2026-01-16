@@ -144,16 +144,21 @@ export default function Employees() {
   const handleSaveEmployee = async (e) => {
     e.preventDefault();
     try {
+
+      const payload = {
+        ...payload,
+        departmentId: payload.departmentId === "" ? null : Number(payload.departmentId)
+      };
       if (isEditMode) {
-        await axiosClient.put(`/admin/employees/${activeEmp.employeeId}`, empForm);
+        await axiosClient.put(`/admin/employees/${activeEmp.employeeId}`, payload);
       } else {
-        await axiosClient.post("/admin/employees", empForm);
+        await axiosClient.post("/admin/employees", payload);
       }
       setEmpModalOpen(false);
       fetchEmployees();
       await alertSuccess(
         t("common.success"),
-        t(isEditMode ? "pages.hrEmployees.alert.updated" : "pages.hrEmployees.alert.saved")
+        t("pages.hrEmployees.alert.saved")
       );
     } catch (err) {
       await alertError(t("common.error"), err.response?.data?.message || err.message);
