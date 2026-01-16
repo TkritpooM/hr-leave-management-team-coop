@@ -106,7 +106,7 @@ export default function HRProfileRequests() {
       {/* Header Section */}
       <header className="la-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 className="la-title">{t("pages.hrProfileRequests.Profile Update Requests")}</h1>
+          <h1 className="la-title">{t("pages.hrProfileRequests.profileUpdateRequests")}</h1>
           <p className="la-subtitle">{t("pages.hrProfileRequests.Review and approve employee name change requests")}</p>
         </div>
         <button className="btn outline" onClick={fetchRequests} disabled={isLoading}>

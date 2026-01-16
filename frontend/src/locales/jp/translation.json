@@ -10,7 +10,7 @@
     "leave": {
       "requestSubmittedAndHrNotified": "休暇申請を送信しました。人事(HR)に通知しました。",
       "requestCancelledAndAttachmentRemoved": "休暇申請をキャンセルしました。添付ファイル(ある場合)も削除しました。",
-      "requestProcessed": "休暇申請は{{status}}されました。",
+      "requestProcessed": "休暇申請を{{status}}しました。",
       "requestAndAttachmentDeleted": "休暇申請を削除しました。添付ファイル(ある場合)も削除しました。"
     }
   },
@@ -19,11 +19,11 @@
       "accessDenied": "アクセスが拒否されました。"
     },
     "leave": {
-      "leaveGapFromPrevious": "前回の休暇が{{lastLeaveDate}}に終了しているため、最低{{gapDays}}日間は空ける必要があります。",
+      "leaveGapFromPrevious": "前回の休暇が{{lastLeaveDate}}に終了したため、次の申請まで最低{{gapDays}}日間空ける必要があります。",
       "leaveGapBeforeNext": "次の休暇が{{nextLeaveDate}}から開始予定のため、開始前に最低{{gapDays}}日間は空ける必要があります。",
       "overlappingRequest": "この期間と重複する休暇申請(保留中または承認済み)が既にあります。",
       "startAfterEnd": "開始日は終了日より後にできません。",
-      "quotaNotSet": "当年度の休暇枠(クォータ)が設定されていません。",
+      "quotaNotSet": "今年度の休暇枠(クォータ)が設定されていません。",
       "insufficientQuota": "休暇枠が不足しています。(繰越を含む利用可能: {{available}}日、申請: {{requestedDays}}日)",
       "requestOnNonWorkingDay": "非稼働日には休暇申請できません({{fullText}})。",
       "requestedDaysMustBeGreaterThanZero": "申請日数は0より大きい必要があります。",
@@ -47,7 +47,7 @@
     "full": "終日",
     "leave": "休暇",
     "requestStatus": {
-      "pending": "保留中",
+      "pending": "承認待ち",
       "approved": "承認済み",
       "rejected": "却下",
       "cancelled": "キャンセル"
@@ -55,15 +55,15 @@
     "refreshList": "一覧を更新",
     "details": "詳細",
     "status": {
-      "pending": "保留中",
+      "pending": "承認待ち",
       "waiting": "待機中",
       "approved": "承認済み",
       "rejected": "却下",
       "late": "遅刻",
-      "onTime": "時間通り"
+      "onTime": "定刻通り"
     },
     "all": "すべて",
-    "success": "成功",
+    "success": "完了",
     "approve": "承認",
     "reject": "却下",
     "appName": "勤怠管理",
@@ -87,7 +87,7 @@
     "add": "追加",
     "save": "保存",
     "saving": "保存中...",
-    "saved": "保存済み",
+    "saved": "保存しました",
     "reset": "リセット",
     "error": "エラー",
     "space": " ",
@@ -109,7 +109,7 @@
     "previewNotAvailable": "このファイル形式はプレビューできません。",
     "comingSoon": "近日公開...",
     "noPendingRequests": "保留中の申請はありません。",
-    "reason": "理由。",
+    "reason": "理由",
     "placeholders": {
       "enterReason": "理由を入力...",
       "filterDateNoteTime": "日付・メモ・時刻で絞り込み...",
@@ -134,7 +134,7 @@
     "sections": {
       "main": "メインメニュー",
       "account": "アカウント",
-      "hrManagement": "人事管理"
+      "hrManagement": "労務管理"
     },
     "items": {
       "dashboard": "ダッシュボード",
@@ -293,7 +293,6 @@
       }
     },
     "hrLeaveApprovals": {
-      "Leave Approvals": "休暇承認",
       "subtitle": "従業員の休暇申請を確認し承認します。",
       "ID": "ID",
       "Employee": "従業員",
@@ -550,7 +549,7 @@
         "actions": "操作"
       },
       "badge": {
-        "inactive": "無効"
+        "inactive": "非アクティブ"
       },
       "activate": "有効化",
       "deactivate": "無効化",
@@ -633,7 +632,7 @@
       "Late this month": "今月の遅刻",
       "status": {
         "late": "遅刻",
-        "onTime": "時間通り"
+        "onTime": "定刻通り"
       }
     },
     "workerCalendar": {
@@ -680,12 +679,12 @@
       }
     },
     "hrProfileRequests": {
-      "Profile Update Requests": "プロフィール更新申請",
+      "profileUpdateRequests": "プロフィール更新申請",
       "Review and approve employee name change requests": "従業員の氏名変更申請を確認し承認します",
       "Request ID": "申請ID",
       "Employee": "従業員",
       "Current Name": "現在の氏名",
-      "Proposed Name": "変更後の氏名",
+      "Proposed Name": " の氏名",
       "Request Date": "申請日",
       "Status": "ステータス",
       "Actions": "操作",
@@ -713,8 +712,8 @@
       "button": {
         "onLeave": "休暇中",
         "holiday": "休日",
-        "timeExpired": "時間切れ",
-        "tooEarly": "早すぎます"
+        "timeExpired": "受付時間外",
+        "tooEarly": "まだ実行できません"
       },
       "duration": {
         "full": "終日",
@@ -747,7 +746,7 @@
       "checkedOut": "退勤済み",
       "viewAll": "すべて表示",
       "late": "遅刻",
-      "onTime": "時間通り",
+      "onTime": "定刻通り",
       "startDate": "開始日",
       "endDate": "終了日",
       "remainingInOption": "(残り: {{remaining}}日)",
@@ -834,7 +833,7 @@
       "examples": {
         "nameChange": "例：結婚や法的変更"
       },
-      "myProfile": "マイプロフィール",
+      "myProfile": "個人プロフィール",
       "profile": "プロフィール",
       "userNotFound": "ユーザーが見つかりません",
 
@@ -956,7 +955,7 @@
       "IP Address:": "IPアドレス：",
       "Audit Log": "監査ログ",
       "Action": "操作",
-      "BEFORE": "変更前",
+      "BEFORE": "更新前",
       "Clear all filters": "すべてのフィルターを解除",
       "User": "ユーザー",
       "From": "変更元",
@@ -968,7 +967,7 @@
       "Role:": "役割：",
       "Changes Snapshot": "変更スナップショット",
       "Target:": "対象：",
-      "AFTER": "変更後",
+      "AFTER": "更新後",
       "Close": "閉じる",
       "General Information": "基本情報",
       "User:": "ユーザー：",
@@ -992,8 +991,8 @@
         "close": "閉じる",
         "generalInfo": "基本情報",
         "changes": "変更スナップショット",
-        "before": "変更前",
-        "after": "変更後",
+        "before": "更新前",
+        "after": "更新後",
         "user": "ユーザー",
         "role": "役割",
         "ip": "IPアドレス",

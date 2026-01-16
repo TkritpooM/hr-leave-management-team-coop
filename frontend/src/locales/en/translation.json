@@ -293,7 +293,6 @@
       }
     },
     "hrLeaveApprovals": {
-      "Leave Approvals": "Leave Approvals",
       "subtitle": "Review and approve employee leave requests.",
       "ID": "ID",
       "Employee": "Employee",
@@ -680,7 +679,7 @@
       }
     },
     "hrProfileRequests": {
-      "Profile Update Requests": "Profile Update Requests",
+      "profileUpdateRequests": "Profile Update Requests",
       "Review and approve employee name change requests": "Review and approve employee name change requests",
       "Request ID": "Request ID",
       "Employee": "Employee",
