@@ -40,6 +40,9 @@
     "start": "เริ่ม",
     "end": "สิ้นสุด",
     "full": "เต็มวัน",
+    "dash": "-",
+    "startDate": "วันที่เริ่ม",
+    "endDate": "วันที่สิ้นสุด",
     "leave": "ลา",
     "requestStatus": {
       "pending": "รออนุมัติ",

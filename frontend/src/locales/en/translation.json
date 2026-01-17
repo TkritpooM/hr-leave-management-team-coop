@@ -45,6 +45,9 @@
     "start": "Start",
     "end": "End",
     "full": "Full Day",
+    "dash": "-",
+    "startDate": "Start Date",
+    "endDate": "End Date",
     "leave": "Leave",
     "requestStatus": {
       "pending": "Pending",
@@ -945,7 +948,7 @@
       "App Sidebar": "App Sidebar"
     },
     "auditLogPanel": {
-      "exportCSV":"Export CSV",
+      "exportCSV": "Export CSV",
       "System activities and history": "System activities and history",
       "Click row for data comparison": "Click row for data comparison",
       "Refresh": "Refresh",

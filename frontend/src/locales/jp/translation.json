@@ -45,6 +45,9 @@
     "start": "開始",
     "end": "終了",
     "full": "終日",
+    "dash": "-",
+    "startDate": "開始日",
+    "endDate": "終了日",
     "leave": "休暇",
     "requestStatus": {
       "pending": "承認待ち",
@@ -836,10 +839,8 @@
       "myProfile": "個人プロフィール",
       "profile": "プロフィール",
       "userNotFound": "ユーザーが見つかりません",
-
       "personalInformation": "個人情報",
       "employmentInformation": "雇用情報",
-
       "firstName": "名",
       "lastName": "姓",
       "contactEmail": "連絡用メール",
@@ -847,12 +848,10 @@
       "startDate": "入社日",
       "department": "部署",
       "employmentStatus": "雇用ステータス",
-
       "changePassword": "パスワード変更",
       "currentPassword": "現在のパスワード",
       "newPassword": "新しいパスワード",
       "updatePassword": "パスワードを更新",
-
       "requestNameChange": "氏名変更申請",
       "nameChangeHint": "氏名変更を希望する場合は、人事へ申請してください",
       "currentName": "現在の氏名",
@@ -861,15 +860,12 @@
       "reason": "理由",
       "uploadSupportingDocument": "証明書類をアップロード",
       "submitRequest": "申請を送信",
-
       "pendingApproval": "承認待ち",
-
       "status": {
         "active": "在職中",
         "inactive": "無効",
         "activeEmployee": "在職中の社員"
       },
-
       "alert": {
         "profileUpdated": "プロフィールが正常に更新されました。",
         "updateFailed": "更新に失敗しました。",
@@ -949,7 +945,7 @@
       "App Sidebar": "アプリサイドバー"
     },
     "auditLogPanel": {
-      "exportCSV":"CSV出力",
+      "exportCSV": "CSV出力",
       "System activities and history": "システム活動と履歴",
       "Click row for data comparison": "行をクリックして変更内容を比較",
       "Refresh": "更新",
