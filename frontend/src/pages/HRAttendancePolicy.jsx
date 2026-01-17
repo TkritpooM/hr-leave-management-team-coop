@@ -194,284 +194,212 @@ export default function HRAttendancePolicy() {
       </div>
 
       <div className="hrp-grid">
-        <section className="hrp-card">
-          <h3 className="hrp-card-title">{t("pages.attendancePolicy.workPolicyTitle")}</h3>
+        <div className="hrp-col-left">
+          <section className="hrp-card hrp-work-policy">
+            <h3 className="hrp-card-title">{t("pages.attendancePolicy.workPolicyTitle")}</h3>
 
-          <div className="hrp-row">
+            <div className="hrp-row">
+              <div className="hrp-field">
+                <label>{t("pages.attendancePolicy.startTime")}</label>
+                <input
+                  type="time"
+                  value={policy.startTime}
+                  onChange={(e) => setPolicy((p) => ({ ...p, startTime: e.target.value }))}
+                />
+              </div>
+
+              <div className="hrp-field">
+                <label>{t("pages.attendancePolicy.endTime")}</label>
+                <input
+                  type="time"
+                  min={policy.startTime}
+                  value={policy.endTime}
+                  onChange={(e) => setPolicy((p) => ({ ...p, endTime: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="hrp-row">
+              <div className="hrp-field">
+                <label>{t("pages.attendancePolicy.breakstart")}</label>
+                <input
+                  type="time"
+                  value={policy.breakStartTime}
+                  onChange={(e) => handleBreakStartChange(e.target.value)}
+                />
+              </div>
+
+              <div className="hrp-field">
+                <label>{t("pages.attendancePolicy.breakend")}</label>
+                <input
+                  type="time"
+                  min={policy.breakStartTime}
+                  value={policy.breakEndTime}
+                  onChange={(e) => setPolicy((p) => ({ ...p, breakEndTime: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="hrp-row">
+              <div className="hrp-field">
+                <label>{t("pages.attendancePolicy.graceMinutes")}</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={180}
+                  value={policy.graceMinutes}
+                  onChange={(e) => setPolicy((p) => ({ ...p, graceMinutes: clampInt(e.target.value, 0, 180) }))}
+                />
+              </div>
+            </div>
+
+            <div className="hrp-divider" />
+
             <div className="hrp-field">
-              <label>{t("pages.attendancePolicy.startTime")}</label>
-              <input
-                type="time"
-                value={policy.startTime}
-                onChange={(e) => setPolicy((p) => ({ ...p, startTime: e.target.value }))}
-              />
+              <label>{t("pages.attendancePolicy.workingDays")}</label>
+              <div className="hrp-days">
+                {DAYS.map((d) => (
+                  <label className="hrp-day" key={d.key}>
+                    <input
+                      type="checkbox"
+                      checked={!!policy.workingDays?.[d.key]}
+                      onChange={(e) =>
+                        setPolicy((p) => ({
+                          ...p,
+                          workingDays: { ...p.workingDays, [d.key]: e.target.checked },
+                        }))
+                      }
+                    />
+                    <span>{d.label}</span>
+                  </label>
+                ))}
+              </div>
+
+              <div className="hrp-hint">
+                {t("pages.attendancePolicy.currently")}: <strong>{workingSummary}</strong>
+              </div>
             </div>
+          </section>
 
-            <div className="hrp-field">
-              <label>{t("pages.attendancePolicy.endTime")}</label>
-              <input
-                type="time"
-                min={policy.startTime}
-                value={policy.endTime}
-                onChange={(e) => setPolicy((p) => ({ ...p, endTime: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="hrp-row">
-            <div className="hrp-field">
-              <label>{t("pages.attendancePolicy.breakstart")}</label>
-              <input
-                type="time"
-                value={policy.breakStartTime}
-                onChange={(e) => handleBreakStartChange(e.target.value)}
-              />
-            </div>
-
-            <div className="hrp-field">
-              <label>{t("pages.attendancePolicy.breakend")}</label>
-              <input
-                type="time"
-                min={policy.breakStartTime}
-                value={policy.breakEndTime}
-                onChange={(e) => setPolicy((p) => ({ ...p, breakEndTime: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="hrp-row">
-            <div className="hrp-field">
-              <label>{t("pages.attendancePolicy.graceMinutes")}</label>
-              <input
-                type="number"
-                min={0}
-                max={180}
-                value={policy.graceMinutes}
-                onChange={(e) => setPolicy((p) => ({ ...p, graceMinutes: clampInt(e.target.value, 0, 180) }))}
-              />
-            </div>
-
-            <div className="hrp-field" style={{ opacity: 0, pointerEvents: "none" }}>
-              <label>{t("common.space")}</label>
-              <input type="text" readOnly />
-            </div>
-          </div>
-
-          <div className="hrp-divider" />
-
-          <div className="hrp-field">
-            <label>{t("pages.attendancePolicy.workingDays")}</label>
-            <div className="hrp-days">
-              {DAYS.map((d) => (
-                <label className="hrp-day" key={d.key}>
-                  <input
-                    type="checkbox"
-                    checked={!!policy.workingDays?.[d.key]}
-                    onChange={(e) =>
-                      setPolicy((p) => ({
-                        ...p,
-                        workingDays: { ...p.workingDays, [d.key]: e.target.checked },
-                      }))
-                    }
-                  />
-                  <span>{d.label}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="hrp-hint">
-              {t("pages.attendancePolicy.currently")}: <strong>{workingSummary}</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className="hrp-card">
-          <h3 className="hrp-card-title">{t("pages.attendancePolicy.leaveGapTitle")}</h3>
-          <p className="hrp-sub2">{t("pages.attendancePolicy.leaveGapDesc")}</p>
-
-          <div className="hrp-field" style={{ marginTop: "20px" }}>
-            <label>{t("pages.attendancePolicy.leaveGapLabel")}</label>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <input
-                type="number"
-                min={0}
-                max={30}
-                style={{ width: "100px" }}
-                value={policy.leaveGapDays || 0}
-                onChange={(e) => setPolicy((p) => ({ ...p, leaveGapDays: clampInt(e.target.value, 0, 30) }))}
-              />
-              <span style={{ color: "#64748b", fontSize: "14px", fontWeight: "500" }}>
-                {t("pages.attendancePolicy.days")}
-              </span>
-            </div>
-
-            <div className="hrp-hint" style={{ marginTop: "12px" }}>
-              {t("pages.attendancePolicy.leaveGapExample")}
-            </div>
-          </div>
-
-          <div className="hrp-divider" style={{ margin: "24px 0" }} />
-
-          <div className="policy-tips">
-            <h4
-              style={{
-                fontSize: "0.95rem",
-                color: "#334155",
-                marginBottom: "12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "6px",
-                  height: "6px",
-                  borderRadius: "50%",
-                  background: "#3b82f6",
-                }}
-              ></span>
-              {t("pages.attendancePolicy.tipsTitle")}
-            </h4>
-
-            <ul style={{ margin: 0, paddingLeft: "16px", color: "#64748b", fontSize: "0.85rem", lineHeight: "1.6" }}>
-              <li>{t("pages.attendancePolicy.tip1")}</li>
-              <li>{t("pages.attendancePolicy.tip2")}</li>
-              <li>{t("pages.attendancePolicy.tip3")}</li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="hrp-card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-            <h3 className="hrp-card-title" style={{ margin: 0 }}>
-              {t("pages.attendancePolicy.specialHolidaysTitle")}
-            </h3>
-            <button className="btn outline small" onClick={() => setShowHolidayModal(true)}>
-              <FiCalendar /> {t("pages.attendancePolicy.manageHolidays")}
-            </button>
-          </div>
-
-          {/* ✅ Filter: เปลี่ยนเป็น DatePicker เหมือนใน HRAttendancePage modal */}
-          <div className="policy-filter-bar">
-            <div className="policy-filter-label">
-              <FiFilter /> <span>{t("common.filter")}:</span>
-            </div>
-
-            <DatePicker
-              selected={filterStart}
-              onChange={(date) => setFilterStart(date)}
-              dateFormat="yyyy-MM-dd"
-              locale={datePickerLocale}
-              className="wa-datepicker-input"
-              placeholderText={t("common.datePlaceholder")}
-            />
-
-            <span className="policy-filter-sep">-</span>
-
-            <DatePicker
-              selected={filterEnd}
-              onChange={(date) => setFilterEnd(date)}
-              dateFormat="yyyy-MM-dd"
-              locale={datePickerLocale}
-              className="wa-datepicker-input"
-              placeholderText={t("common.datePlaceholder")}
-              minDate={filterStart || undefined}
-            />
-
-            {(filterStart || filterEnd) && (
-              <button
-                type="button"
-                className="policy-filter-clear"
-                onClick={() => {
-                  setFilterStart(null);
-                  setFilterEnd(null);
-                }}
-              >
-                <FiX /> {t("common.clear")}
-              </button>
-            )}
-          </div>
-
-          {!policy.specialHolidays || policy.specialHolidays.length === 0 ? (
-            <div className="hrp-empty">{t("pages.attendancePolicy.noHolidays")}</div>
-          ) : (
-            <>
-              {filteredHolidays.length === 0 ? (
-                <div className="hrp-empty" style={{ padding: "20px" }}>
-                  {t("pages.attendancePolicy.noHolidaysInRange")}
+          <section className="hrp-card hrp-leave-gap">
+            <h3 className="hrp-card-title">{t("pages.attendancePolicy.leaveGapTitle")}</h3>
+            <div className="hrp-content-row">
+              <div className="hrp-gap-control">
+                <p className="hrp-sub2">{t("pages.attendancePolicy.leaveGapDesc")}</p>
+                <div className="hrp-field-row">
+                  <label>{t("pages.attendancePolicy.leaveGapLabel")}</label>
+                  <div className="hrp-input-group">
+                    <input
+                      type="number"
+                      min={0}
+                      max={30}
+                      value={policy.leaveGapDays || 0}
+                      onChange={(e) => setPolicy((p) => ({ ...p, leaveGapDays: clampInt(e.target.value, 0, 30) }))}
+                    />
+                    <span>{t("pages.attendancePolicy.days")}</span>
+                  </div>
                 </div>
-              ) : (
-                <div
-                  className="hrp-holiday-grid"
-                  style={{
-                    display: "grid",
-                    gap: "12px",
-                    maxHeight: "400px",
-                    overflowY: "auto",
-                    paddingRight: "4px",
+              </div>
+              <div className="policy-tips compact">
+                <h4 className="tips-title">
+                  <span className="dot"></span>
+                  {t("pages.attendancePolicy.tipsTitle")}
+                </h4>
+                <ul className="tips-list">
+                  <li>{t("pages.attendancePolicy.tip1")}</li>
+                  <li>{t("pages.attendancePolicy.tip2")}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div className="hrp-col-right">
+          <section className="hrp-card hrp-special-holidays full-height">
+            <div className="hrp-header-row">
+              <h3 className="hrp-card-title">
+                {t("pages.attendancePolicy.specialHolidaysTitle")}
+              </h3>
+              <button className="btn outline small icon-btn" onClick={() => setShowHolidayModal(true)}>
+                <FiCalendar /> {t("pages.attendancePolicy.manageHolidays")}
+              </button>
+            </div>
+
+            <div className="policy-filter-bar compact">
+              <div className="filter-inputs">
+                <DatePicker
+                  selected={filterStart}
+                  onChange={(date) => setFilterStart(date)}
+                  dateFormat="yyyy-MM-dd"
+                  locale={datePickerLocale}
+                  className="wa-datepicker-input"
+                  placeholderText={t("common.startDate")}
+                />
+                <span className="sep">-</span>
+                <DatePicker
+                  selected={filterEnd}
+                  onChange={(date) => setFilterEnd(date)}
+                  dateFormat="yyyy-MM-dd"
+                  locale={datePickerLocale}
+                  className="wa-datepicker-input"
+                  placeholderText={t("common.endDate")}
+                  minDate={filterStart || undefined}
+                />
+              </div>
+              {(filterStart || filterEnd) && (
+                <button
+                  type="button"
+                  className="policy-filter-clear"
+                  onClick={() => {
+                    setFilterStart(null);
+                    setFilterEnd(null);
                   }}
                 >
-                  {filteredHolidays.map((entry) => {
-                    const [d, desc] = entry.split("|");
-                    const mDate = moment(d);
-                    return (
-                      <div
-                        key={entry}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "16px",
-                          background: "#f8fafc",
-                          padding: "12px",
-                          borderRadius: "12px",
-                          border: "1px solid #e2e8f0",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "#fff",
-                            border: "1px solid #cbd5e1",
-                            borderRadius: "10px",
-                            width: "50px",
-                            height: "54px",
-                            boxShadow: "0 2px 5px rgba(0,0,0,0.03)",
-                          }}
-                        >
-                          <span
-                            style={{
-                              fontSize: "0.65rem",
-                              textTransform: "uppercase",
-                              color: "#64748b",
-                              fontWeight: "700",
-                            }}
-                          >
-                            {mDate.format("MMM")}
-                          </span>
-                          <span style={{ fontSize: "1.1rem", fontWeight: "700", color: "#0f172a", lineHeight: "1" }}>
-                            {mDate.format("DD")}
-                          </span>
-                        </div>
-
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#334155" }}>
-                            {desc || t("pages.attendancePolicy.companyHoliday")}
-                          </div>
-                          <div style={{ fontSize: "0.8rem", color: "#94a3b8" }}>{mDate.format("dddd, YYYY")}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                  <FiX />
+                </button>
               )}
-            </>
-          )}
-        </section>
+            </div>
+
+            <div className="hrp-holiday-container">
+              {!policy.specialHolidays || policy.specialHolidays.length === 0 ? (
+                <div className="hrp-empty-state">
+                  <div className="empty-icon">🏖️</div>
+                  <p>{t("pages.attendancePolicy.noHolidays")}</p>
+                </div>
+              ) : (
+                <>
+                  {filteredHolidays.length === 0 ? (
+                    <div className="hrp-empty-state">
+                      <p>{t("pages.attendancePolicy.noHolidaysInRange")}</p>
+                    </div>
+                  ) : (
+                    <div className="hrp-holiday-list-scroll">
+                      {filteredHolidays.map((entry) => {
+                        const [d, desc] = entry.split("|");
+                        const mDate = moment(d);
+                        return (
+                          <div key={entry} className="hrp-holiday-item">
+                            <div className="date-badge">
+                              <span className="month">{mDate.format("MMM")}</span>
+                              <span className="day">{mDate.format("DD")}</span>
+                            </div>
+
+                            <div className="holiday-info">
+                              <div className="holiday-name">
+                                {desc || t("pages.attendancePolicy.companyHoliday")}
+                              </div>
+                              <div className="holiday-meta">{mDate.format("dddd, YYYY")}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
 
       <HolidayManagerModal
