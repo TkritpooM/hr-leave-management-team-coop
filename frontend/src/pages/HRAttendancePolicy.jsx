@@ -524,24 +524,16 @@ function HolidayManagerModal({ isOpen, onClose, initialHolidays, onSave }) {
       );
 
       if (val === undefined) return;
-      if (val === "") {
-        setHolidays((prev) => prev.filter((_, i) => i !== existingIndex));
-      } else {
-        const newEntry = `${dateStr}|${val}`;
-        setHolidays((prev) => {
-          const copy = [...prev];
-          copy[existingIndex] = newEntry;
-          return copy;
-        });
-      }
+
+      const newEntry = `${dateStr}|${val}`;
+      setHolidays((prev) => {
+        const copy = [...prev];
+        copy[existingIndex] = newEntry;
+        return copy;
+      });
     } else {
-      const val = await alertInput(
-        t("pages.attendancePolicy.addHoliday"),
-        t("pages.attendancePolicy.enterDescFor", { date: dateStr })
-      );
-      if (val) {
-        setHolidays((prev) => [...prev, `${dateStr}|${val}`]);
-      }
+      // Add immediately with empty description
+      setHolidays((prev) => [...prev, `${dateStr}|`]);
     }
   };
 
