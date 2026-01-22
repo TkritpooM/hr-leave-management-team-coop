@@ -31,26 +31,38 @@ async function main() {
     await prisma.leaveType.deleteMany();
     await prisma.holiday.deleteMany();
     await prisma.employee.deleteMany();
+    await prisma.role.deleteMany(); // Clear Roles
     console.log('✅ Old data cleared successfully.');
+
+    // --- 1.1 Create Roles ---
+    const roles = ['Admin', 'HR', 'Worker'];
+    const roleMap = {};
+    for (const r of roles) {
+        const createdRole = await prisma.role.create({ data: { roleName: r } });
+        roleMap[r] = createdRole.roleId;
+    }
+    console.log('✅ Roles created:', roleMap);
 
     // --- 2. Create Employees ---
     const employees = [];
     for (const user of userData) {
         const passwordHash = await bcrypt.hash(user.password, 10);
-        
+
         // **แก้ไข:** ใช้ Destructuring เพื่อแยก password ออกจาก Object ก่อนส่งให้ Prisma
-        const { password, ...userDataWithoutPassword } = user;
-        
+        const { password, role, ...userDataWithoutPassword } = user;
+
         const employee = await prisma.employee.create({
             data: {
-                ...userDataWithoutPassword, // ใช้ Object ที่ไม่มี 'password'
+                ...userDataWithoutPassword, // ใช้ Object ที่ไม่มี 'password' และ 'role' string
                 passwordHash,
+                roleId: roleMap[role] || roleMap['Worker'], // Assign Role ID
                 joiningDate: moment.tz(userDataWithoutPassword.joiningDate, TIMEZONE).toDate(),
             },
+            include: { role: true } // Include role to check
         });
         employees.push(employee);
     }
-    const hr = employees.find(e => e.role === 'HR');
+    const hr = employees.find(e => e.role.roleName === 'HR');
     const workerA = employees.find(e => e.email === 'worker.a@company.com');
     const workerB = employees.find(e => e.email === 'worker.b@company.com');
     console.log(`✅ Created ${employees.length} employees (HR ID: ${hr.employeeId})`);
@@ -72,7 +84,7 @@ async function main() {
             { holidayName: 'Labour Day', holidayDate: moment.tz('2025-05-01', TIMEZONE).toDate() },
             { holidayName: 'Christmas Day', holidayDate: moment.tz('2025-12-25', TIMEZONE).toDate() },
             // วันหยุดสุดสัปดาห์ (Weekend) ที่เป็นวันสำคัญ (ไม่ใช่ Holiday, แต่ใช้เป็นตัวอย่าง)
-            { holidayName: 'Long Weekend Test (Sat)', holidayDate: moment.tz('2025-12-20', TIMEZONE).toDate() }, 
+            { holidayName: 'Long Weekend Test (Sat)', holidayDate: moment.tz('2025-12-20', TIMEZONE).toDate() },
             { holidayName: 'Long Weekend Test (Sun)', holidayDate: moment.tz('2025-12-21', TIMEZONE).toDate() },
         ],
     });
@@ -84,7 +96,7 @@ async function main() {
     // Worker A: Annual 10 days, Sick 5 days
     await prisma.leaveQuota.createMany({
         data: [
-            { employeeId: workerA.employeeId, leaveTypeId: annualLeave.leaveTypeId, year: currentYear, totalDays: 10.00, usedDays: 1.50 }, 
+            { employeeId: workerA.employeeId, leaveTypeId: annualLeave.leaveTypeId, year: currentYear, totalDays: 10.00, usedDays: 1.50 },
             { employeeId: workerA.employeeId, leaveTypeId: sickLeave.leaveTypeId, year: currentYear, totalDays: 5.00, usedDays: 0.00 },
         ],
     });
@@ -92,11 +104,11 @@ async function main() {
     // Worker B: Annual 12 days
     await prisma.leaveQuota.createMany({
         data: [
-            { employeeId: workerB.employeeId, leaveTypeId: annualLeave.leaveTypeId, year: currentYear, totalDays: 12.00, usedDays: 5.00 }, 
+            { employeeId: workerB.employeeId, leaveTypeId: annualLeave.leaveTypeId, year: currentYear, totalDays: 12.00, usedDays: 5.00 },
         ],
     });
     console.log(`✅ Created Leave Quota data for ${currentYear}.`);
-    
+
     // --- 6. Create Time Records ---
     const today = moment.tz(TIMEZONE);
     const yesterday = today.clone().subtract(1, 'day');
@@ -107,7 +119,7 @@ async function main() {
         data: {
             employeeId: workerA.employeeId,
             workDate: yesterday.toDate(),
-            checkInTime: yesterday.clone().set({ hour: 8, minute: 55, second: 0 }).toDate(), 
+            checkInTime: yesterday.clone().set({ hour: 8, minute: 55, second: 0 }).toDate(),
             checkOutTime: yesterday.clone().set({ hour: 17, minute: 30, second: 0 }).toDate(),
             isLate: false,
         },
@@ -118,18 +130,18 @@ async function main() {
         data: {
             employeeId: workerA.employeeId,
             workDate: today.toDate(),
-            checkInTime: today.clone().set({ hour: 9, minute: 5, second: 0 }).toDate(), 
-            checkOutTime: null, 
+            checkInTime: today.clone().set({ hour: 9, minute: 5, second: 0 }).toDate(),
+            checkOutTime: null,
             isLate: true,
         },
     });
-    
+
     // Worker B: Late (History)
     await prisma.timeRecord.create({
         data: {
             employeeId: workerB.employeeId,
             workDate: lastWeek.toDate(),
-            checkInTime: lastWeek.clone().set({ hour: 9, minute: 20, second: 0 }).toDate(), 
+            checkInTime: lastWeek.clone().set({ hour: 9, minute: 20, second: 0 }).toDate(),
             checkOutTime: lastWeek.clone().set({ hour: 18, minute: 0, second: 0 }).toDate(),
             isLate: true,
         },
@@ -137,7 +149,7 @@ async function main() {
     console.log(`✅ Created Time Record data.`);
 
     // --- 7. Create Leave Requests ---
-    
+
     // 1. Pending Request (Worker A)
     const pendingReq = await prisma.leaveRequest.create({
         data: {
@@ -167,7 +179,7 @@ async function main() {
             approvalDate: new Date(),
         }
     });
-    
+
     // 3. Rejected Request (Worker B)
     await prisma.leaveRequest.create({
         data: {
@@ -184,7 +196,7 @@ async function main() {
         }
     });
     console.log(`✅ Created Leave Request data.`);
-    
+
     // --- 8. Create Notification (New Request for HR) ---
     await prisma.notification.create({
         data: {

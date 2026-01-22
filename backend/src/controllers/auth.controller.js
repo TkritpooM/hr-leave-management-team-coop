@@ -38,9 +38,12 @@ const register = async (req, res, next) => {
       passwordHash,
       firstName,
       lastName,
-      role: role === 'HR' ? 'HR' : 'Worker',
+      roleId: role === 'HR' ? (await prisma.role.findUnique({ where: { roleName: 'HR' } }))?.roleId : (await prisma.role.findUnique({ where: { roleName: 'Worker' } }))?.roleId,
       joiningDate: new Date(joiningDate),
     };
+
+    // Safety check if roles not seeded
+    if (!newEmployeeData.roleId) throw new Error("System Roles not found. Please contact admin.");
 
     const employee = await authModel.registerEmployee(newEmployeeData);
 
@@ -55,7 +58,7 @@ const register = async (req, res, next) => {
       newValue: {
         employeeId: employee.employeeId,
         email: employee.email,
-        role: employee.role,
+        role: employee.role, // role is now flattened by model
         firstName: employee.firstName,
         lastName: employee.lastName,
       },
@@ -149,7 +152,8 @@ const getMe = async (req, res, next) => {
         firstName: true,
         lastName: true,
         email: true,
-        role: true,
+        email: true,
+        role: { select: { roleName: true } },
         joiningDate: true,
         isActive: true,
         profileImageUrl: true,
@@ -160,7 +164,9 @@ const getMe = async (req, res, next) => {
         }
       }
     });
-    res.status(200).json({ success: true, user });
+    // Flatten role
+    const flatUser = user ? { ...user, role: user.role?.roleName } : null;
+    res.status(200).json({ success: true, user: flatUser });
   } catch (error) {
     next(error);
   }
@@ -199,9 +205,11 @@ const updateProfile = async (req, res, next) => {
         firstName: true,
         lastName: true,
         email: true,
-        role: true
+        role: { select: { roleName: true } }
       }
     });
+
+    const flatUpdatedUser = { ...updatedUser, role: updatedUser.role?.roleName };
 
     // ✅ AUDIT: profile update
     await safeAudit({
@@ -219,7 +227,7 @@ const updateProfile = async (req, res, next) => {
       ipAddress: getClientIp(req),
     });
 
-    res.status(200).json({ success: true, message: "อัปเดตข้อมูลสำเร็จ", user: updatedUser });
+    res.status(200).json({ success: true, message: "อัปเดตข้อมูลสำเร็จ", user: flatUpdatedUser });
   } catch (error) {
     next(error);
   }
@@ -260,7 +268,7 @@ const requestProfileUpdate = async (req, res, next) => {
 
       // ดึงรายชื่อ HR ที่ Active
       const allHR = await tx.employee.findMany({
-        where: { role: 'HR', isActive: true },
+        where: { role: { roleName: 'HR' }, isActive: true },
         select: { employeeId: true }
       });
 

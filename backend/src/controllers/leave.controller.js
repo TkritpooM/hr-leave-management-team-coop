@@ -114,7 +114,7 @@ const requestLeave = async (req, res, next) => {
       });
 
       const allHR = await tx.employee.findMany({
-        where: { role: 'HR', isActive: true },
+        where: { role: { roleName: 'HR' }, isActive: true },
         select: { employeeId: true }
       });
 
@@ -272,7 +272,7 @@ const cancelLeaveRequest = async (req, res, next) => {
 
     // Notify HR via WebSocket for UI refresh
     const allHR = await prisma.employee.findMany({
-      where: { role: 'HR', isActive: true },
+      where: { role: { roleName: 'HR' }, isActive: true },
       select: { employeeId: true }
     });
 

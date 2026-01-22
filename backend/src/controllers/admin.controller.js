@@ -21,7 +21,8 @@ const getAllEmployees = async (req, res, next) => {
         firstName: true,
         lastName: true,
         email: true,
-        role: true,
+        email: true,
+        role: { select: { roleName: true } },
         joiningDate: true,
         isActive: true,
         department: {
@@ -33,7 +34,9 @@ const getAllEmployees = async (req, res, next) => {
       },
       orderBy: { employeeId: 'asc' }
     });
-    res.status(200).json({ success: true, employees });
+    // Flatten roles
+    const flatEmployees = employees.map(e => ({ ...e, role: e.role?.roleName }));
+    res.status(200).json({ success: true, employees: flatEmployees });
   } catch (error) { next(error); }
 };
 
@@ -475,6 +478,11 @@ const createEmployee = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const year = new Date().getFullYear();
 
+    // Find roleId
+    const targetRole = role || 'Worker';
+    const roleRecord = await prisma.role.findUnique({ where: { roleName: targetRole } });
+    if (!roleRecord) return res.status(400).json({ success: false, message: `Role ${targetRole} not found.` });
+
     const result = await prisma.$transaction(async (tx) => {
       const newEmp = await tx.employee.create({
         data: {
@@ -482,11 +490,12 @@ const createEmployee = async (req, res, next) => {
           passwordHash,
           firstName,
           lastName,
-          role: role || 'Worker',
+          roleId: roleRecord.roleId,
           joiningDate: new Date(joiningDate),
           isActive: true,
           departmentId: departmentId ? parseInt(departmentId) : undefined
-        }
+        },
+        include: { role: true }
       });
 
       const leaveTypes = await tx.leaveType.findMany();
@@ -508,19 +517,21 @@ const createEmployee = async (req, res, next) => {
       entityKey: `Employee:${result.employeeId}`,
       oldValue: null,
       newValue: {
-        employeeId: result.employeeId,
-        email: result.email,
-        firstName: result.firstName,
-        lastName: result.lastName,
-        role: result.role,
-        joiningDate: result.joiningDate,
-        isActive: result.isActive,
+        employeeId: flatEmp.employeeId,
+        email: flatEmp.email,
+        firstName: flatEmp.firstName,
+        lastName: flatEmp.lastName,
+        role: flatEmp.role,
+        joiningDate: flatEmp.joiningDate,
+        isActive: flatEmp.isActive,
       },
       performedByEmployeeId,
       ipAddress: req.ip,
     });
 
-    res.status(201).json({ success: true, message: "Employee created and quotas assigned.", employee: result });
+    // Flatten role for response
+    const flatEmp = { ...result, role: result.role?.roleName };
+    res.status(201).json({ success: true, message: "Employee created and quotas assigned.", employee: flatEmp });
   } catch (error) { next(error); }
 };
 
@@ -533,17 +544,25 @@ const updateEmployeeByAdmin = async (req, res, next) => {
 
     const oldEmp = await prisma.employee.findUnique({
       where: { employeeId },
-      select: { employeeId: true, email: true, firstName: true, lastName: true, role: true, isActive: true, departmentId: true }
+      select: { employeeId: true, email: true, firstName: true, lastName: true, role: { select: { roleName: true } }, isActive: true, departmentId: true }
     });
+    // Flatten oldEmp for audit
+    const flatOldEmp = oldEmp ? { ...oldEmp, role: oldEmp.role?.roleName } : null;
 
     let updateData = {
       firstName,
       lastName,
       email,
-      role,
       isActive: Boolean(isActive),
       departmentId: departmentId ? parseInt(departmentId) : null
     };
+
+    if (role) {
+      const roleRecord = await prisma.role.findUnique({ where: { roleName: role } });
+      if (roleRecord) {
+        updateData.roleId = roleRecord.roleId;
+      }
+    }
 
     let passwordChanged = false;
     if (password && password.trim() !== "") {
@@ -553,28 +572,30 @@ const updateEmployeeByAdmin = async (req, res, next) => {
 
     const updated = await prisma.employee.update({
       where: { employeeId },
-      data: updateData
+      data: updateData,
+      include: { role: true }
     });
+    const flatUpdated = { ...updated, role: updated.role?.roleName };
 
     await safeAudit({
       action: "EMPLOYEE_UPDATE_BY_HR",
       entity: "Employee",
       entityKey: `Employee:${employeeId}`,
-      oldValue: oldEmp,
+      oldValue: flatOldEmp,
       newValue: {
-        employeeId: updated.employeeId,
-        email: updated.email,
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-        role: updated.role,
-        isActive: updated.isActive,
+        employeeId: flatUpdated.employeeId,
+        email: flatUpdated.email,
+        firstName: flatUpdated.firstName,
+        lastName: flatUpdated.lastName,
+        role: flatUpdated.role,
+        isActive: flatUpdated.isActive,
         passwordChanged,
       },
       performedByEmployeeId,
       ipAddress: req.ip,
     });
 
-    res.status(200).json({ success: true, message: "Employee updated successfully", employee: updated });
+    res.status(200).json({ success: true, message: "Employee updated successfully", employee: flatUpdated });
   } catch (error) { next(error); }
 };
 

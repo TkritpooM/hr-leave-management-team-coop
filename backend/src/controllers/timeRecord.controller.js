@@ -90,10 +90,15 @@ const getAllTimeRecords = async (req, res, next) => {
         },
         ...(employeeId && { employeeId: parseInt(employeeId) })
       },
-      include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } } },
+      include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: { select: { roleName: true } } } } },
       orderBy: { workDate: 'desc' }
     });
-    res.status(200).json({ success: true, records });
+    // Flatten role
+    const flatRecords = records.map(r => ({
+      ...r,
+      employee: { ...r.employee, role: r.employee.role?.roleName }
+    }));
+    res.status(200).json({ success: true, records: flatRecords });
   } catch (error) { next(error); }
 };
 
@@ -303,12 +308,14 @@ const getDailyDetail = async (req, res, next) => {
 
     const allEmployees = await prisma.employee.findMany({
       where: { isActive: true },
-      select: { employeeId: true, firstName: true, lastName: true, role: true }
+      select: { employeeId: true, firstName: true, lastName: true, role: { select: { roleName: true } } }
     });
+    // Flatten roles
+    const flatAllEmployees = allEmployees.map(e => ({ ...e, role: e.role?.roleName }));
 
     const attendance = await prisma.timeRecord.findMany({
       where: { workDate: { gte: targetDate, lte: endOfTargetDate } },
-      include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } } }
+      include: { employee: { select: { employeeId: true, firstName: true, lastName: true, role: { select: { roleName: true } } } } }
     });
 
     const leaves = await prisma.leaveRequest.findMany({
@@ -318,14 +325,26 @@ const getDailyDetail = async (req, res, next) => {
         endDate: { gte: targetDate }
       },
       include: {
-        employee: { select: { employeeId: true, firstName: true, lastName: true, role: true } },
+        employee: { select: { employeeId: true, firstName: true, lastName: true, role: { select: { roleName: true } } } },
         leaveType: true,
-        approvedByHR: { select: { firstName: true, lastName: true, role: true } }
+        approvedByHR: { select: { firstName: true, lastName: true, role: { select: { roleName: true } } } }
       }
     });
 
-    const enrichedAttendance = attendance.map(att => {
-      const relatedLeave = leaves.find(l => l.employeeId === att.employeeId);
+    // Need to flatten roles in attendance and leaves
+    const flatAttendance = attendance.map(a => ({
+      ...a,
+      employee: { ...a.employee, role: a.employee.role?.roleName }
+    }));
+
+    const flatLeaves = leaves.map(l => ({
+      ...l,
+      employee: { ...l.employee, role: l.employee.role?.roleName },
+      approvedByHR: l.approvedByHR ? { ...l.approvedByHR, role: l.approvedByHR.role?.roleName } : null
+    }));
+
+    const enrichedAttendance = flatAttendance.map(att => {
+      const relatedLeave = flatLeaves.find(l => l.employeeId === att.employeeId);
       return {
         ...att,
         // ส่งข้อมูลกะที่ลาไปให้หน้าบ้านแสดงผลในแถบ Present ด้วย
@@ -333,25 +352,25 @@ const getDailyDetail = async (req, res, next) => {
       };
     });
 
-    const presentIds = attendance.map(a => a.employeeId);
-    const leaveIds = leaves.map(l => l.employeeId);
+    const presentIds = flatAttendance.map(a => a.employeeId);
+    const leaveIds = flatLeaves.map(l => l.employeeId);
 
     const absent = isSpecialHoliday
       ? []
-      : allEmployees.filter(emp => !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId));
+      : flatAllEmployees.filter(emp => !presentIds.includes(emp.employeeId) && !leaveIds.includes(emp.employeeId));
 
     res.status(200).json({
       success: true,
       data: {
         present: enrichedAttendance,
-        leaves: leaves,
+        leaves: flatLeaves,
         absent: absent,
         isSpecialHoliday: isSpecialHoliday,
         specialHolidayDesc: specialHolidayDesc,
         summary: {
-          total: allEmployees.length,
-          presentCount: attendance.length,
-          leaveCount: leaves.length,
+          total: flatAllEmployees.length,
+          presentCount: flatAttendance.length,
+          leaveCount: flatLeaves.length,
           absentCount: absent.length
         }
       }
@@ -422,7 +441,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
     // --- 3. Pagination for Table (Fetch subset of employees) ---
     const employeesPromise = prisma.employee.findMany({
       where: empWhereCondition,
-      select: { employeeId: true, firstName: true, lastName: true, role: true, joiningDate: true },
+      select: { employeeId: true, firstName: true, lastName: true, role: { select: { roleName: true } }, joiningDate: true },
       skip: skip,
       take: limitNum,
       orderBy: { employeeId: 'asc' }
@@ -435,6 +454,9 @@ const getEmployeePerformanceReport = async (req, res, next) => {
       totalLeavePromise,
       employeesPromise
     ]);
+
+    // Flatten roles for employees
+    const employees = paginatedEmployees.map(e => ({ ...e, role: e.role?.roleName }));
 
     const totalLeaveDays = parseFloat(totalLeaveAgg._sum.totalDaysRequested || 0);
 
@@ -452,7 +474,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
     };
 
     // --- 4. Process Individual Report (Only for paginated users) ---
-    const targetEmpIds = paginatedEmployees.map(e => e.employeeId);
+    const targetEmpIds = employees.map(e => e.employeeId);
 
     // Fetch records only for these employees
     const [subsetAttendance, subsetLeaves] = await Promise.all([
@@ -460,7 +482,7 @@ const getEmployeePerformanceReport = async (req, res, next) => {
       prisma.leaveRequest.findMany({ where: { status: 'Approved', startDate: { lte: end.toDate() }, endDate: { gte: start.toDate() }, employeeId: { in: targetEmpIds } }, include: { leaveType: true } })
     ]);
 
-    const individualReport = paginatedEmployees.map(emp => {
+    const individualReport = employees.map(emp => {
       const myAtts = subsetAttendance.filter(a => a.employeeId === emp.employeeId);
       const myLeaves = subsetLeaves.filter(l => l.employeeId === emp.employeeId);
       const presentCount = myAtts.length;

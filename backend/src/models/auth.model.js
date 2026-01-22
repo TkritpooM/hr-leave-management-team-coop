@@ -20,14 +20,16 @@ const registerEmployee = async (data) => {
                 firstName: true,
                 lastName: true,
                 email: true,
-                role: true,
+                role: { select: { roleName: true } },
                 joiningDate: true,
             },
         });
-        return employee;
+        // Flatten role for consistency if possible, or handle in controller. 
+        // Returning as is: { ... role: { roleName: '...' } }
+        return { ...employee, role: employee.role?.roleName };
     } catch (error) {
         // ถ้าเกิด Error อื่นๆ ที่ไม่เกี่ยวกับ P2002 (Unique) ให้โยน CustomError
-        if (error.code !== 'P2002') { 
+        if (error.code !== 'P2002') {
             throw CustomError.badRequest("Registration failed due to invalid data.");
         }
         throw error; // ให้ error.middleware จัดการ P2002
@@ -40,7 +42,7 @@ const registerEmployee = async (data) => {
  * @returns {object | null} The Employee record (including passwordHash) or null.
  */
 const findEmployeeByEmail = async (email) => {
-    return prisma.employee.findUnique({
+    const employee = await prisma.employee.findUnique({
         where: { email },
         // ต้อง include passwordHash สำหรับการตรวจสอบ Login
         select: {
@@ -49,10 +51,14 @@ const findEmployeeByEmail = async (email) => {
             lastName: true,
             email: true,
             passwordHash: true,
-            role: true,
+            role: { select: { roleName: true } },
             isActive: true, // ตรวจสอบสถานะการใช้งาน
         }
     });
+    if (employee) {
+        return { ...employee, role: employee.role?.roleName };
+    }
+    return null;
 };
 
 module.exports = {

@@ -14,13 +14,17 @@ generator client {
 }
 
 // 1. Model: Employee (พนักงาน)
+// 1. Model: Employee (พนักงาน)
 model Employee {
   employeeId      Int      @id @default(autoincrement())
   firstName       String   @map("first_name")
   lastName        String   @map("last_name")
   email           String   @unique
   passwordHash    String   @map("password_hash")
-  role            String   @default("Worker") // 'Worker', 'HR'
+  // role            String   @default("Worker") // Removed
+  roleId          Int      @map("role_id")
+  role            Role     @relation(fields: [roleId], references: [roleId])
+
   joiningDate     DateTime @map("joining_date") @db.Date // Store only Date
   resignationDate DateTime? @map("resignation_date") @db.Date // Nullable, Date
   isActive        Boolean  @map("is_active") @default(true)
@@ -40,6 +44,13 @@ model Employee {
 
   departmentId    Int?      @map("department_id")
   department      Department? @relation(fields: [departmentId], references: [deptId])
+}
+
+// 1.3 Model: Role (บทบาท)
+model Role {
+  roleId   Int    @id @default(autoincrement()) @map("role_id")
+  roleName String @unique @map("role_name") // 'Admin', 'HR', 'Worker'
+  employees Employee[]
 }
 
 // 1.2 Model: Department (แผนก)

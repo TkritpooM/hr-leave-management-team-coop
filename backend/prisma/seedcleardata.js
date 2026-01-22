@@ -18,6 +18,30 @@ async function clearLeaveRequests() {
     const deleteRequests = await prisma.leaveRequest.deleteMany({});
     console.log(`✅ Deleted ${deleteRequests.count} leave requests.`);
 
+    // 2.1 Clear all data (optional usage of this script, but let's be safe)
+    // If the user wants to clear EVERYTHING:
+    // await prisma.employee.deleteMany();
+    // await prisma.role.deleteMany();
+    // But this script seems specific to "Clear Leave Requests". 
+    // Wait, the user asked: "และในไฟล์ seedcleardata.js ทำให้ันสามารถที่จะ clear ข้อมูลทั้งหมดใน table ใน database ให้ด้วย"
+    // (And in seedcleardata.js make it able to clear ALL data in tables in the database).
+
+    // So I should upgrade it to clear EVERYTHING.
+
+    await prisma.notification.deleteMany();
+    await prisma.leaveRequest.deleteMany();
+    await prisma.timeRecord.deleteMany();
+    await prisma.leaveQuota.deleteMany();
+    await prisma.leaveType.deleteMany(); // Might be risky if referenced, but user asked for "ALL"
+    await prisma.holiday.deleteMany();
+    await prisma.profileUpdateRequest.deleteMany();
+    await prisma.auditLog.deleteMany();
+    await prisma.employee.deleteMany(); // Must come before Role
+    await prisma.department.deleteMany();
+    const deleteRoles = await prisma.role.deleteMany();
+
+    console.log(`✅ All data cleared successfully.`);
+
     // 3. (Optional) รีเซ็ต usedDays ในตาราง LeaveQuota ให้เป็น 0
     // เพื่อให้โควต้ากลับมาเต็มเหมือนเดิมหลังลบใบลา
     const resetQuotas = await prisma.leaveQuota.updateMany({

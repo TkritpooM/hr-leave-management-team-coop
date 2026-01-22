@@ -38,30 +38,30 @@ exports.getAuditLogs = async (req, res, next) => {
       ...(action ? { action } : {}),
       ...(dateFrom || dateTo
         ? {
-            createdAt: {
-              ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
-              ...(dateTo ? { lte: new Date(dateTo + "T23:59:59.999Z") } : {}),
-            },
-          }
+          createdAt: {
+            ...(dateFrom ? { gte: new Date(dateFrom) } : {}),
+            ...(dateTo ? { lte: new Date(dateTo + "T23:59:59.999Z") } : {}),
+          },
+        }
         : {}),
       ...(kw
         ? {
-            OR: [
-              { action: { contains: kw } },
-              { entity: { contains: kw } },
-              { entityKey: { contains: kw } },
-              { ipAddress: { contains: kw } },
-              {
-                performer: {
-                  OR: [
-                    { firstName: { contains: kw } },
-                    { lastName: { contains: kw } },
-                    { email: { contains: kw } },
-                  ],
-                },
+          OR: [
+            { action: { contains: kw } },
+            { entity: { contains: kw } },
+            { entityKey: { contains: kw } },
+            { ipAddress: { contains: kw } },
+            {
+              performer: {
+                OR: [
+                  { firstName: { contains: kw } },
+                  { lastName: { contains: kw } },
+                  { email: { contains: kw } },
+                ],
               },
-            ],
-          }
+            },
+          ],
+        }
         : {}),
     };
 
@@ -78,20 +78,25 @@ exports.getAuditLogs = async (req, res, next) => {
               employeeId: true,
               firstName: true,
               lastName: true,
-              role: true,
               email: true,
+              role: { select: { roleName: true } },
             },
           },
         },
       }),
     ]);
 
+    const flatRows = rows.map(r => ({
+      ...r,
+      performer: r.performer ? { ...r.performer, role: r.performer.role?.roleName } : null
+    }));
+
     res.json({
       success: true,
       total,
       page: p,
       pageSize: ps,
-      rows,
+      rows: flatRows,
     });
   } catch (err) {
     next(err);
