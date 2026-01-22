@@ -56,6 +56,24 @@ const MENUS = {
       ],
     },
   ],
+  Admin: [
+    {
+      sectionKey: "sidebar.sections.main",
+      items: [
+        { to: "/hr/dashboard", labelKey: "sidebar.items.dashboard", icon: <FiGrid /> },
+        // Admin can access HR stuff too, or we can separate. Assuming Admin ~ Super HR.
+        { to: "/hr/attendance", labelKey: "sidebar.items.employeeAttendance", icon: <FiCalendar /> },
+      ],
+    },
+    {
+      sectionKey: "sidebar.sections.hrManagement",
+      items: [
+        { to: "/hr/employees", labelKey: "sidebar.items.employees", icon: <FiUsers /> },
+        { to: "/admin/roles", labelKey: "sidebar.items.rolesManagement", icon: <FiSettings /> }, // NEW
+        { to: "/hr/leave-settings", labelKey: "sidebar.items.leaveQuotaSettings", icon: <FiSettings /> },
+      ],
+    },
+  ],
 };
 
 const safeJSON = (v, fallback = {}) => {
@@ -79,7 +97,7 @@ export default function AppSidebar() {
   const location = useLocation();
 
   const user = useMemo(() => safeJSON(localStorage.getItem("user") || "{}", {}), []);
-  const role = user.role === "HR" ? "HR" : "Worker";
+  const role = user.role === "HR" ? "HR" : (user.role === "Admin" ? "Admin" : "Worker");
   const sections = MENUS[role];
 
   // key ที่ sidebar ใช้แสดงเลข
@@ -106,13 +124,13 @@ export default function AppSidebar() {
     try {
       localStorage.setItem(notificationKey, "0");
       localStorage.setItem(lastSeenKey, String(Date.now()));
-    } catch (_) {}
+    } catch (_) { }
     setUnread(0);
 
     // ยิง event เผื่อที่อื่นฟังอยู่
     try {
       window.dispatchEvent(new Event(`${notificationKey}_updated`));
-    } catch (_) {}
+    } catch (_) { }
   }, [notificationKey, lastSeenKey]);
 
   // ✅ คำนวณ unread จาก server + lastSeen (แก้อาการ refresh แล้วเลขกลับมา)
@@ -255,7 +273,7 @@ export default function AppSidebar() {
               <div className="sb-name">{fullName}</div>
 
               <div className="sb-role">
-                {role === "HR" ? tt("common.role.HR", "HR") : tt("common.role.Worker", "Worker")}
+                {role === "HR" ? tt("common.role.HR", "HR") : (role === "Admin" ? "Admin" : tt("common.role.Worker", "Worker"))}
               </div>
             </div>
 

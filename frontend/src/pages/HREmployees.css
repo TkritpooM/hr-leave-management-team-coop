@@ -255,6 +255,12 @@
   border-color: rgba(22, 163, 74, .25);
 }
 
+.badge-role-admin {
+  background: rgba(139, 92, 246, .12);
+  color: rgba(109, 40, 217, .95);
+  border-color: rgba(139, 92, 246, .25);
+}
+
 .badge-danger {
   background: rgba(239, 68, 68, .10);
   color: rgba(153, 27, 27, .95);

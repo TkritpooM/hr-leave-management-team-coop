@@ -651,11 +651,117 @@ const updateAttendancePolicy = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// --- Role Management (CRUD) ---
+const getRoles = async (req, res, next) => {
+  try {
+    const roles = await prisma.role.findMany({ orderBy: { roleId: 'asc' } });
+    res.status(200).json({ success: true, roles });
+  } catch (error) { next(error); }
+};
+
+const createRole = async (req, res, next) => {
+  try {
+    const performedByEmployeeId = Number(req.user.employeeId);
+    const { roleName } = req.body;
+
+    // Check if role exists
+    const existing = await prisma.role.findUnique({ where: { roleName } });
+    if (existing) throw CustomError.badRequest("Role name already exists.");
+
+    const newRole = await prisma.role.create({ data: { roleName } });
+
+    await safeAudit({
+      action: "ROLE_CREATE",
+      entity: "Role",
+      entityKey: `Role:${newRole.roleId}`,
+      oldValue: null,
+      newValue: newRole,
+      performedByEmployeeId,
+      ipAddress: req.ip,
+    });
+
+    res.status(201).json({ success: true, message: 'Role created.', role: newRole });
+  } catch (error) { next(error); }
+};
+
+const updateRole = async (req, res, next) => {
+  try {
+    const performedByEmployeeId = Number(req.user.employeeId);
+    const roleId = parseInt(req.params.roleId);
+    const { roleName } = req.body;
+
+    const oldRole = await prisma.role.findUnique({ where: { roleId } });
+    if (!oldRole) throw CustomError.notFound("Role not found.");
+
+    // Protected roles check (optional but good practice)
+    if (['Admin', 'HR', 'Worker'].includes(oldRole.roleName) && oldRole.roleName !== roleName) {
+      // Prevent renaming core system roles if critical logic depends on strings
+      // But user wanted full CRUD, so we allow it but warn or ensure ID stability. 
+      // Since logic uses IDs or strings? Logic uses roleName strings heavily!
+      // Ideally we should block renaming 'Admin', 'HR', 'Worker'.
+      // Let's block renaming system roles for safety.
+      throw CustomError.forbidden("Cannot rename system default roles.");
+    }
+
+    const updatedRole = await prisma.role.update({
+      where: { roleId },
+      data: { roleName }
+    });
+
+    await safeAudit({
+      action: "ROLE_UPDATE",
+      entity: "Role",
+      entityKey: `Role:${roleId}`,
+      oldValue: oldRole,
+      newValue: updatedRole,
+      performedByEmployeeId,
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Role updated.', role: updatedRole });
+  } catch (error) { next(error); }
+};
+
+const deleteRole = async (req, res, next) => {
+  try {
+    const performedByEmployeeId = Number(req.user.employeeId);
+    const roleId = parseInt(req.params.roleId);
+
+    const oldRole = await prisma.role.findUnique({ where: { roleId } });
+    if (!oldRole) throw CustomError.notFound("Role not found.");
+
+    if (['Admin', 'HR', 'Worker'].includes(oldRole.roleName)) {
+      throw CustomError.forbidden("Cannot delete system default roles.");
+    }
+
+    // Check usage
+    const userCount = await prisma.employee.count({ where: { roleId } });
+    if (userCount > 0) {
+      throw CustomError.conflict(`Cannot delete role. It is assigned to ${userCount} employees.`);
+    }
+
+    await prisma.role.delete({ where: { roleId } });
+
+    await safeAudit({
+      action: "ROLE_DELETE",
+      entity: "Role",
+      entityKey: `Role:${roleId}`,
+      oldValue: oldRole,
+      newValue: null,
+      performedByEmployeeId,
+      ipAddress: req.ip,
+    });
+
+    res.status(200).json({ success: true, message: 'Role deleted successfully.' });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   getAllEmployees, getEmployeeQuota, updateEmployeeQuotaBulk,
   getLeaveTypes, createLeaveType, updateLeaveType, deleteLeaveType,
   getQuotas, createQuota, updateQuota,
   getHolidays, createHoliday, deleteHoliday,
   syncAllEmployeesQuota, processYearEndCarryForward, createEmployee, updateEmployeeByAdmin,
-  getAttendancePolicy, updateAttendancePolicy
+  getAttendancePolicy, updateAttendancePolicy,
+  getRoles, createRole, updateRole, deleteRole
 };

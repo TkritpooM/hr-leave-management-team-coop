@@ -41,7 +41,7 @@ export default function LoginPage() {
 
     // Otherwise route by role
     return navigate(
-      role === "HR" ? "/hr/dashboard" : "/worker/dashboard",
+      (role === "HR" || role === "Admin") ? "/hr/dashboard" : "/worker/dashboard",
       { replace: true }
     );
   };
