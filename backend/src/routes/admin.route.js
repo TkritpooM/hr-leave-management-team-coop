@@ -40,7 +40,7 @@ router.post('/employees', [
     body('firstName').notEmpty(),
     body('lastName').notEmpty(),
     body('joiningDate').isISO8601(),
-    body('departmentId').optional().isInt(),
+    body('departmentId').optional({ checkFalsy: true }).isInt(),
     validate
 ], adminController.createEmployee);
 router.put('/employees/:employeeId', [
@@ -49,7 +49,7 @@ router.put('/employees/:employeeId', [
     body('email').isEmail(),
     body('firstName').notEmpty(),
     body('lastName').notEmpty(),
-    body('departmentId').optional({ nullable: true }).isInt(),
+    body('departmentId').optional({ checkFalsy: true }).isInt(),
     validate
 ], adminController.updateEmployeeByAdmin);
 
