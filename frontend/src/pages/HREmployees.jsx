@@ -11,6 +11,12 @@ export default function Employees() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "Admin";
+  const permissions = user?.permissions || [];
+
+  // Permission to modify employee data
+  const canManage = isAdmin || permissions.includes("manage_employee_data");
+  // Permission to manage quotas (sync)
+  const canManageQuota = isAdmin || permissions.includes("access_leave_settings");
 
   const [employees, setEmployees] = useState([]);
   const [types, setTypes] = useState([]);
@@ -406,24 +412,28 @@ export default function Employees() {
 
           {/* Row 2: Action Buttons */}
           <div className="emp-tools-row actions">
-            <button
-              className="emp-btn emp-btn-outline warn"
-              onClick={handleSyncQuotas}
-              title={t("pages.hrEmployees.quotaModal.syncStandard")}
-              disabled={loading}
-            >
-              <FiRefreshCw className={loading ? "spin" : ""} />
-              {t("pages.hrEmployees.quotaModal.syncStandard")}
-            </button>
+            {canManageQuota && (
+              <button
+                className="emp-btn emp-btn-outline warn"
+                onClick={handleSyncQuotas}
+                title={t("pages.hrEmployees.quotaModal.syncStandard")}
+                disabled={loading}
+              >
+                <FiRefreshCw className={loading ? "spin" : ""} />
+                {t("pages.hrEmployees.quotaModal.syncStandard")}
+              </button>
+            )}
 
             <button className="emp-btn emp-btn-secondary" onClick={() => setDeptModalOpen(true)}>
               <FiLayers /> {t("pages.hrEmployees.buttons.departments", "Departments")}
             </button>
 
-            <button className="emp-btn emp-btn-primary" onClick={openAddModal}>
-              <FiUserPlus />
-              {t("pages.hrEmployees.buttons.addNew")}
-            </button>
+            {canManage && (
+              <button className="emp-btn emp-btn-primary" onClick={openAddModal}>
+                <FiUserPlus />
+                {t("pages.hrEmployees.buttons.addNew")}
+              </button>
+            )}
 
             <button
               className="emp-btn emp-btn-outline"
@@ -497,24 +507,30 @@ export default function Employees() {
                         <FiClock />
                       </button>
 
-                      <button className="emp-btn emp-btn-outline small info" onClick={() => openEditModal(emp)}>
-                        <FiEdit2 />
-                        {t("pages.hrEmployees.buttons.edit")}
-                      </button>
+                      {canManage && (
+                        <button className="emp-btn emp-btn-outline small info" onClick={() => openEditModal(emp)}>
+                          <FiEdit2 />
+                          {t("pages.hrEmployees.buttons.edit")}
+                        </button>
+                      )}
 
-                      <button className="emp-btn emp-btn-outline small quota" onClick={() => openQuota(emp)}>
-                        <FiSettings />
-                        {t("pages.hrEmployees.quota")}
-                      </button>
+                      {canManageQuota && (
+                        <button className="emp-btn emp-btn-outline small quota" onClick={() => openQuota(emp)}>
+                          <FiSettings />
+                          {t("pages.hrEmployees.quota")}
+                        </button>
+                      )}
 
-                      <button
-                        className={`emp-btn emp-btn-outline small ${emp.isActive ? "warn" : "info"}`}
-                        onClick={() => toggleActive(emp)}
-                        title={emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
-                      >
-                        {emp.isActive ? <FiToggleLeft /> : <FiToggleRight />}
-                        {emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
-                      </button>
+                      {canManage && (
+                        <button
+                          className={`emp-btn emp-btn-outline small ${emp.isActive ? "warn" : "info"}`}
+                          onClick={() => toggleActive(emp)}
+                          title={emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
+                        >
+                          {emp.isActive ? <FiToggleLeft /> : <FiToggleRight />}
+                          {emp.isActive ? t("pages.hrEmployees.deactivate") : t("pages.hrEmployees.activate")}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

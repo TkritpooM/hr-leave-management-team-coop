@@ -42,9 +42,11 @@ router.delete('/departments/:id', [subStructurePerm, param('id').isInt(), valida
 
 // Employee Management
 const empPerm = authorizePermission('access_employee_list');
+const manageEmpPerm = authorizePermission('manage_employee_data');
+
 router.get('/employees', empPerm, adminController.getAllEmployees);
 router.post('/employees', [
-    empPerm,
+    manageEmpPerm,
     body('email').isEmail(),
     body('password').isLength({ min: 6 }),
     body('firstName').notEmpty(),
@@ -54,7 +56,7 @@ router.post('/employees', [
     validate
 ], adminController.createEmployee);
 router.put('/employees/:employeeId', [
-    empPerm,
+    manageEmpPerm,
     param('employeeId').isInt(),
     body('email').isEmail(),
     body('firstName').notEmpty(),
@@ -65,28 +67,30 @@ router.put('/employees/:employeeId', [
 
 // Quota Management per Employee (Requires accessing employee list AND leave settings potentially?)
 // Let's use 'access_leave_settings' for managing quotas.
-const quotaPerm = authorizePermission('access_leave_settings');
+const quotaPerm = authorizePermission('manage_leave_configuration'); // CHANGED from access_leave_settings
 router.post('/hr/sync-quotas', quotaPerm, adminController.syncAllEmployeesQuota);
 router.post('/hr/process-carry-forward', quotaPerm, adminController.processYearEndCarryForward);
-router.get('/hr/leave-quota/:employeeId', [quotaPerm, param('employeeId').isInt(), validate], adminController.getEmployeeQuota);
+router.get('/hr/leave-quota/:employeeId', [authorizePermission('access_leave_settings'), param('employeeId').isInt(), validate], adminController.getEmployeeQuota);
 router.put('/hr/leave-quota/:employeeId', [quotaPerm, param('employeeId').isInt(), body('quotas').isArray(), validate], adminController.updateEmployeeQuotaBulk);
 
 // Leave Type Management (Write actions)
 const settingsPerm = authorizePermission('access_leave_settings');
-router.post('/leavetype', [settingsPerm, body('typeName').notEmpty().withMessage('Type Name is required.'), body('isPaid').optional().isBoolean().withMessage('isPaid must be a boolean.'), body('colorCode').optional().isString(), validate], adminController.createLeaveType);
-router.put('/leavetype/:leaveTypeId', [settingsPerm, param('leaveTypeId').isInt(), body('typeName').notEmpty(), body('isPaid').optional().isBoolean(), body('colorCode').optional().isString(), validate], adminController.updateLeaveType);
-router.delete('/leavetype/:leaveTypeId', [settingsPerm, param('leaveTypeId').isInt(), validate], adminController.deleteLeaveType);
+const manageSettingsPerm = authorizePermission('manage_leave_configuration'); // NEW
+
+router.post('/leavetype', [manageSettingsPerm, body('typeName').notEmpty().withMessage('Type Name is required.'), body('isPaid').optional().isBoolean().withMessage('isPaid must be a boolean.'), body('colorCode').optional().isString(), validate], adminController.createLeaveType);
+router.put('/leavetype/:leaveTypeId', [manageSettingsPerm, param('leaveTypeId').isInt(), body('typeName').notEmpty(), body('isPaid').optional().isBoolean(), body('colorCode').optional().isString(), validate], adminController.updateLeaveType);
+router.delete('/leavetype/:leaveTypeId', [manageSettingsPerm, param('leaveTypeId').isInt(), validate], adminController.deleteLeaveType);
 
 // Leave Quota Management (CRUD เดิม)
 router.get('/quota', settingsPerm, adminController.getQuotas);
-router.post('/quota', [settingsPerm, body('employeeId').isInt(), body('leaveTypeId').isInt(), body('year').isInt({ min: 2020 }), body('totalDays').isFloat({ min: 0 }), validate], adminController.createQuota);
-router.put('/quota/:quotaId', [settingsPerm, param('quotaId').isInt(), body('totalDays').isFloat({ min: 0 }), validate], adminController.updateQuota);
+router.post('/quota', [manageSettingsPerm, body('employeeId').isInt(), body('leaveTypeId').isInt(), body('year').isInt({ min: 2020 }), body('totalDays').isFloat({ min: 0 }), validate], adminController.createQuota);
+router.put('/quota/:quotaId', [manageSettingsPerm, param('quotaId').isInt(), body('totalDays').isFloat({ min: 0 }), validate], adminController.updateQuota);
 
 // Holiday Management (Write actions)
-router.post('/holiday', [settingsPerm, body('holidayDate').isISO8601().toDate(), body('holidayName').notEmpty(), validate], adminController.createHoliday);
-router.delete('/holiday/:holidayId', [settingsPerm, param('holidayId').isInt(), validate], adminController.deleteHoliday);
+router.post('/holiday', [manageSettingsPerm, body('holidayDate').isISO8601().toDate(), body('holidayName').notEmpty(), validate], adminController.createHoliday);
+router.delete('/holiday/:holidayId', [manageSettingsPerm, param('holidayId').isInt(), validate], adminController.deleteHoliday);
 
-router.put('/attendance-policy', authorizePermission('access_attendance_policy'), adminController.updateAttendancePolicy);
+router.put('/attendance-policy', authorizePermission('manage_attendance_configuration'), adminController.updateAttendancePolicy);
 
 // --- 🔒 3. Role Management ---
 // --- 🔒 3. Role Management ---

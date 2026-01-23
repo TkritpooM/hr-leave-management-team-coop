@@ -4,6 +4,7 @@ import { FiPlus, FiEdit2, FiTrash2, FiSave, FiRefreshCw, FiCalendar } from "reac
 import "./HRLeaveTypeSettings.css";
 import Swal from "sweetalert2";
 import { alertError, alertSuccess } from "../utils/sweetAlert";
+import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
 
 const api = axios.create({ baseURL: "http://localhost:8000" });
@@ -11,6 +12,10 @@ const authHeader = () => ({ headers: { Authorization: `Bearer ${localStorage.get
 
 export default function LeaveSettings() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+  // Check new granular permission or fallback to Admin
+  const canManage = isAdmin || user?.permissions?.includes('manage_leave_configuration');
 
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -175,26 +180,30 @@ export default function LeaveSettings() {
         </div>
 
         <div className="emp-tools">
-          <button
-            className="emp-btn emp-btn-outline warn"
-            onClick={handleProcessCarryForward}
-            disabled={loading}
-            title={t("pages.leaveTypeSettings.buttons.processCarryForwardTooltip")}
-            style={{ borderColor: "#f59e0b", color: "#b45309" }}
-          >
-            <FiCalendar />
-            {t("pages.leaveTypeSettings.buttons.processYearEnd")}
-          </button>
+          {canManage && (
+            <button
+              className="emp-btn emp-btn-outline warn"
+              onClick={handleProcessCarryForward}
+              disabled={loading}
+              title={t("pages.leaveTypeSettings.buttons.processCarryForwardTooltip")}
+              style={{ borderColor: "#f59e0b", color: "#b45309" }}
+            >
+              <FiCalendar />
+              {t("pages.leaveTypeSettings.buttons.processYearEnd")}
+            </button>
+          )}
 
           <button className="emp-btn emp-btn-outline" onClick={fetchTypes} disabled={loading}>
             <FiRefreshCw className={loading ? "spin" : ""} />
             {t("pages.leaveTypeSettings.buttons.refresh")}
           </button>
 
-          <button className="emp-btn emp-btn-primary" onClick={openAdd}>
-            <FiPlus />
-            {t("pages.leaveTypeSettings.buttons.addType")}
-          </button>
+          {canManage && (
+            <button className="emp-btn emp-btn-primary" onClick={openAdd}>
+              <FiPlus />
+              {t("pages.leaveTypeSettings.buttons.addType")}
+            </button>
+          )}
         </div>
       </div>
 
@@ -274,14 +283,16 @@ export default function LeaveSettings() {
                   </td>
 
                   <td style={{ textAlign: "right" }}>
-                    <div className="btn-group-row right">
-                      <button className="emp-btn emp-btn-outline small" onClick={() => openEdit(type)} title={t("pages.leaveTypeSettings.buttons.edit")}>
-                        <FiEdit2 />
-                      </button>
-                      <button className="emp-btn emp-btn-outline small danger" onClick={() => handleDelete(type.leaveTypeId)} title={t("pages.leaveTypeSettings.buttons.delete")}>
-                        <FiTrash2 />
-                      </button>
-                    </div>
+                    {canManage && (
+                      <div className="btn-group-row right">
+                        <button className="emp-btn emp-btn-outline small" onClick={() => openEdit(type)} title={t("pages.leaveTypeSettings.buttons.edit")}>
+                          <FiEdit2 />
+                        </button>
+                        <button className="emp-btn emp-btn-outline small danger" onClick={() => handleDelete(type.leaveTypeId)} title={t("pages.leaveTypeSettings.buttons.delete")}>
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))

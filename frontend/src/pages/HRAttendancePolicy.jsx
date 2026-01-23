@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./HRAttendancePolicy.css";
 import { alertConfirm, alertSuccess, alertError } from "../utils/sweetAlert";
+import { useAuth } from "../context/AuthContext";
 import axiosClient from "../api/axiosClient";
 import "react-datepicker/dist/react-datepicker.css";
 import { useTranslation } from "react-i18next";
@@ -29,6 +30,9 @@ const clampInt = (v, min, max) => {
 
 export default function HRAttendancePolicy() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+  const canManage = isAdmin || user?.permissions?.includes('manage_attendance_configuration');
 
   const mLocale = useMemo(() => {
     const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();
@@ -185,12 +189,16 @@ export default function HRAttendancePolicy() {
           <p className="hrp-sub">{t("pages.attendancePolicy.subtitle")}</p>
         </div>
         <div className="hrp-actions">
-          <button className="btn outline" type="button" onClick={reset} disabled={saving}>
-            {t("common.reset")}
-          </button>
-          <button className="btn primary" type="button" onClick={save} disabled={saving}>
-            {saving ? t("common.saving") : t("common.save")}
-          </button>
+          {canManage && (
+            <>
+              <button className="btn outline" type="button" onClick={reset} disabled={saving}>
+                {t("common.reset")}
+              </button>
+              <button className="btn primary" type="button" onClick={save} disabled={saving}>
+                {saving ? t("common.saving") : t("common.save")}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -205,6 +213,7 @@ export default function HRAttendancePolicy() {
                 <input
                   type="time"
                   value={policy.startTime}
+                  disabled={!canManage}
                   onChange={(e) => setPolicy((p) => ({ ...p, startTime: e.target.value }))}
                 />
               </div>
@@ -215,6 +224,7 @@ export default function HRAttendancePolicy() {
                   type="time"
                   min={policy.startTime}
                   value={policy.endTime}
+                  disabled={!canManage}
                   onChange={(e) => setPolicy((p) => ({ ...p, endTime: e.target.value }))}
                 />
               </div>
@@ -226,6 +236,7 @@ export default function HRAttendancePolicy() {
                 <input
                   type="time"
                   value={policy.breakStartTime}
+                  disabled={!canManage}
                   onChange={(e) => handleBreakStartChange(e.target.value)}
                 />
               </div>
@@ -236,6 +247,7 @@ export default function HRAttendancePolicy() {
                   type="time"
                   min={policy.breakStartTime}
                   value={policy.breakEndTime}
+                  disabled={!canManage}
                   onChange={(e) => setPolicy((p) => ({ ...p, breakEndTime: e.target.value }))}
                 />
               </div>
@@ -249,6 +261,7 @@ export default function HRAttendancePolicy() {
                   min={0}
                   max={180}
                   value={policy.graceMinutes}
+                  disabled={!canManage}
                   onChange={(e) => setPolicy((p) => ({ ...p, graceMinutes: clampInt(e.target.value, 0, 180) }))}
                 />
               </div>
@@ -264,6 +277,7 @@ export default function HRAttendancePolicy() {
                     <input
                       type="checkbox"
                       checked={!!policy.workingDays?.[d.key]}
+                      disabled={!canManage}
                       onChange={(e) =>
                         setPolicy((p) => ({
                           ...p,
@@ -295,6 +309,7 @@ export default function HRAttendancePolicy() {
                       min={0}
                       max={30}
                       value={policy.leaveGapDays || 0}
+                      disabled={!canManage}
                       onChange={(e) => setPolicy((p) => ({ ...p, leaveGapDays: clampInt(e.target.value, 0, 30) }))}
                     />
                     <span>{t("pages.attendancePolicy.days")}</span>
@@ -321,9 +336,11 @@ export default function HRAttendancePolicy() {
               <h3 className="hrp-card-title">
                 {t("pages.attendancePolicy.specialHolidaysTitle")}
               </h3>
-              <button className="btn outline small icon-btn" onClick={() => setShowHolidayModal(true)}>
-                <FiCalendar /> {t("pages.attendancePolicy.manageHolidays")}
-              </button>
+              {canManage && (
+                <button className="btn outline small icon-btn" onClick={() => setShowHolidayModal(true)}>
+                  <FiCalendar /> {t("pages.attendancePolicy.manageHolidays")}
+                </button>
+              )}
             </div>
 
             <div className="policy-filter-bar compact">
