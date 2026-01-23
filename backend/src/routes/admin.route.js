@@ -89,8 +89,11 @@ router.delete('/holiday/:holidayId', [settingsPerm, param('holidayId').isInt(), 
 router.put('/attendance-policy', authorizePermission('access_attendance_policy'), adminController.updateAttendancePolicy);
 
 // --- 🔒 3. Role Management ---
+// --- 🔒 3. Role Management ---
 const rolePerm = authorizePermission('access_role_management');
-router.get('/roles', rolePerm, adminController.getRoles);
+
+// Allow HR (Employee Managers) to VIEW roles list so they can assign roles
+router.get('/roles', authorizePermission(['access_role_management', 'access_employee_list']), adminController.getRoles);
 router.get('/permissions', rolePerm, adminController.getPermissions);
 router.post('/roles', [rolePerm, body('roleName').notEmpty(), validate], adminController.createRole);
 router.put('/roles/:roleId', [rolePerm, param('roleId').isInt(), body('roleName').notEmpty(), validate], adminController.updateRole);

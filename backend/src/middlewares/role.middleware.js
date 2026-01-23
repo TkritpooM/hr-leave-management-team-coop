@@ -30,7 +30,7 @@ const authorizeRole = (requiredRoles) => {
  * Users with the specific permission are allowed.
  * @param {string} permission - The permission required (e.g., 'access_employee_list')
  */
-const authorizePermission = (permission) => {
+const authorizePermission = (requiredPermission) => {
     return (req, res, next) => {
         if (!req.user) {
             return next(CustomError.unauthorized("User authentication details are incomplete."));
@@ -41,13 +41,15 @@ const authorizePermission = (permission) => {
         // 1. Admin always has access
         if (role === 'Admin') return next();
 
-        // 2. Check if user has the specific permission
-        // permissions should be an array of strings from the token
-        if (permissions && permissions.includes(permission)) {
+        // 2. Normalize required permissions to an array
+        const allowedPermissions = Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission];
+
+        // 3. Check if user has ANY of the specific permissions
+        if (permissions && allowedPermissions.some(p => permissions.includes(p))) {
             return next();
         }
 
-        return next(CustomError.forbidden(`Access denied. Required permission: '${permission}'.`));
+        return next(CustomError.forbidden(`Access denied. Required permission: '${allowedPermissions.join("' or '")}'.`));
     };
 };
 
