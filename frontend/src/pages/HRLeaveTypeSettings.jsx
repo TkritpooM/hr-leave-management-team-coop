@@ -15,7 +15,7 @@ export default function LeaveSettings() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
   // Check new granular permission or fallback to Admin
-  const canManage = isAdmin || user?.permissions?.includes('manage_leave_configuration');
+  const canManage = isAdmin || user?.permissions?.includes('manage_leave_settings');
 
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -12,6 +12,7 @@ const userData = [
     { email: 'hr.manager@company.com', role: 'HR', firstName: 'HR', lastName: 'Manager', password: 'Password123', joiningDate: '2023-01-01' },
     { email: 'worker.a@company.com', role: 'Worker', firstName: 'Alice', lastName: 'WorkerA', password: 'Password123', joiningDate: '2023-06-15' },
     { email: 'worker.b@company.com', role: 'Worker', firstName: 'Bob', lastName: 'WorkerB', password: 'Password123', joiningDate: '2024-03-01' },
+    { email: 'worker.c@company.com', role: 'Supervisor', firstName: 'Charlie', lastName: 'WorkerC', password: 'Password123', joiningDate: '2024-01-15' },
 ];
 
 const leaveTypeData = [
@@ -53,6 +54,11 @@ async function main() {
         // New permissions requested
         { name: 'access_view_profile', description: 'View Own Profile' },
         { name: 'access_view_notifications', description: 'View Notifications' },
+        { name: 'access_audit_log', description: 'View Audit Logs' },
+        // Manage permissions
+        { name: 'manage_employees', description: 'Create, Edit, Delete Employees' },
+        { name: 'manage_leave_settings', description: 'Create, Edit Leave Types and Quotas' },
+        { name: 'manage_attendance_policy', description: 'Update Attendance Policy and Holidays' },
     ];
 
     const permMap = {}; // name -> id
@@ -73,9 +79,12 @@ async function main() {
             perms: [
                 permMap['access_hr_dashboard'],
                 permMap['access_employee_list'],
+                permMap['manage_employees'], // HR can manage employees
                 permMap['access_leave_approval'],
                 permMap['access_leave_settings'],
+                permMap['manage_leave_settings'], // HR can manage leave settings
                 permMap['access_attendance_policy'],
+                permMap['manage_attendance_policy'], // HR can manage attendance policy
                 permMap['access_profile_requests'],
                 permMap['access_attendance_list'],
                 // HR is also a worker? Maybe give them worker access too if they have "My Attendance"
@@ -83,6 +92,17 @@ async function main() {
                 permMap['access_my_leaves'],
                 permMap['access_view_profile'],
                 permMap['access_view_notifications'],
+                permMap['access_audit_log'],
+            ]
+        },
+        {
+            name: 'Supervisor',
+            perms: [
+                // Supervisor Access
+                permMap['access_hr_dashboard'],     // Access HR Dashboard
+                permMap['access_employee_list'],    // Access Employee List (View Only, no Manage)
+                permMap['access_attendance_policy'],
+                permMap['access_leave_settings'],
             ]
         },
         {

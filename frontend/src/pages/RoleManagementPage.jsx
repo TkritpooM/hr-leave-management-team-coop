@@ -270,23 +270,45 @@ export default function RoleManagementPage() {
                                     <span className="role-label">
                                         {t("pages.roles.permissions", "Permissions")}
                                     </span>
-                                    <div className="role-perm-grid">
-                                        {permissions.map(perm => (
-                                            <label key={perm.permissionId} className="role-perm-item">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedPermissionIds.includes(perm.permissionId)}
-                                                    onChange={(e) => {
-                                                        const checked = e.target.checked;
-                                                        setSelectedPermissionIds(prev =>
-                                                            checked
-                                                                ? [...prev, perm.permissionId]
-                                                                : prev.filter(id => id !== perm.permissionId)
+                                    <div className="role-perm-container">
+                                        {[
+                                            {
+                                                title: "Access / View",
+                                                perms: permissions.filter(p => p.name.startsWith("access_"))
+                                            },
+                                            {
+                                                title: "Management",
+                                                perms: permissions.filter(p => !p.name.startsWith("access_"))
+                                            }
+                                        ].map((group, idx) => (
+                                            <div key={idx} className="role-perm-group" style={{ marginBottom: "20px" }}>
+                                                <h4 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#64748b", borderBottom: "1px solid #e2e8f0", paddingBottom: "5px" }}>
+                                                    {group.title}
+                                                </h4>
+                                                <div className="role-perm-grid">
+                                                    {group.perms.map(perm => {
+                                                        const isChecked = selectedPermissionIds.includes(perm.permissionId);
+                                                        return (
+                                                            <label key={perm.permissionId} className="role-perm-item">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isChecked}
+                                                                    onChange={(e) => {
+                                                                        const checked = e.target.checked;
+                                                                        setSelectedPermissionIds(prev =>
+                                                                            checked
+                                                                                ? [...prev, perm.permissionId]
+                                                                                : prev.filter(id => id !== perm.permissionId)
+                                                                        );
+                                                                    }}
+                                                                />
+                                                                <span title={perm.description}>{perm.name}</span>
+                                                            </label>
                                                         );
-                                                    }}
-                                                />
-                                                <span title={perm.description}>{perm.name}</span>
-                                            </label>
+                                                    })}
+                                                </div>
+                                                {group.perms.length === 0 && <div style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>No items</div>}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>

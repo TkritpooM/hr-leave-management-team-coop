@@ -2,74 +2,82 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log("Start updating permissions...");
+    console.log('\n--- Updating Permissions Only ---');
 
-    // 1. Create or Find 'manage_employee_data' permission
-    const permName = 'manage_employee_data';
-    const permDesc = 'Create, Edit, Delete Employee Data';
+    // 1. รายชื่อ Permissions ใหม่ที่ต้องการเพิ่ม
+    const targetPermissions = [
+        { name: 'manage_employees', description: 'Create, Edit, Delete Employees' },
+        { name: 'manage_leave_settings', description: 'Create, Edit Leave Types and Quotas' },
+        { name: 'manage_attendance_policy', description: 'Update Attendance Policy and Holidays' },
+        { name: 'access_audit_log', description: 'View Audit Logs' }
+    ];
 
-    let perm = await prisma.permission.findUnique({ where: { name: permName } });
+    const permMap = {};
 
-    if (!perm) {
-        perm = await prisma.permission.create({
-            data: { name: permName, description: permDesc }
+    // 2. วนลูปสร้างหรืออัปเดต Permissions (Upsert)
+    for (const p of targetPermissions) {
+        const perm = await prisma.permission.upsert({
+            where: { name: p.name },
+            update: { description: p.description }, // ถ้ามีแล้ว อัปเดต description
+            create: p, // ถ้ายังไม่มี สร้างใหม่
         });
-        console.log(`Created permission: ${permName}`);
-    } else {
-        console.log(`Permission ${permName} already exists.`);
+        console.log(`✅ Verified Permission: ${p.name}`);
+        permMap[p.name] = perm.permissionId;
     }
 
-    // 2. Assign to HR
-    const hrRole = await prisma.role.findUnique({
-        where: { roleName: 'HR' },
-        include: { permissions: true }
-    });
+    // 3. กำหนดว่าจะให้ Role ไหนได้สิทธิ์อะไรบ้าง
+    const roleUpdates = [
+        {
+            roleName: 'HR',
+            addPerms: [
+                'manage_employees',
+                'manage_leave_settings',
+                'manage_attendance_policy',
+                'access_audit_log'
+            ]
+        },
+        {
+            roleName: 'Admin',
+            addPerms: [
+                'manage_employees',
+                'manage_leave_settings',
+                'manage_attendance_policy',
+                'access_audit_log'
+            ]
+        }
+    ];
 
-    if (hrRole) {
-        const hasIt = hrRole.permissions.some(p => p.permissionId === perm.permissionId);
-        if (!hasIt) {
-            await prisma.role.update({
-                where: { roleId: hrRole.roleId },
-                data: {
-                    permissions: {
-                        connect: { permissionId: perm.permissionId }
+    // 4. อัปเดต Role
+    for (const r of roleUpdates) {
+        const role = await prisma.role.findFirst({ where: { roleName: r.roleName } });
+
+        if (role) {
+            // แปลงชื่อ perm เป็น id
+            const connectPayload = r.addPerms
+                .map(name => ({ permissionId: permMap[name] }))
+                .filter(obj => obj.permissionId); // กรองตัวที่ไม่มี id ออก (เผื่อพลาด)
+
+            if (connectPayload.length > 0) {
+                await prisma.role.update({
+                    where: { roleId: role.roleId },
+                    data: {
+                        permissions: {
+                            connect: connectPayload // connect จะเพิ่มเข้าไป ไม่ลบของเก่า
+                        }
                     }
-                }
-            });
-            console.log(`Assigned ${permName} to HR role.`);
+                });
+                console.log(`✅ Updated Role "${r.roleName}" with new permissions.`);
+            }
         } else {
-            console.log(`HR role already has ${permName}.`);
-        }
-    } else {
-        console.error("HR role not found!");
-    }
-
-    // 3. Assign to Admin (Optional, usually Admin bypasses checks, but good for consistency)
-    const adminRole = await prisma.role.findUnique({
-        where: { roleName: 'Admin' },
-        include: { permissions: true }
-    });
-
-    if (adminRole) {
-        const hasIt = adminRole.permissions.some(p => p.permissionId === perm.permissionId);
-        if (!hasIt) {
-            await prisma.role.update({
-                where: { roleId: adminRole.roleId },
-                data: {
-                    permissions: {
-                        connect: { permissionId: perm.permissionId }
-                    }
-                }
-            });
-            console.log(`Assigned ${permName} to Admin role.`);
+            console.log(`⚠️ Role "${r.roleName}" not found.`);
         }
     }
 
-    console.log("Permission update complete.");
+    console.log('--- Update Finished (No data deleted) ---');
 }
 
 main()
-    .catch(e => {
+    .catch((e) => {
         console.error(e);
         process.exit(1);
     })

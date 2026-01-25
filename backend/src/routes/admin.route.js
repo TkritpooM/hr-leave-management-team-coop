@@ -17,6 +17,15 @@ router.use(authenticateToken);
 // Helper: Anyone with ANY HR-like permission might need these lists?
 // Let's use specific permissions.
 
+const settingsPerm = authorizePermission('access_leave_settings');
+const manageSettingsPerm = authorizePermission('manage_leave_settings'); // NEW
+const empPerm = authorizePermission('access_employee_list');
+const manageEmpPerm = authorizePermission('manage_employees');
+const quotaPerm = authorizePermission('manage_leave_settings'); // CHANGED from old manage_leave_configuration
+const rolePerm = authorizePermission('access_role_management');
+const subStructurePerm = authorizePermission('access_employee_list');
+
+
 router.get('/leavetype', authorizePermission('access_leave_settings'), adminController.getLeaveTypes);
 router.get('/holiday', authorizePermission('access_leave_settings'), adminController.getHolidays);
 
@@ -33,16 +42,13 @@ router.get('/attendance-policy', authorizePermission('access_attendance_policy')
 // For now, let's trust 'access_leave_settings' is close enough or 'access_employee_list' for managing structure.
 // Let's stick to 'access_leave_settings' for organization structure or just 'Admin'/'HR' roles for now?
 // User wants Custom Roles. So permission is better. Let's use 'access_employee_list' for Depts as it relates to employees.
-const subStructurePerm = authorizePermission('access_employee_list');
 
 router.get('/departments', subStructurePerm, departmentController.getDepartments);
-router.post('/departments', [subStructurePerm, body('deptName').notEmpty(), validate], departmentController.createDepartment);
-router.put('/departments/:id', [subStructurePerm, param('id').isInt(), body('deptName').notEmpty(), validate], departmentController.updateDepartment);
-router.delete('/departments/:id', [subStructurePerm, param('id').isInt(), validate], departmentController.deleteDepartment);
+router.post('/departments', [manageEmpPerm, body('deptName').notEmpty(), validate], departmentController.createDepartment);
+router.put('/departments/:id', [manageEmpPerm, param('id').isInt(), body('deptName').notEmpty(), validate], departmentController.updateDepartment);
+router.delete('/departments/:id', [manageEmpPerm, param('id').isInt(), validate], departmentController.deleteDepartment);
 
 // Employee Management
-const empPerm = authorizePermission('access_employee_list');
-const manageEmpPerm = authorizePermission('manage_employee_data');
 
 router.get('/employees', empPerm, adminController.getAllEmployees);
 router.post('/employees', [
@@ -67,15 +73,15 @@ router.put('/employees/:employeeId', [
 
 // Quota Management per Employee (Requires accessing employee list AND leave settings potentially?)
 // Let's use 'access_leave_settings' for managing quotas.
-const quotaPerm = authorizePermission('manage_leave_configuration'); // CHANGED from access_leave_settings
+// const quotaPerm = authorizePermission('manage_leave_settings'); // MOVED TO TOP
 router.post('/hr/sync-quotas', quotaPerm, adminController.syncAllEmployeesQuota);
 router.post('/hr/process-carry-forward', quotaPerm, adminController.processYearEndCarryForward);
 router.get('/hr/leave-quota/:employeeId', [authorizePermission('access_leave_settings'), param('employeeId').isInt(), validate], adminController.getEmployeeQuota);
 router.put('/hr/leave-quota/:employeeId', [quotaPerm, param('employeeId').isInt(), body('quotas').isArray(), validate], adminController.updateEmployeeQuotaBulk);
 
 // Leave Type Management (Write actions)
-const settingsPerm = authorizePermission('access_leave_settings');
-const manageSettingsPerm = authorizePermission('manage_leave_configuration'); // NEW
+// const settingsPerm = authorizePermission('access_leave_settings'); // MOVED TO TOP
+// const manageSettingsPerm = authorizePermission('manage_leave_settings'); // MOVED TO TOP
 
 router.post('/leavetype', [manageSettingsPerm, body('typeName').notEmpty().withMessage('Type Name is required.'), body('isPaid').optional().isBoolean().withMessage('isPaid must be a boolean.'), body('colorCode').optional().isString(), validate], adminController.createLeaveType);
 router.put('/leavetype/:leaveTypeId', [manageSettingsPerm, param('leaveTypeId').isInt(), body('typeName').notEmpty(), body('isPaid').optional().isBoolean(), body('colorCode').optional().isString(), validate], adminController.updateLeaveType);
@@ -90,11 +96,10 @@ router.put('/quota/:quotaId', [manageSettingsPerm, param('quotaId').isInt(), bod
 router.post('/holiday', [manageSettingsPerm, body('holidayDate').isISO8601().toDate(), body('holidayName').notEmpty(), validate], adminController.createHoliday);
 router.delete('/holiday/:holidayId', [manageSettingsPerm, param('holidayId').isInt(), validate], adminController.deleteHoliday);
 
-router.put('/attendance-policy', authorizePermission('manage_attendance_configuration'), adminController.updateAttendancePolicy);
+router.put('/attendance-policy', authorizePermission('manage_attendance_policy'), adminController.updateAttendancePolicy);
 
 // --- 🔒 3. Role Management ---
-// --- 🔒 3. Role Management ---
-const rolePerm = authorizePermission('access_role_management');
+// const rolePerm = authorizePermission('access_role_management'); // MOVED TO TOP
 
 // Allow HR (Employee Managers) to VIEW roles list so they can assign roles
 router.get('/roles', authorizePermission(['access_role_management', 'access_employee_list']), adminController.getRoles);

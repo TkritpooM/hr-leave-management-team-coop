@@ -32,7 +32,7 @@ export default function HRAttendancePolicy() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === 'Admin';
-  const canManage = isAdmin || user?.permissions?.includes('manage_attendance_configuration');
+  const canManage = isAdmin || user?.permissions?.includes('manage_attendance_policy');
 
   const mLocale = useMemo(() => {
     const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();

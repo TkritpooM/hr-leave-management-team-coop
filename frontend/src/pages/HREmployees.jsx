@@ -14,9 +14,9 @@ export default function Employees() {
   const permissions = user?.permissions || [];
 
   // Permission to modify employee data
-  const canManage = isAdmin || permissions.includes("manage_employee_data");
+  const canManage = isAdmin || permissions.includes("manage_employees");
   // Permission to manage quotas (sync)
-  const canManageQuota = isAdmin || permissions.includes("access_leave_settings");
+  const canManageQuota = isAdmin || permissions.includes("manage_leave_settings");
 
   const [employees, setEmployees] = useState([]);
   const [types, setTypes] = useState([]);
@@ -916,6 +916,7 @@ export default function Employees() {
             onClose={() => setDeptModalOpen(false)}
             departments={departments}
             onRefresh={fetchDepartments}
+            canManage={canManage}
           />
         )
       }
@@ -924,7 +925,7 @@ export default function Employees() {
 }
 
 
-function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh }) {
+function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh, canManage }) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({ deptName: "", description: "" });
   const [editingId, setEditingId] = useState(null);
@@ -990,71 +991,64 @@ function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh }) {
         </div>
 
         <div className="emp-modal-body">
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20, background: "#f8fafc", padding: 12, borderRadius: 12 }}>
-            <div style={{ display: "flex", gap: 8 }}>
+          {canManage && (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20, background: "#f8fafc", padding: 12, borderRadius: 12 }}>
               <input
                 className="quota-input"
-                style={{ flex: 1 }}
+                style={{ width: "100%" }}
                 placeholder={t("pages.hrEmployees.dept.namePlaceholder", "Department Name")}
                 value={formData.deptName}
                 onChange={(e) => setFormData({ ...formData, deptName: e.target.value })}
                 required
               />
-              <button className="emp-btn emp-btn-primary" type="submit" disabled={loading}>
-                {editingId ? <FiEdit2 /> : <FiPlus />} {editingId ? t("common.update", "Update") : t("common.add", "Add")}
-              </button>
-            </div>
-            <textarea
-              className="quota-input"
-              style={{ width: "100%", height: 60, resize: "none" }}
-              placeholder={t("pages.hrEmployees.dept.descPlaceholder", "Description (Optional)")}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            />
-            {editingId && (
-              <div style={{ textAlign: "right" }}>
-                <button type="button" className="emp-btn emp-btn-outline small" onClick={cancelEdit}>{t("common.cancel", "Cancel Edit")}</button>
+              <input
+                className="quota-input"
+                style={{ width: "100%", marginTop: 8 }}
+                placeholder={t("pages.hrEmployees.dept.descPlaceholder", "Description (Optional)")}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button className="emp-btn emp-btn-primary" type="submit" disabled={loading}>
+                  {editingId ? <FiEdit2 /> : <FiPlus />} {editingId ? t("common.update", "Update") : t("common.add", "Add")}
+                </button>
+                {editingId && (
+                  <button className="emp-btn emp-btn-outline" type="button" onClick={cancelEdit}>
+                    {t("common.cancel")}
+                  </button>
+                )}
               </div>
-            )}
-          </form>
+            </form>
+          )}
 
-          <div style={{ maxHeight: 300, overflowY: "auto", border: "1px solid #eee", borderRadius: 8 }}>
-            {departments.length === 0 ? (
-              <div style={{ padding: 20, textAlign: "center", color: "#888" }}>{t("common.noData", "No departments found.")}</div>
-            ) : (
-              <table className="table" style={{ width: "100%" }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding: "10px 15px" }}>{t("pages.hrEmployees.dept.name", "Name")}</th>
-                    <th style={{ padding: "10px 15px" }}>{t("pages.hrEmployees.dept.stats", "Stats")}</th>
-                    <th style={{ padding: "10px 15px", textAlign: "right" }}>{t("common.actions", "Actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {departments.map(d => (
-                    <tr key={d.deptId}>
-                      <td style={{ padding: "10px 15px" }}>
-                        <div style={{ fontWeight: "bold", color: "#334155" }}>{d.deptName}</div>
-                        {d.description && <div style={{ fontSize: "0.8rem", color: "#64748b" }}>{d.description}</div>}
-                      </td>
-                      <td style={{ padding: "10px 15px" }}>
-                        <span className="badge badge-info">{t("pages.hrEmployees.dept.employeesCount", { count: d._count?.employees || 0 })}</span>
-                      </td>
-                      <td style={{ width: 120, textAlign: "right", padding: "10px 15px" }}>
-                        <div className="btn-group-row" style={{ justifyContent: "flex-end", flexWrap: "nowrap" }}>
-                          <button className="emp-btn emp-btn-outline small" onClick={() => startEdit(d)} disabled={loading}>
-                            <FiEdit2 />
-                          </button>
-                          <button className="emp-btn emp-btn-outline small warn" onClick={() => handleDelete(d.deptId)} disabled={loading}>
-                            <FiTrash2 />
-                          </button>
+          <div className="table-wrap" style={{ maxHeight: 300, overflowY: "auto" }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>{t("common.name")}</th>
+                  <th>{t("common.description")}</th>
+                  {canManage && <th style={{ width: 100, textAlign: "center" }}>{t("common.actions")}</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {departments.length === 0 ? (
+                  <tr><td colSpan={canManage ? 3 : 2} className="empty">{t("common.noData")}</td></tr>
+                ) : departments.map(d => (
+                  <tr key={d.deptId}>
+                    <td>{d.deptName}</td>
+                    <td>{d.description}</td>
+                    {canManage && (
+                      <td style={{ textAlign: "center" }}>
+                        <div style={{ display: "flex", justifyContent: "center", gap: 5 }}>
+                          <button className="emp-btn emp-btn-outline small" onClick={() => startEdit(d)}><FiEdit2 /></button>
+                          <button className="emp-btn emp-btn-outline small danger" onClick={() => handleDelete(d.deptId)}><FiTrash2 /></button>
                         </div>
                       </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
