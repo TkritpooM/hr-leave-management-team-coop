@@ -1,16 +1,7 @@
 /* frontend/src/pages/WorkerAttendancePage.css */
 /* Fix: provide fallback theme vars + center layout + readable badges */
 
-.wa-page{
-  /* ✅ fallback theme tokens (prevents “CSS เพี้ยน” ถ้า :root ไม่มีตัวแปร) */
-  --text: rgba(15,23,42,.92);
-  --muted: rgba(15,23,42,.60);
-  --border: rgba(15,23,42,.12);
-  --tint: rgba(22,163,74,.08);
-  --tint2: rgba(22,163,74,.12);
-  --card: rgba(255,255,255,.92);
-  --shadow: 0 18px 55px rgba(2,6,23,.08);
-
+.wa-page {
   padding: 6px 18px 18px;
   max-width: 1250px;
   margin: 0 auto;
@@ -18,78 +9,81 @@
 }
 
 /* Header */
-.wa-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
+.wa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
-.wa-title{
-  margin:0;
+.wa-title {
+  margin: 0;
   font-size: 30px;
   font-weight: 950;
   letter-spacing: -0.01em;
-  color: var(--text);
+  color: var(--text-heading);
 }
 
-.wa-subtitle{
+.wa-subtitle {
   margin: 6px 0 0;
   color: var(--muted);
   font-size: 13px;
   font-weight: 750;
 }
 
-.wa-header-right{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  justify-content:flex-end;
+.wa-header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* Pills */
-.wa-pill{
+.wa-pill {
   padding: 8px 12px;
   border-radius: 999px;
-  background: var(--tint);
+  background: var(--surface);
   border: 1px solid var(--border);
   font-weight: 900;
   color: var(--text);
 }
-.wa-pill.danger{
-  border-color: rgba(239,68,68,0.35);
-  background: rgba(239,68,68,0.08);
+
+.wa-pill.danger {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--status-error);
 }
 
 /* Panel */
-.wa-panel{
-  background: var(--card);
+.wa-panel {
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 18px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 14px;
   width: 100%;
+  backdrop-filter: var(--glass-blur);
 }
 
 /* Controls */
-.wa-controls{
-  display:flex;
+.wa-controls {
+  display: flex;
   gap: 12px;
-  align-items:flex-end;
-  flex-wrap:wrap;
+  align-items: flex-end;
+  flex-wrap: wrap;
   margin-bottom: 12px;
 }
 
-.wa-control{
-  display:flex;
-  flex-direction:column;
+.wa-control {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
 
-.wa-control label{
+.wa-control label {
   font-size: 12px;
   color: var(--muted);
   font-weight: 900;
@@ -97,101 +91,119 @@
   letter-spacing: 0.08em;
 }
 
-.wa-control input{
+.wa-control input {
   height: 40px;
   padding: 0 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,.85);
+  background: var(--surface);
   color: var(--text);
   outline: none;
   transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
-.wa-control input:focus{
-  border-color: rgba(22,163,74,.55);
-  box-shadow: 0 0 0 4px rgba(22,163,74,.12);
+.wa-control input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--focus);
+  background: #fff;
 }
 
-.wa-search{ min-width: 260px; flex: 1 1 260px; }
+.wa-search {
+  min-width: 260px;
+  flex: 1 1 260px;
+}
 
 /* Toggle */
-.wa-toggle{
-  display:flex;
+.wa-toggle {
+  display: flex;
   gap: 8px;
-  align-items:center;
-  padding: 8px 12px;
+  align-items: center;
+  padding: 0 16px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--tint);
-  font-weight: 900;
-  cursor:pointer;
-  user-select:none;
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
   height: 40px;
   color: var(--text);
+  white-space: nowrap;
 }
-.wa-toggle input{
-  accent-color: #16a34a;
+
+.wa-toggle input {
+  accent-color: var(--primary);
 }
 
 /* Buttons */
-.wa-btn{
+.wa-btn {
   height: 40px;
   padding: 0 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,.85);
+  background: var(--surface);
   color: var(--text);
   font-weight: 950;
   cursor: pointer;
   transition: background .15s ease, border-color .15s ease, transform .08s ease;
 }
-.wa-btn:active{ transform: translateY(1px); }
-.wa-btn:disabled{ opacity: 0.6; cursor: not-allowed; }
-.wa-btn:hover{
-  background: rgba(22,163,74,.10);
-  border-color: rgba(22,163,74,.25);
+
+.wa-btn:active {
+  transform: translateY(1px);
 }
 
-.wa-btn-primary{
-  border-color: rgba(22,163,74,.30);
-  background: rgba(22,163,74,.12);
-}
-.wa-btn-primary:hover{
-  background: rgba(22,163,74,.18);
+.wa-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.wa-btn-ghost{
+.wa-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+}
+
+.wa-btn-primary {
+  border-color: rgba(22, 163, 74, .30);
+  background: rgba(22, 163, 74, .12);
+  color: var(--status-success);
+}
+
+.wa-btn-primary:hover {
+  background: rgba(22, 163, 74, .18);
+}
+
+.wa-btn-ghost {
   background: transparent;
+  border: none;
 }
 
 /* Table */
-.wa-table-wrap{
+.wa-table-wrap {
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow: auto;
-  background: rgba(255,255,255,.80);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
 }
 
-.wa-table{
+.wa-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.wa-table thead{
-  background: var(--tint2);
+.wa-table thead {
+  background: rgba(248, 250, 252, 0.6);
 }
 
 .wa-table th,
-.wa-table td{
+.wa-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid rgba(15,23,42,.08);
-  text-align:left;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
   color: var(--text);
 }
 
-.wa-table th{
+.wa-table th {
   color: var(--muted);
   font-weight: 950;
   font-size: 12px;
@@ -199,26 +211,26 @@
   letter-spacing: 0.08em;
 }
 
-.wa-table tbody tr:hover td{
-  background: rgba(22,163,74,.06);
+.wa-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.5);
 }
 
-.wa-empty{
+.wa-empty {
   padding: 20px;
-  text-align:center;
+  text-align: center;
   color: var(--muted);
   font-weight: 850;
 }
 
-.wa-mono{
+.wa-mono {
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 /* Badges (✅ fix readability) */
-.wa-badge{
-  display:inline-flex;
-  align-items:center;
+.wa-badge {
+  display: inline-flex;
+  align-items: center;
   padding: 5px 12px;
   border-radius: 999px;
   font-weight: 950;
@@ -227,35 +239,46 @@
 }
 
 /* ✅ เดิมสีอ่อน (#bbf7d0) บนพื้นอ่อนอ่านไม่ออก -> เปลี่ยนเป็นเขียวเข้ม */
-.wa-badge.ok{
-  background: rgba(22,163,74,.12);
-  border-color: rgba(22,163,74,.28);
-  color: rgba(20,83,45,.95);
+.wa-badge.ok {
+  background: rgba(22, 163, 74, .12);
+  border-color: rgba(22, 163, 74, .28);
+  color: rgba(20, 83, 45, .95);
 }
 
-.wa-badge.late{
-  background: rgba(239,68,68,0.10);
-  border-color: rgba(239,68,68,0.24);
-  color: rgba(127,29,29,0.95);
+.wa-badge.late {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: rgba(239, 68, 68, 0.24);
+  color: rgba(127, 29, 29, 0.95);
 }
 
-.wa-note{
+.wa-note {
   max-width: 420px;
   color: var(--text);
   opacity: 0.95;
 }
 
 /* Pagination */
-.wa-pagination{
+.wa-pagination {
   margin-top: 12px;
-  display:flex;
-  justify-content:flex-end;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* Mobile tweaks */
-@media (max-width: 640px){
-  .wa-page{ padding: 6px 12px 14px; }
-  .wa-title{ font-size: 24px; }
-  .wa-controls{ gap: 10px; }
-  .wa-control input{ width: 100%; }
+@media (max-width: 640px) {
+  .wa-page {
+    padding: 6px 12px 14px;
+  }
+
+  .wa-title {
+    font-size: 24px;
+  }
+
+  .wa-controls {
+    gap: 10px;
+  }
+
+  .wa-control input {
+    width: 100%;
+  }
 }

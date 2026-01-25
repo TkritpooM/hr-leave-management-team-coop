@@ -1,5 +1,6 @@
 // src/pages/HRAttendancePage.jsx
 import React, { useEffect, useState, useMemo } from "react";
+import ReactDOM from "react-dom";
 import axios from "axios";
 import "./HRAttendancePage.css";
 import moment from "moment";
@@ -560,11 +561,11 @@ export default function HRAttendancePage() {
         </div>
       </section>
 
-      {isLeaveModalOpen && (
+      {isLeaveModalOpen && ReactDOM.createPortal(
         <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head-row" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-              <h3 style={{ margin: 0 }}>{t("pages.hrAttendancePage.requestLeave")}</h3>
+              <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#0f172a" }}>{t("pages.hrAttendancePage.requestLeave")}</h3>
               <button
                 aria-label={t("common.close")}
                 type="button"
@@ -601,7 +602,7 @@ export default function HRAttendancePage() {
                   <select
                     value={leaveForm.startDuration}
                     onChange={(e) => setLeaveForm((p) => ({ ...p, startDuration: e.target.value }))}
-                    style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px" }}
+                    style={{ padding: "8px", borderRadius: "8px", border: "1px solid #ddd", fontSize: "14px", height: "44px" }}
                   >
                     <option value="Full">{t("pages.hrAttendancePage.duration.full")}</option>
                     <option value="HalfMorning">{t("pages.hrAttendancePage.duration.halfMorning")}</option>
@@ -630,6 +631,7 @@ export default function HRAttendancePage() {
                       borderRadius: "8px",
                       border: "1px solid #ddd",
                       fontSize: "14px",
+                      height: "44px",
                       opacity: leaveForm.startDate === leaveForm.endDate && leaveForm.startDuration !== "Full" ? 0.5 : 1,
                     }}
                   >
@@ -698,7 +700,8 @@ export default function HRAttendancePage() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

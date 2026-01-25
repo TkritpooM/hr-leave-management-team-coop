@@ -1,9 +1,9 @@
 /* src/pages/WorkerCalendar.css */
-.wc .wc-head{
-  display:flex;
-  justify-content:space-between;
+.wc .wc-head {
+  display: flex;
+  justify-content: space-between;
   gap: 14px;
-  align-items:flex-end;
+  align-items: flex-end;
   margin-bottom: 12px;
 }
 
@@ -20,41 +20,95 @@
   padding: 2px 6px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* ถ้าชื่อยาวให้มี ... */
+  text-overflow: ellipsis;
+  /* ถ้าชื่อยาวให้มี ... */
   max-width: 100%;
 }
 
 .wc-tag.leave {
-  border-left: 3px solid rgba(0,0,0,0.2); /* เพิ่มมิตินิดหน่อยให้เหมือนหน้า HR */
+  border-left: 3px solid rgba(0, 0, 0, 0.2);
+  /* เพิ่มมิตินิดหน่อยให้เหมือนหน้า HR */
 }
 
-.wc-title{ margin:0; font-size: 26px; font-weight: 950; }
-.wc-sub{ margin:6px 0 0; color: var(--muted); font-size: 13px; }
+.wc-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 950;
+  color: var(--text-heading);
+}
 
-.wc-top-actions{ display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+.wc-sub {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
 
-.wc-tags{ display:flex; flex-direction:column; gap: 6px; margin-top: 6px; }
-.wc-tag{
-  display:inline-flex;
+.wc-top-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.wc-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.wc-tag {
+  display: inline-flex;
   width: fit-content;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 900;
-  border: 1px solid rgba(255,255,255,.12);
-  background: var(--tint);
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: var(--surface);
+  color: var(--text);
 }
 
 .cal-cell.non-working {
-    background-color: #f3f4f6; /* สีเทาจางๆ */
-    color: #9ca3af; /* ตัวหนังสือสีจาง */
-    pointer-events: none; /* (Optional) ถ้าไม่อยากให้คลิกได้ */
+  background-color: var(--surface);
+  /* สีเทาจางๆ */
+  color: var(--muted2);
+  /* ตัวหนังสือสีจาง */
+  pointer-events: none;
+  /* (Optional) ถ้าไม่อยากให้คลิกได้ */
+  opacity: 0.5;
 }
 
-.wc-tag.ok{ border-color: rgba(16,185,129,.25); background: rgba(16,185,129,.10); color:#bbf7d0; }
-.wc-tag.late{ border-color: rgba(220,38,38,.22); background: rgba(220,38,38,.08); color: rgba(127,29,29,.92); }
-.wc-tag.leave{ border-color: rgba(59,130,246,.25); background: rgba(59,130,246,.10); color:#bfdbfe; }
+.wc-tag.ok {
+  border-color: rgba(16, 185, 129, .25);
+  background: rgba(16, 185, 129, .10);
+  color: var(--status-success);
+}
 
-.wc-detail{ margin-top: 14px; }
-.wc-detail-head{ display:flex; justify-content:space-between; align-items:center; gap: 12px; }
-.wc-loading{ color: var(--muted); font-size: 12px; }
+.wc-tag.late {
+  border-color: rgba(220, 38, 38, .22);
+  background: rgba(220, 38, 38, .08);
+  color: var(--status-error);
+}
+
+.wc-tag.leave {
+  border-color: rgba(59, 130, 246, .25);
+  background: rgba(59, 130, 246, .10);
+  color: var(--primary);
+}
+
+.wc-detail {
+  margin-top: 14px;
+}
+
+.wc-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.wc-loading {
+  color: var(--muted);
+  font-size: 12px;
+}

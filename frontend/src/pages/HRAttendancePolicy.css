@@ -1,16 +1,19 @@
+/* HRAttendancePolicy.css */
+/* Soft Blue Minimalist + Glassmorphism */
+
 .page-card.hr-policy {
   width: 100%;
   max-width: 1250px;
   /* Adjusted to match other pages */
   margin: 0 auto;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 24px 32px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  color: #1e293b;
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
   min-height: 800px;
   /* Ensure consistency */
   box-sizing: border-box;
@@ -29,7 +32,7 @@
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: linear-gradient(135deg, var(--text-heading) 0%, var(--text) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -37,7 +40,7 @@
 
 .hrp-sub {
   margin: 6px 0 0;
-  color: #64748b;
+  color: var(--muted);
   font-size: 14px;
   font-weight: 500;
 }
@@ -85,11 +88,11 @@
 
 /* Card Styling */
 .hrp-card {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-sm);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -102,12 +105,12 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  background: linear-gradient(90deg, var(--primary), #06b6d4);
   opacity: 0.6;
 }
 
 .hrp-card:hover {
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-md);
 }
 
 .hrp-card.full-height {
@@ -120,7 +123,7 @@
   margin: 0 0 20px;
   font-size: 16px;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-heading);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -144,18 +147,18 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--muted2);
   letter-spacing: 0.05em;
 }
 
 .hrp-field input {
   height: 44px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   background: #fff;
   padding: 0 14px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text);
   font-size: 14px;
   transition: all 0.2s;
   width: 100%;
@@ -163,15 +166,15 @@
 }
 
 .hrp-field input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus);
   outline: none;
 }
 
 /* Days Checkboxes */
 .hrp-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
   margin: 20px 0;
 }
 
@@ -187,30 +190,30 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 99px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   background: #fff;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .hrp-day:hover {
-  border-color: #cbd5e1;
+  border-color: var(--muted);
 }
 
 .hrp-day span {
   font-size: 13px;
   font-weight: 600;
-  color: #475569;
+  color: var(--text);
 }
 
 .hrp-day input:checked+span {
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
 .hrp-hint {
   margin-top: 8px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted);
 }
 
 /* Leave Gap Compact */
@@ -231,7 +234,7 @@
 .hrp-sub2 {
   margin: -10px 0 16px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted);
   line-height: 1.5;
 }
 
@@ -252,7 +255,7 @@
   height: 44px;
   padding: 0 12px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   font-weight: 700;
   text-align: center;
   font-size: 16px;
@@ -260,7 +263,7 @@
 
 .hrp-input-group span {
   font-weight: 600;
-  color: #64748b;
+  color: var(--muted);
 }
 
 .policy-tips.compact {
@@ -280,7 +283,7 @@
   gap: 8px;
   margin: 0 0 8px;
   font-size: 13px;
-  color: #3b82f6;
+  color: var(--primary);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -288,7 +291,7 @@
 .tips-title .dot {
   width: 6px;
   height: 6px;
-  background: #3b82f6;
+  background: var(--primary);
   border-radius: 50%;
 }
 
@@ -296,7 +299,7 @@
   margin: 0;
   padding-left: 18px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
   line-height: 1.6;
 }
 
@@ -333,7 +336,7 @@
 }
 
 .filter-inputs .sep {
-  color: #cbd5e1;
+  color: var(--muted2);
 }
 
 .wa-datepicker-input {
@@ -342,21 +345,21 @@
   width: 110px;
   font-size: 13px;
   padding: 6px;
-  color: #334155;
+  color: var(--text);
 }
 
 .wa-datepicker-input:focus {
   box-shadow: none;
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
 .policy-filter-clear {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1px solid #fee2e2;
-  background: #fef2f2;
-  color: #ef4444;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  background: rgba(254, 242, 242, 0.8);
+  color: var(--status-error);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -365,7 +368,7 @@
 }
 
 .policy-filter-clear:hover {
-  background: #fee2e2;
+  background: rgba(254, 242, 242, 1);
 }
 
 .hrp-holiday-container {
@@ -397,7 +400,7 @@
 }
 
 .hrp-holiday-list-scroll::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
+  background: var(--border);
   border-radius: 4px;
 }
 
@@ -415,7 +418,7 @@
 .hrp-holiday-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  border-color: #e2e8f0;
+  border-color: var(--border);
 }
 
 .date-badge {
@@ -424,7 +427,7 @@
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 12px;
   width: 54px;
   height: 58px;
@@ -433,7 +436,7 @@
 .date-badge .month {
   font-size: 10px;
   text-transform: uppercase;
-  color: #64748b;
+  color: var(--muted);
   font-weight: 800;
   letter-spacing: 0.05em;
 }
@@ -441,7 +444,7 @@
 .date-badge .day {
   font-size: 20px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--text-heading);
   line-height: 1;
 }
 
@@ -452,13 +455,13 @@
 .holiday-name {
   font-size: 15px;
   font-weight: 700;
-  color: #334155;
+  color: var(--text);
   margin-bottom: 2px;
 }
 
 .holiday-meta {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--muted2);
 }
 
 .hrp-empty-state {
@@ -467,13 +470,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  color: var(--muted2);
   font-weight: 600;
   gap: 12px;
   min-height: 200px;
   background: #f8fafc;
   border-radius: 16px;
-  border: 2px dashed #e2e8f0;
+  border: 2px dashed var(--border);
 }
 
 .empty-icon {
@@ -488,19 +491,20 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(8px);
 }
 
 .modal {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
 }
 
 /* Holiday Modal Styles */
@@ -524,12 +528,12 @@
 .calendar-nav h4 {
   margin: 0;
   font-size: 16px;
-  color: #1e293b;
+  color: var(--text-heading);
 }
 
 .calendar-nav .nav-btn {
   background: transparent;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 8px;
   width: 32px;
   height: 32px;
@@ -537,13 +541,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #64748b;
+  color: var(--muted);
   transition: all 0.2s;
 }
 
 .calendar-nav .nav-btn:hover {
   background: #f1f5f9;
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
 .calendar-grid-header {
@@ -557,7 +561,7 @@
   text-align: center;
   font-size: 12px;
   font-weight: 700;
-  color: #94a3b8;
+  color: var(--muted2);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -572,7 +576,7 @@
 .calendar-cell {
   height: 70px;
   background: #fff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 6px;
   cursor: pointer;
@@ -584,7 +588,7 @@
 }
 
 .calendar-cell:hover {
-  border-color: #cbd5e1;
+  border-color: var(--muted);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
@@ -596,8 +600,8 @@
 
 .calendar-cell.selected {
   background: #eff6ff;
-  border-color: #60a5fa;
-  box-shadow: 0 0 0 1px #60a5fa inset;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary) inset;
 }
 
 .cell-top {
@@ -609,11 +613,11 @@
 .cell-date {
   font-size: 13px;
   font-weight: 600;
-  color: #334155;
+  color: var(--text);
 }
 
 .calendar-cell.selected .cell-date {
-  color: #2563eb;
+  color: var(--primary-hover);
 }
 
 .cell-remove {
@@ -625,7 +629,7 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: #ef4444;
+  color: var(--status-error);
   border: none;
   cursor: pointer;
   opacity: 0.8;
@@ -633,13 +637,13 @@
 }
 
 .cell-remove:hover {
-  background: #fee2e2;
+  background: rgba(254, 242, 242, 1);
   opacity: 1;
 }
 
 .cell-desc {
   font-size: 10px;
-  color: #3b82f6;
+  color: var(--primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -652,7 +656,7 @@
   background: #f8fafc;
   border-radius: 8px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--muted);
   text-align: center;
-  border: 1px dashed #e2e8f0;
+  border: 1px dashed var(--border);
 }

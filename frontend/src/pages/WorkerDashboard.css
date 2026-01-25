@@ -1,331 +1,375 @@
 /* =========================================================
-   Worker Dashboard (Corporate)
+   Worker Dashboard (Soft Blue / Glass)
+   - Friendly interactions
+   - Frosted cards
    ========================================================= */
 
-.worker-layout{
-  display:flex;
+.worker-layout {
+  display: flex;
   min-height: 100vh;
 }
 
-.worker-main{
-  flex:1;
-  padding: 22px;
-  overflow-y:auto;
+.worker-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
   background: transparent;
 }
 
 /* Header */
-.worker-header{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap: 14px;
-  margin-bottom: 14px;
+.worker-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.worker-title{
-  margin:0;
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: .01em;
-  color: var(--text);
+.worker-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text-heading);
 }
 
-.worker-datetime{
-  margin: 4px 0 0;
+.worker-datetime {
+  margin: 6px 0 0;
   color: var(--muted);
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.worker-header-right{
-  display:flex;
-  gap: 10px;
-  align-items:center;
+.worker-header-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
-.clock-box{
-  background: var(--card2);
+.clock-box {
+  background: var(--surface);
   border: 1px solid var(--border);
-  padding: 10px 14px;
+  padding: 10px 16px;
   border-radius: 999px;
-  font-weight: 900;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--text-heading);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: var(--glass-blur);
 }
 
 /* Late warning */
-.late-warning{
-  background: rgba(245,158,11,.10);
-  border: 1px solid rgba(245,158,11,.25);
-  color: #92400e;
+.late-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: #b45309;
   border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 900;
+  padding: 8px 14px;
+  font-weight: 700;
   font-size: 12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.late-warning-danger{
-  color: #b91c1c;
-  font-weight: 950;
+
+.late-warning-danger {
+  color: var(--status-error);
+  font-weight: 800;
 }
 
 /* Action row */
-.action-row{
-  display:grid;
+.action-row {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 14px 0 18px;
+  gap: 16px;
+  margin: 16px 0 24px;
 }
 
-@media (max-width: 1100px){
-  .action-row{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px){
-  .action-row{ grid-template-columns: 1fr; }
+@media (max-width: 1100px) {
+  .action-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.action-card{
-  background: var(--card);
+@media (max-width: 560px) {
+  .action-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.action-card {
+  background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow2);
-  padding: 14px 14px 12px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  backdrop-filter: var(--glass-blur);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.action-card h3{
-  margin:0;
+.action-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.action-card h3 {
+  margin: 0;
   font-size: 12px;
-  font-weight: 950;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .12em;
-  color: var(--muted2);
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
-.action-time{
-  margin: 10px 0 12px;
-  font-size: 22px;
-  font-weight: 950;
-  color: var(--text);
+.action-time {
+  margin: 12px 0 16px;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
 }
 
-/* Corporate Action Buttons */
+/* Action Buttons */
 .btn-checkin,
 .btn-checkout,
-.btn-leave{
+.btn-leave {
   width: 100%;
   height: 44px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid transparent;
-  font-weight: 950;
-  font-size: 14px;
-  letter-spacing: .01em;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   cursor: pointer;
-  transition: transform .08s ease, filter .15s ease, box-shadow .18s ease;
-  box-shadow: 0 10px 22px rgba(2,6,23,.12);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .btn-checkin:hover,
 .btn-checkout:hover,
-.btn-leave:hover{
-  filter: brightness(1.03);
-  box-shadow: 0 14px 28px rgba(2,6,23,.16);
+.btn-leave:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .btn-checkin:active,
 .btn-checkout:active,
-.btn-leave:active{
-  transform: translateY(1px);
+.btn-leave:active {
+  transform: translateY(0);
 }
 
 /* Check In (Green) */
-.btn-checkin{
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+.btn-checkin {
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
   color: #ffffff;
-  border-color: rgba(22,163,74,.35);
-  box-shadow: 0 12px 26px rgba(22,163,74,.22);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(52, 211, 153, 0.3);
 }
 
 /* Check Out (Red) */
-.btn-checkout{
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+.btn-checkout {
+  background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
   color: #ffffff;
-  border-color: rgba(220,38,38,.35);
-  box-shadow: 0 12px 26px rgba(220,38,38,.22);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(248, 113, 113, 0.3);
 }
 
-/* Leave (Yellow) */
-.btn-leave{
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #111827;
-  border-color: rgba(245,158,11,.38);
-  box-shadow: 0 12px 26px rgba(245,158,11,.22);
+/* Leave (Yellow/Amber) */
+.btn-leave {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
 }
 
 /* Disabled */
 .btn-checkin:disabled,
 .btn-checkout:disabled,
-.btn-leave:disabled{
-  opacity: .55;
+.btn-leave:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
-  filter: none;
+  filter: grayscale(0.5);
   box-shadow: none;
+  transform: none !important;
 }
 
 /* Keyboard focus */
 .btn-checkin:focus-visible,
 .btn-checkout:focus-visible,
-.btn-leave:focus-visible{
-  outline: 3px solid rgba(22,163,74,.22);
+.btn-leave:focus-visible {
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 
 /* =========================================================
-   ✅ NEW: Quota cards (Corporate metric style)
+   Quota cards
    ========================================================= */
 
-.quota-grid{
-  display:grid;
+.quota-grid {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin: 12px 0 18px;
+  gap: 16px;
+  margin: 16px 0 24px;
 }
 
-@media (max-width: 980px){
-  .quota-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px){
-  .quota-grid{ grid-template-columns: 1fr; }
-}
-
-.quota-empty{
-  padding: 14px 16px;
-  border-radius: var(--r-xl);
-  border: 1px dashed rgba(15,23,42,.16);
-  background: rgba(255,255,255,.65);
-  color: rgba(15,23,42,.60);
-  font-weight: 900;
+@media (max-width: 980px) {
+  .quota-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.quota-card{
-  background: var(--card);
+@media (max-width: 560px) {
+  .quota-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quota-empty {
+  padding: 16px 20px;
+  border-radius: 20px;
+  border: 1px dashed var(--border);
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--muted);
+  font-weight: 600;
+  text-align: center;
+}
+
+.quota-card {
+  background: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  box-shadow: var(--shadow2);
-  padding: 14px 14px 12px;
-  display:flex;
-  flex-direction:column;
-  gap: 10px;
-  min-height: 110px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 120px;
+  backdrop-filter: var(--glass-blur);
+  transition: transform 0.2s ease;
 }
 
-.quota-top{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.quota-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.quota-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 10px;
 }
 
-.quota-title{
-  margin:0;
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: .14em;
+.quota-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--muted2);
+  color: var(--text);
 }
 
-.quota-chip{
-  font-size: 12px;
-  font-weight: 950;
-  padding: 6px 10px;
+.quota-chip {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(22,163,74,.22);
-  background: rgba(22,163,74,.10);
-  color: rgba(15,23,42,.88);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: var(--primary-light);
+  color: var(--primary);
   font-variant-numeric: tabular-nums;
 }
 
-.quota-metrics{
-  display:grid;
+.quota-metrics {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.qm{
-  background: rgba(15,23,42,.03);
-  border: 1px solid rgba(15,23,42,.08);
-  border-radius: 14px;
-  padding: 10px 10px;
+.qm {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
 }
 
-.qm-label{
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .12em;
+.qm-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(15,23,42,.55);
+  color: var(--muted);
+  display: block;
 }
 
-.qm-value{
+.qm-value {
   margin-top: 4px;
-  font-size: 18px;
-  font-weight: 950;
-  color: rgba(15,23,42,.92);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-heading);
   font-variant-numeric: tabular-nums;
+  display: block;
 }
 
-.quota-bar{
-  height: 10px;
+.quota-bar {
+  height: 8px;
   border-radius: 999px;
-  background: rgba(15,23,42,.08);
-  overflow:hidden;
+  background: rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-top: auto;
 }
 
-.quota-bar-fill{
+.quota-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(22,163,74,.95), rgba(22,163,74,.45));
+  background: linear-gradient(90deg, var(--primary), var(--primary-hover));
   width: 0%;
-  transition: width .25s ease;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* History table wrapper */
-.history-table-wrapper{
-  border-radius: var(--r-xl);
+.history-table-wrapper {
+  border-radius: 20px;
   overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
 }
 
 /* Modal form */
-.leave-form{
-  display:grid;
+.leave-form {
+  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-@media (max-width: 720px){
-  .leave-form{ grid-template-columns: 1fr; }
+  gap: 16px;
 }
 
-.leave-form label{
-  display:flex;
-  flex-direction:column;
-  gap: 6px;
-  font-weight: 900;
+@media (max-width: 720px) {
+  .leave-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leave-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 700;
   color: var(--muted);
   font-size: 12px;
-  letter-spacing: .06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.leave-form .full{ grid-column: 1 / -1; }
-
-/* เพิ่มเติมจากไฟล์เดิม */
+.leave-form .full {
+  grid-column: 1 / -1;
+}
 
 .quota-title-group {
   display: flex;
@@ -336,190 +380,192 @@
 /* Badge แสดงยอดทบสะสม */
 .carried-badge {
   font-size: 10px;
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: rgba(236, 253, 245, 0.8);
+  color: var(--status-success);
   padding: 2px 8px;
-  border-radius: 999px;
-  font-weight: 800;
-  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-weight: 700;
+  border: 1px solid rgba(16, 185, 129, 0.2);
   width: fit-content;
   text-transform: none;
   letter-spacing: normal;
 }
 
-/* เน้นยอด Available */
+/* Highlight available */
 .qm.highlight {
-  background: rgba(30, 64, 175, 0.05);
-  border-color: rgba(30, 64, 175, 0.1);
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
 .qm.highlight .qm-value {
-  color: #1e40af;
+  color: var(--primary);
 }
 
-/* เน้นยอดคงเหลือสีเขียว */
+/* Highlight remaining success */
 .qm.success {
-  background: rgba(22, 163, 74, 0.05);
-  border-color: rgba(22, 163, 74, 0.1);
+  background: rgba(16, 185, 129, 0.05);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .qm.success .qm-value {
-  color: #166534;
+  color: var(--status-success);
 }
 
 .modal-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 12px;
+  margin-top: 16px;
   grid-column: 1 / -1;
 }
 
 .outline-btn {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: white;
-  font-weight: 900;
+  color: var(--muted);
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.outline-btn:hover {
+  background: #f8fafc;
+  color: var(--text);
 }
 
 .primary-btn {
   flex: 2;
-  padding: 10px;
+  padding: 12px;
   border-radius: 12px;
   border: none;
   background: var(--primary);
   color: white;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* ปรับปรุง CSS ของ Quota Card ให้ขยายตามเนื้อหา */
-.quota-card {
-  min-height: 130px; /* เพิ่มความสูงเล็กน้อยเผื่อพื้นที่ Badge */
+.primary-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
-/* การจัดการชื่อและ Badge ใน Quota Card */
-.quota-title-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.carried-badge {
-    background: #ecfdf5;
-    color: #10b981;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 800;
-    border: 1px solid #d1fae5;
-    width: fit-content;
-}
-
-/* กล่องสรุปวันหยุดใน Modal */
+/* Leave preview info in Modal */
 .leave-preview-info {
-    grid-column: 1 / -1;
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
-    padding: 12px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    color: #0369a1;
-    font-size: 14px;
+  grid-column: 1 / -1;
+  background: rgba(239, 246, 255, 0.7);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--primary);
+  font-size: 14px;
 }
 
 .leave-preview-info strong {
-    font-size: 18px;
-    color: #0284c7;
+  font-size: 18px;
+  color: var(--primary-hover);
 }
 
 .mini-note {
-    font-size: 11px;
-    color: #0ea5e9;
-    margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0;
+  font-style: italic;
 }
 
 .section-subtitle {
-    font-size: 14px;
-    color: var(--muted);
-    margin: 20px 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+  margin: 24px 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .modal-head-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .close-x {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--muted);
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.2s;
 }
 
-/* History header (ล่าสุด + ลิงก์ดูทั้งหมด) */
-.history-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+.close-x:hover {
+  color: var(--text-heading);
+}
+
+/* History header */
+.history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin: 14px 0 10px;
+  margin: 24px 0 12px;
 }
 
-.history-head h2{
+.history-head h2 {
   margin: 0;
   font-size: 18px;
-  font-weight: 900;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--text-heading);
 }
 
-.history-link{
-  border: 1px solid rgba(22,163,74,.35);
-  background: rgba(22,163,74,.10);
-  color: rgba(22,101,52,.95);
-  font-weight: 900;
-  padding: 8px 12px;
+.history-link {
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--primary);
+  font-weight: 700;
+  padding: 8px 16px;
   border-radius: 999px;
   cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
 }
-.history-link:hover{
-  background: rgba(22,163,74,.16);
+
+.history-link:hover {
+  background: rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
 .modal-backdrop {
-  position: fixed;    /* บังคับให้อยู่คงที่เทียบกับหน้าจอ */
+  position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;       /* ใช้ความกว้างเต็ม Viewport */
-  height: 100vh;      /* ใช้ความสูงเต็ม Viewport */
-  background-color: rgba(0, 0, 0, 0.5); /* สีดำโปร่งแสง */
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;      /* ต้องสูงกว่า Sidebar (ปกติ Sidebar จะอยู่ที่ประมาณ 10-100) */
-  backdrop-filter: blur(4px); /* เพิ่มความเบลอให้พื้นหลัง (ถ้าต้องการ) */
+  z-index: 9999;
+  backdrop-filter: blur(8px);
 }
 
 .swal2-container {
-  z-index: 10000 !important; /* ต้องสูงกว่า z-index ของ Modal */
+  z-index: 10000 !important;
 }
-/* ===============================
-   FILE UPLOAD – HR THEME
-   =============================== */
 
+/* File Upload */
 .field-label {
   display: block;
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: #64748b;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
   margin-bottom: 6px;
   text-transform: uppercase;
 }
@@ -530,17 +576,21 @@
   gap: 14px;
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s;
 }
 
-/* Button */
+.file-upload:hover {
+  background: #fff;
+}
+
 .file-upload-btn {
-  padding: 10px 18px;
-  border-radius: 14px;
-  background: white;       /* dark navy */
-  color: #0f172a;
-  border: 1px solid #cbd5f5;
+  padding: 8px 16px;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-heading);
+  border: 1px solid var(--border);
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -549,13 +599,14 @@
 }
 
 .file-upload-btn:hover {
-  background: #020617;
+  background: var(--bg-base);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
-/* File name */
 .file-upload-name {
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--muted);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -564,12 +615,10 @@
 }
 
 .file-upload-name.active {
-  color: #0f172a;
+  color: var(--text-heading);
 }
 
-/* Focus (keyboard / accessibility) */
 .file-upload:focus-within {
-  border-color: #94a3b8;
-  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.25);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus);
 }
-

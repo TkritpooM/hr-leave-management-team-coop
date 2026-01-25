@@ -5,8 +5,8 @@
     padding: 32px 40px;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #334155;
+    font-family: inherit;
+    color: var(--text);
     animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -33,18 +33,14 @@
 .role-title {
     font-size: 32px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-heading);
     letter-spacing: -0.02em;
     margin: 0;
-    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .role-sub {
     font-size: 15px;
-    color: #64748b;
+    color: var(--muted);
     margin-top: 8px;
     font-weight: 400;
     letter-spacing: 0.01em;
@@ -68,7 +64,7 @@
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: var(--muted);
     font-size: 18px;
     transition: color 0.2s;
 }
@@ -78,25 +74,24 @@
     padding: 14px 16px 14px 48px;
     border-radius: 100px;
     /* Pill shape for ultra-modern look */
-    border: 1px solid #e2e8f0;
-    background-color: #ffffff;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
     font-size: 14px;
-    color: #1e293b;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .role-search-input:focus {
     outline: none;
-    border-color: #cbd5e1;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
     width: 340px;
     /* Subtle expand effect */
 }
 
 .role-search-input:focus+.role-search-icon {
-    color: #6366f1;
-    /* Indigo */
+    color: var(--primary);
 }
 
 /* Primary Button (Minimal & Gradient) */
@@ -106,8 +101,7 @@
     gap: 10px;
     padding: 12px 24px;
     border-radius: 100px;
-    background: #0f172a;
-    /* Dark slate (almost black) for luxury feel */
+    background: var(--primary);
     color: #ffffff;
     font-size: 14px;
     font-weight: 600;
@@ -115,13 +109,13 @@
     border: none;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);
+    box-shadow: var(--shadow-md);
 }
 
 .role-btn-primary:hover {
-    background: #334155;
+    background: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
+    box-shadow: var(--shadow-lg);
 }
 
 .role-btn-primary:active {
@@ -130,29 +124,26 @@
 
 /* 4. Table Card (Clean, airy) */
 .role-table-card {
-    background: #ffffff;
+    background: var(--card-bg);
     border-radius: 24px;
-    /* Soft large radius */
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.02), 0 10px 10px -5px rgba(0, 0, 0, 0.01);
-    /* Super subtle shadow */
-    border: 1px solid rgba(241, 245, 249, 1);
-    /* Slate-100 */
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
     overflow: hidden;
     padding: 4px;
-    /* Inner padding for border separation */
+    backdrop-filter: var(--glass-blur);
 }
 
-/* React Data Table Component Overrides (if utilizing styled-components or default props, this wraps it) */
+/* React Data Table Component Overrides */
 .role-table-card .rdt_Table {
     background: transparent;
+    color: var(--text);
 }
 
 .role-table-card .rdt_TableHeadRow {
-    background: #f8fafc !important;
-    /* Slate-50 */
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--border);
     font-weight: 700;
-    color: #475569;
+    color: var(--muted);
     font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -161,15 +152,15 @@
 
 .role-table-card .rdt_TableRow {
     font-size: 15px;
-    color: #334155;
+    color: var(--text);
     min-height: 64px;
-    /* Taller rows for elegance */
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
+    background-color: transparent !important;
     transition: background 0.2s;
 }
 
 .role-table-card .rdt_TableRow:hover {
-    background: #f8fafc !important;
+    background: var(--surface) !important;
 }
 
 /* Action Buttons (Minimal icons) */
@@ -188,33 +179,30 @@
 }
 
 .role-action-btn.edit {
-    color: #64748b;
-    /* Slate-500 */
+    color: var(--muted);
 }
 
 .role-action-btn.edit:hover {
-    background: #f1f5f9;
-    color: #0f172a;
+    background: var(--surface);
+    color: var(--primary);
 }
 
 .role-action-btn.delete {
-    color: #94a3b8;
+    color: var(--muted);
 }
 
 .role-action-btn.delete:hover {
-    background: #fef2f2;
-    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--status-error);
 }
 
 /* 5. Modal (Glassmorphism & Centered) */
 .role-modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(255, 255, 255, 0.1);
-    /* Very light overlay base */
-    backdrop-filter: blur(12px);
-    /* Strong blur for premium feel */
-    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -223,16 +211,12 @@
 }
 
 .role-modal {
-    background: #ffffff;
+    background: var(--card-bg);
     width: 100%;
     max-width: 700px;
     border-radius: 32px;
-    /* Very round */
-    box-shadow:
-        0 20px 25px -5px rgba(0, 0, 0, 0.05),
-        0 8px 10px -6px rgba(0, 0, 0, 0.01),
-        0 0 0 1px rgba(0, 0, 0, 0.03);
-    /* Border ring */
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
     padding: 0;
     overflow: hidden;
     animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -246,7 +230,7 @@
 .role-modal-title {
     font-size: 24px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--text-heading);
     letter-spacing: -0.02em;
 }
 
@@ -262,7 +246,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #475569;
+    color: var(--muted);
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -272,20 +256,18 @@
     width: 100%;
     padding: 14px 18px;
     border-radius: 16px;
-    border: 2px solid #f1f5f9;
-    /* Subtle border */
-    background: #f8fafc;
+    border: 2px solid var(--border);
+    background: var(--surface);
     font-size: 16px;
     font-weight: 500;
-    color: #0f172a;
+    color: var(--text);
     transition: all 0.2s;
 }
 
 .role-input:focus {
     outline: none;
-    background: #ffffff;
-    border-color: #0f172a;
-    /* Focus to black/dark slate for high contrast minimal look */
+    background: #fff;
+    border-color: var(--primary);
 }
 
 .role-modal-footer {
@@ -294,14 +276,13 @@
     justify-content: flex-end;
     gap: 12px;
     background: transparent;
-    /* Seamless */
 }
 
 .role-btn-secondary {
     padding: 12px 24px;
     border-radius: 100px;
     background: transparent;
-    color: #64748b;
+    color: var(--muted);
     font-weight: 600;
     border: none;
     cursor: pointer;
@@ -309,8 +290,8 @@
 }
 
 .role-btn-secondary:hover {
-    color: #0f172a;
-    background: #f1f5f9;
+    color: var(--text);
+    background: var(--surface);
 }
 
 /* Animations */
@@ -336,80 +317,6 @@
     }
 }
 
-/* Dark Mode Support */
-:global(.dark) .page-card.role-mgmt {
-    color: #f1f5f9;
-}
-
-:global(.dark) .role-title {
-    color: #ffffff;
-    background: none;
-    -webkit-text-fill-color: initial;
-}
-
-:global(.dark) .role-sub {
-    color: #94a3b8;
-}
-
-:global(.dark) .role-search-input {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
-}
-
-:global(.dark) .role-table-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-:global(.dark) .role-table-card .rdt_TableHeadRow {
-    background: #0f172a !important;
-    color: #cbd5e1;
-    border-bottom-color: #334155;
-}
-
-:global(.dark) .role-table-card .rdt_TableRow {
-    background: #1e293b !important;
-    color: #f1f5f9;
-    border-bottom-color: #334155;
-}
-
-:global(.dark) .role-table-card .rdt_TableRow:hover {
-    background: #334155 !important;
-}
-
-:global(.dark) .role-btn-primary {
-    background: #f8fafc;
-    color: #0f172a;
-}
-
-/* Invert for dark mode pop */
-:global(.dark) .role-modal {
-    background: #1e293b;
-}
-
-:global(.dark) .role-modal-title {
-    color: #ffffff;
-}
-
-:global(.dark) .role-input {
-    background: #0f172a;
-    border-color: #334155;
-    color: #ffffff;
-}
-
-:global(.dark) .role-btn-secondary {
-    color: #cbd5e1;
-}
-
-:global(.dark) .role-action-btn.edit {
-    color: #cbd5e1;
-}
-
-:global(.dark) .role-action-btn.edit:hover {
-    background: #334155;
-}
-
 /* Permission Grid Styles */
 .role-perm-grid {
     display: grid;
@@ -418,10 +325,10 @@
     margin-top: 10px;
     max-height: 250px;
     overflow-y: auto;
-    border: 2px solid #f1f5f9;
+    border: 2px solid var(--border);
     padding: 16px;
     border-radius: 16px;
-    background: #f8fafc;
+    background: var(--surface);
 }
 
 .role-perm-item {
@@ -429,7 +336,7 @@
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    color: #475569;
+    color: var(--text);
     cursor: pointer;
     user-select: none;
     padding: 4px;
@@ -438,30 +345,13 @@
 }
 
 .role-perm-item:hover {
-    background: #e2e8f0;
+    background: var(--bg-hover);
+    /* Assuming this might exist or fallback to surface-hover logic */
 }
 
 .role-perm-item input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: #0f172a;
+    accent-color: var(--primary);
     cursor: pointer;
-}
-
-/* Dark Mode updates for permissions */
-:global(.dark) .role-perm-grid {
-    background: #0f172a;
-    border-color: #334155;
-}
-
-:global(.dark) .role-perm-item {
-    color: #cbd5e1;
-}
-
-:global(.dark) .role-perm-item:hover {
-    background: #334155;
-}
-
-:global(.dark) .role-perm-item input[type="checkbox"] {
-    accent-color: #f8fafc;
 }

@@ -1,30 +1,44 @@
+/* WorkerModal.css */
+/* Soft Blue Minimalist + Glassmorphism */
+
 /* Overlay Background */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
 }
 
 /* Card Container */
 .modal-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.95);
   width: 100%;
-  max-width: 450px; /* ขนาดกำลังดีเหมือนในรูป */
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  animation: slideUp 0.3s ease-out;
-  font-family: 'Inter', sans-serif;
+  max-width: 460px;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: inherit;
+  border: 1px solid var(--border);
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Header */
@@ -32,22 +46,37 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
+
 .header-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #1f2937;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
 }
+
 .close-btn-icon {
-  background: none;
+  background: rgba(0, 0, 0, 0.05);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
   cursor: pointer;
-  color: #9ca3af;
-  font-size: 1.2rem;
+  color: var(--muted);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn-icon:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--status-error);
 }
 
 /* Status Badge Center */
@@ -56,98 +85,145 @@
   justify-content: center;
   margin-bottom: 24px;
 }
+
 .status-pill {
-  padding: 6px 24px;
-  border-radius: 99px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
 }
 
 /* Badge Colors */
-.status-success { background-color: #ecfdf5; color: #10b981; border: 1px solid #d1fae5; }
-.status-warning { background-color: #fffbeb; color: #f59e0b; border: 1px solid #fef3c7; }
-.status-danger { background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-.status-default { background-color: #f3f4f6; color: #6b7280; border: 1px solid #e5e7eb; }
+.status-success {
+  background-color: rgba(236, 253, 245, 0.8);
+  color: var(--status-success);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-warning {
+  background-color: rgba(255, 251, 235, 0.8);
+  color: var(--status-warning);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.status-danger {
+  background-color: rgba(254, 242, 242, 0.8);
+  color: var(--status-error);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.status-default {
+  background-color: rgba(248, 250, 252, 0.8);
+  color: var(--muted);
+  border-color: var(--border);
+}
 
 /* Detail Rows */
 .detail-row {
-  display: grid;
-  grid-template-columns: 24px 100px 1fr;
-  align-items: center;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  font-size: 14px;
 }
-.detail-icon { color: #6b7280; }
-.detail-label { color: #4b5563; font-weight: 500; }
-.detail-value { color: #111827; font-weight: 600; }
 
-/* Reason Box (ตามรูป) */
-.reason-box {
-  background-color: #f9fafb;
-  border: 1px solid #f3f4f6;
-  border-radius: 8px;
-  padding: 16px;
-  margin-top: 20px;
+.detail-icon {
+  color: var(--muted2);
+  margin-right: 16px;
+  font-size: 18px;
+  margin-top: 2px;
 }
+
+.detail-label {
+  color: var(--muted);
+  font-weight: 600;
+  width: 100px;
+  font-size: 13px;
+}
+
+.detail-value {
+  color: var(--text-heading);
+  font-weight: 700;
+  flex: 1;
+}
+
+/* Reason Box */
+.reason-box {
+  background-color: rgba(248, 250, 252, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
 .reason-label {
   display: block;
-  font-size: 0.75rem;
-  color: #9ca3af;
-  font-weight: 700;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
   text-transform: uppercase;
   margin-bottom: 8px;
+  letter-spacing: 0.08em;
 }
+
 .reason-text {
-  font-size: 0.9rem;
-  color: #374151;
+  font-size: 14px;
+  color: var(--text);
   margin: 0;
   line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Footer Button */
 .modal-footer {
-  margin-top: 24px;
+  margin-top: 32px;
 }
+
 .btn-close-window {
   width: 100%;
   padding: 12px;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
-  font-weight: 600;
-  border-radius: 8px;
+  background-color: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 14px;
 }
+
 .btn-close-window:hover {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
+  background-color: #f8fafc;
+  border-color: var(--muted);
 }
+
 /* optional: make approver row nicer */
 .detail-row .detail-value {
   word-break: break-word;
 }
 
-/* 1. สีสำหรับ Company Holiday (สีหลักของระบบ - ดูเป็นทางการ) */
+/* 1. Company Holiday */
 .status-pill.status-primary {
-  background-color: #e0f2fe; /* Light Blue */
-  color: #0369a1;            /* Dark Blue */
-  border: 1px solid #bae6fd;
+  background-color: rgba(239, 246, 255, 0.8);
+  color: var(--primary);
+  border-color: rgba(59, 130, 246, 0.2);
 }
 
-/* 2. สีสำหรับ Weekend (สีม่วงหรือสีเทาอ่อน - ดูผ่อนคลาย) */
+/* 2. Weekend */
 .status-pill.status-secondary {
-  background-color: #f3f4f6; /* Light Gray */
-  color: #4b5563;            /* Grayish Blue */
-  border: 1px solid #e5e7eb;
+  background-color: rgba(248, 250, 252, 0.8);
+  color: var(--muted);
+  border-color: var(--border);
 }
 
-/* 3. ปรับแต่ง Icon พิเศษสำหรับวันหยุด (ถ้าต้องการให้ดูต่างจากวันทำงาน) */
+/* 3. Icon spacing */
 .status-pill.status-primary svg,
 .status-pill.status-secondary svg {
-  margin-right: 6px;
-  font-size: 14px;
+  margin-right: 2px;
+  font-size: 16px;
 }

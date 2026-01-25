@@ -6,7 +6,7 @@ import axiosClient from "../api/axiosClient";
 import { FiUser, FiCheck, FiX, FiExternalLink, FiClock } from "react-icons/fi";
 import moment from "moment";
 import "moment/locale/th";
-import "./HRLeaveApprovals.css"; 
+import "./HRLeaveApprovals.css";
 import { useTranslation } from "react-i18next";
 
 export default function HRProfileRequests() {
@@ -36,7 +36,7 @@ export default function HRProfileRequests() {
     try {
       localStorage.setItem("hr_unread_notifications", "0");
       window.dispatchEvent(new Event("storage"));
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const fetchRequests = async () => {
@@ -62,9 +62,9 @@ export default function HRProfileRequests() {
     }
   };
 
-  useEffect(() => { 
-    fetchRequests(); 
-    setSidebarUnreadZero(); 
+  useEffect(() => {
+    fetchRequests();
+    setSidebarUnreadZero();
   }, []);
 
   // 3. จัดการการอนุมัติ/ปฏิเสธ
@@ -159,7 +159,7 @@ export default function HRProfileRequests() {
                   <td style={{ fontWeight: 700, color: '#16a34a' }}>{r.newFirstName} {r.newLastName}</td>
                   <td>
                     <div style={{ fontSize: '13px', color: '#64748b' }}>
-                      <FiClock style={{ marginBottom: -2, marginRight: 4 }} /> 
+                      <FiClock style={{ marginBottom: -2, marginRight: 4 }} />
                       {moment(r.requestedAt || r.createdAt).format("DD MMM YYYY")}
                     </div>
                   </td>
@@ -180,109 +180,94 @@ export default function HRProfileRequests() {
         </table>
       </div>
 
-      <div style={{ marginTop: 18, display: "flex", justifyContent: "flex-end" }}>
+      <div style={{ marginTop: 18, width: "100%" }}>
         <Pagination total={filtered.length} page={page} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
-      {/* ✅ FIXED MODAL OVERLAY (เด้งขึ้นมาลอยทับหน้าจอ) */}
+      {/* ✅ FIXED MODAL OVERLAY (Class-based) */}
       {active && (
-        <div 
-          className="p-modal-overlay" 
-          style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.4)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', zIndex: 1000
-          }}
+        <div
+          className="p-modal-overlay"
           onClick={() => setActive(null)}
         >
-          <div 
-            className="p-modal-content" 
-            style={{ 
-              background: '#fff', width: '95%', maxWidth: '600px', borderRadius: '20px',
-              overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-              animation: 'modalFadeIn 0.3s ease-out'
-            }} 
+          <div
+            className="p-modal-content"
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="p-modal-header" style={{ padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="p-modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ background: '#eff6ff', color: '#3b82f6', padding: '10px', borderRadius: '12px', display: 'flex' }}><FiUser size={20} /></div>
+                <div className="p-modal-header-icon"><FiUser size={20} /></div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>{t("pages.hrProfileRequests.Request Details")}</h3>
                   <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{t("pages.hrProfileRequests.Compare details before approval")}</p>
                 </div>
               </div>
-              <button onClick={() => setActive(null)} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={() => setActive(null)} className="p-modal-close">
                 <FiX />
               </button>
             </div>
-            
+
             {/* Modal Body */}
-            <div className="p-modal-body" style={{ padding: '24px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="p-modal-body">
+              <div className="p-info-grid">
                 <div className="p-current-info">
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                  <label className="p-label">
                     {t("pages.hrProfileRequests.Current Name (Old)")}
                   </label>
-                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#475569' }}>
+                  <div className="p-val-box">
                     {active.oldFirstName || active.currentFirstName} {active.oldLastName || active.currentLastName}
                   </div>
                 </div>
                 <div className="p-current-info">
-                  <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                  <label className="p-label">
                     {t("pages.hrProfileRequests.Proposed Name (New)")}
                   </label>
-                  <div style={{ background: '#f0fdf4', color: '#16a34a', padding: '12px', borderRadius: '10px', border: '1px solid #bcf0da', fontSize: '14px', fontWeight: 700 }}>
+                  <div className="p-val-box new">
                     {active.newFirstName} {active.newLastName}
                   </div>
                 </div>
               </div>
 
               <div style={{ marginTop: '24px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
+                <label className="p-label">
                   {t("pages.hrProfileRequests.Reason for change")}
                 </label>
-                <div style={{ padding: '14px', background: '#f8fafc', borderRadius: '12px', fontSize: '14px', border: '1px solid #f1f5f9', color: '#334155', lineHeight: '1.5' }}>
+                <div className="p-reason-box">
                   {active.reason || t("common.noDataAvailable")}
                 </div>
               </div>
 
               {active.attachmentUrl && (
                 <div style={{ marginTop: '24px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase' }}>
-                      {t("pages.hrProfileRequests.Supporting Document")}
-                    </label>
-                    <a 
-                      href={`http://localhost:8000/uploads/profiles/${active.attachmentUrl}`} 
-                      target="_blank" rel="noreferrer"
-                      style={{ 
-                        display: 'flex', alignItems: 'center', gap: 12, padding: '12px', background: '#fff', 
-                        border: '1.5px solid #e2e8f0', borderRadius: '14px', textDecoration: 'none'
-                      }}
-                    >
-                      <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '10px', color: '#475569' }}><FiExternalLink size={18} /></div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{t("pages.hrProfileRequests.View Attachment")}</div>
-                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{t("pages.hrProfileRequests.Official document (PDF/Image)")}</div>
-                      </div>
-                      <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: '13px' }}>{t("pages.hrProfileRequests.Open")}</div>
-                    </a>
+                  <label className="p-label">
+                    {t("pages.hrProfileRequests.Supporting Document")}
+                  </label>
+                  <a
+                    href={`http://localhost:8000/uploads/profiles/${active.attachmentUrl}`}
+                    target="_blank" rel="noreferrer"
+                    className="p-attach-link"
+                  >
+                    <div style={{ background: '#f1f5f9', padding: '10px', borderRadius: '10px', color: '#475569' }}><FiExternalLink size={18} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{t("pages.hrProfileRequests.View Attachment")}</div>
+                      <div style={{ fontSize: '12px', color: '#94a3b8' }}>{t("pages.hrProfileRequests.Official document (PDF/Image)")}</div>
+                    </div>
+                    <div style={{ color: '#3b82f6', fontWeight: 700, fontSize: '13px' }}>{t("pages.hrProfileRequests.Open")}</div>
+                  </a>
                 </div>
               )}
 
               {/* Modal Footer */}
-              <div className="p-modal-footer" style={{ marginTop: '32px', display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button 
-                  className="btn outline" 
-                  style={{ padding: '10px 24px', borderRadius: '12px', borderColor: '#e2e8f0', color: '#64748b', fontWeight: 600 }}
+              <div className="p-modal-footer">
+                <button
+                  className="btn outline"
                   onClick={() => handleAction(active.requestId, "reject")}
                 >
                   {t("common.reject")}
                 </button>
-                <button 
-                  className="btn primary" 
-                  style={{ padding: '10px 28px', borderRadius: '12px', background: '#16a34a', color: '#fff', border: 'none', fontWeight: 700 }}
+                <button
+                  className="btn primary"
                   onClick={() => handleAction(active.requestId, "approve")}
                 >
                   {t("common.approve")} & {t("common.save")}

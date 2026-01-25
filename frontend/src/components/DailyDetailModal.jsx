@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import ReactDOM from "react-dom";
 import {
   FiX,
   FiClock,
@@ -85,13 +86,11 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
     );
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div
-        className="modal"
+        className="modal daily-modal"
         style={{
-          maxWidth: "850px",
-          width: "95%",
           borderRadius: "16px",
           padding: "0",
           overflow: "hidden",
@@ -99,7 +98,7 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Section */}
-        <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", background: "#fff" }}>
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid #f1f5f9", background: "#fff", flexShrink: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div>
               <h3 style={{ margin: 0, fontSize: "1.25rem", color: "#0f172a", display: "flex", alignItems: "center", gap: "10px" }}>
@@ -133,12 +132,17 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
         </div>
 
         {/* Content Body */}
-        <div style={{ maxHeight: "65vh", minHeight: "350px", overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 24px 24px", display: "flex", flexDirection: "column" }}>
           {isHoliday && (summary.presentCount || 0) === 0 && activeTab === "present" ? (
             <HolidayEmptyState t={t} isWeekend={isWeekend} isSpecial={isSpecialHoliday} desc={data.specialHolidayDesc} />
           ) : (
-            isFuture && activeTab === "present" && (summary.presentCount || 0) === 0 && (
+            isFuture && activeTab === "present" && (summary.presentCount || 0) === 0 ? (
               <EmptyState message={t("components.dailyDetailModal.futureNoData", "No attendance data expected yet for this future date.")} icon={<FiSunrise size={48} />} />
+            ) : (
+              /* ✅ Fix: Show empty state for regular days with 0 present */
+              !isHoliday && !isFuture && activeTab === "present" && present.length === 0 && (
+                <EmptyState message={t("components.dailyDetailModal.noAttendance", "No check-in records found for this date.")} icon={<FiUserX size={48} />} />
+              )
             )
           )}
 
@@ -235,7 +239,8 @@ export default function DailyDetailModal({ isOpen, onClose, date, data, workingD
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

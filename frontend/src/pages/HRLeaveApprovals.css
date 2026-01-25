@@ -1,154 +1,386 @@
-.hrla-row{ cursor: pointer; }
-.hrla-row:hover td{ background: rgba(22,163,74,.06); }
+/* frontend/src/pages/HRLeaveApprovals.css */
+/* Soft Blue Minimalist + Glassmorphism */
 
-.hrla-link{
+.hrla-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.hrla-row:hover td {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.hrla-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #2563eb;
+  color: var(--primary);
   text-decoration: none;
   font-weight: 800;
   font-size: 13px;
 }
-.hrla-link:hover{ text-decoration: underline; }
 
-.hrla-days{ display:flex; flex-direction:column; line-height:1.05; }
-.hrla-days-main{ font-weight: 950; font-variant-numeric: tabular-nums; }
-.hrla-days-sub{ font-size: 11px; color: rgba(15,23,42,.55); font-weight: 800; }
+.hrla-link:hover {
+  text-decoration: underline;
+}
+
+.hrla-days {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.hrla-days-main {
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-heading);
+}
+
+.hrla-days-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+}
 
 /* Modal */
-.hrla-modal-backdrop{
+.hrla-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2,6,23,.35);
-  backdrop-filter: blur(6px);
-  display:flex;
-  justify-content:center;
-  align-items:center;
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 18px;
-  z-index: 60;
+  z-index: 1005;
 }
 
-.hrla-modal{
+.hrla-modal {
   width: min(980px, 100%);
-  background: rgba(255,255,255,.96);
-  border: 1px solid rgba(15,23,42,.12);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
   border-radius: 22px;
-  box-shadow: 0 30px 80px rgba(2,6,23,.22);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
+  backdrop-filter: var(--glass-blur);
 }
 
-.hrla-modal-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
+.hrla-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
   padding: 16px 18px;
-  border-bottom: 1px solid rgba(15,23,42,.10);
+  border-bottom: 1px solid var(--border);
 }
 
-.hrla-modal-title{ font-size: 16px; font-weight: 950; color: rgba(15,23,42,.92); }
-.hrla-modal-sub{ margin-top: 4px; font-size: 12px; font-weight: 800; color: rgba(15,23,42,.60); }
+.hrla-modal-title {
+  font-size: 16px;
+  font-weight: 950;
+  color: var(--text-heading);
+}
 
-.hrla-x{
+.hrla-modal-sub {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.hrla-x {
   width: 40px;
   height: 40px;
   border-radius: 999px;
-  border: 1px solid rgba(15,23,42,.12);
-  background: rgba(255,255,255,.95);
-  cursor:pointer;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
   font-weight: 950;
+  color: var(--muted);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.hrla-modal-grid{
-  display:grid;
+.hrla-x:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--status-error);
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.hrla-modal-grid {
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   padding: 14px;
 }
 
-@media (max-width: 900px){
-  .hrla-modal-grid{ grid-template-columns: 1fr; }
+@media (max-width: 900px) {
+  .hrla-modal-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.hrla-block{
-  background: rgba(255,255,255,.85);
-  border: 1px solid rgba(15,23,42,.10);
+.hrla-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 12px;
 }
 
-.hrla-block-title{ font-size: 13px; font-weight: 950; margin-bottom: 10px; }
+.hrla-block-title {
+  font-size: 13px;
+  font-weight: 950;
+  margin-bottom: 10px;
+  color: var(--text-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
-.hrla-kv{
-  display:flex;
-  justify-content:space-between;
+.hrla-kv {
+  display: flex;
+  justify-content: space-between;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(15,23,42,.08);
+  border-bottom: 1px solid var(--border);
 }
-.hrla-kv:last-child{ border-bottom: none; }
-.hrla-kv-full{ flex-direction: column; }
 
-.hrla-k{ font-size: 11px; font-weight: 950; text-transform: uppercase; letter-spacing: .08em; color: rgba(15,23,42,.60); }
-.hrla-v{ font-weight: 850; color: rgba(15,23,42,.92); }
+.hrla-kv:last-child {
+  border-bottom: none;
+}
 
-.hrla-modal-actions{
-  display:flex;
-  justify-content:flex-end;
+.hrla-kv-full {
+  flex-direction: column;
+}
+
+.hrla-k {
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+.hrla-v {
+  font-weight: 850;
+  color: var(--text);
+}
+
+.hrla-modal-actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 12px;
   flex-wrap: wrap;
 }
 
-.hrla-attach-actions{
-  display:flex;
+.hrla-attach-actions {
+  display: flex;
   gap: 10px;
   flex-wrap: wrap;
   margin-bottom: 10px;
 }
 
-.hrla-attach-btn{
+.hrla-attach-btn {
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(15,23,42,.12);
-  background: rgba(255,255,255,.92);
-  color: rgba(15,23,42,.92);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--text);
   text-decoration: none;
   font-weight: 900;
+  font-size: 13px;
+  transition: all 0.2s;
 }
 
-.hrla-attach-btn:hover{
-  background: rgba(22,163,74,.10);
-  border-color: rgba(22,163,74,.25);
+.hrla-attach-btn:hover {
+  background: #fff;
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
-.hrla-preview{
+.hrla-preview {
   border-radius: 16px;
-  border: 1px solid rgba(15,23,42,.10);
+  border: 1px solid var(--border);
   overflow: hidden;
-  background: rgba(2,6,23,.03);
+  background: rgba(15, 23, 42, 0.03);
   height: 360px;
 }
 
-.hrla-preview img{
+.hrla-preview img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  display:block;
+  display: block;
 }
 
-.hrla-preview iframe{
+.hrla-preview iframe {
   width: 100%;
   height: 100%;
   border: 0;
 }
 
-.hrla-preview-empty{
+.hrla-preview-empty {
   height: 160px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color: rgba(15,23,42,.60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
   font-weight: 900;
+}
+
+/* =========================================================
+   Profile Request Modal (Replaces inline styles)
+   ========================================================= */
+.p-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.p-modal-content {
+  background: var(--card-bg);
+  width: 95%;
+  max-width: 600px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  backdrop-filter: var(--glass-blur);
+  animation: modalUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.p-modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.p-modal-header-icon {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+}
+
+.p-modal-close {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+.p-modal-close:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--status-error);
+}
+
+.p-modal-body {
+  padding: 24px;
+}
+
+.p-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media(max-width: 600px) {
+  .p-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.p-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.p-val-box {
+  background: var(--surface);
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.p-val-box.new {
+  background: rgba(236, 253, 245, 0.6);
+  color: var(--status-success);
+  border-color: rgba(16, 185, 129, 0.3);
+  font-weight: 800;
+}
+
+.p-reason-box {
+  padding: 14px;
+  background: var(--surface);
+  border-radius: 12px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.p-attach-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.p-attach-link:hover {
+  border-color: var(--primary);
+  background: #fff;
+}
+
+.p-modal-footer {
+  margin-top: 32px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+@keyframes modalUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
