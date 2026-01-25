@@ -38,6 +38,7 @@
     margin: 0;
     background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -224,7 +225,7 @@
 .role-modal {
     background: #ffffff;
     width: 100%;
-    max-width: 440px;
+    max-width: 700px;
     border-radius: 32px;
     /* Very round */
     box-shadow:

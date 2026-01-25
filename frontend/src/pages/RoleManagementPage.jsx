@@ -270,46 +270,100 @@ export default function RoleManagementPage() {
                                     <span className="role-label">
                                         {t("pages.roles.permissions", "Permissions")}
                                     </span>
-                                    <div className="role-perm-container">
-                                        {[
-                                            {
-                                                title: "Access / View",
-                                                perms: permissions.filter(p => p.name.startsWith("access_"))
-                                            },
-                                            {
-                                                title: "Management",
-                                                perms: permissions.filter(p => !p.name.startsWith("access_"))
-                                            }
-                                        ].map((group, idx) => (
-                                            <div key={idx} className="role-perm-group" style={{ marginBottom: "20px" }}>
-                                                <h4 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#64748b", borderBottom: "1px solid #e2e8f0", paddingBottom: "5px" }}>
-                                                    {group.title}
+                                    <div className="role-perm-container" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+                                        {/* Left Column: Access/View */}
+                                        <div className="role-perm-column">
+                                            <div style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px',
+                                                paddingBottom: '12px', borderBottom: '1px solid #e2e8f0'
+                                            }}>
+                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#3b82f6', boxShadow: '0 0 0 2px #dbeafe' }}></div>
+                                                <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 'bold', letterSpacing: '-0.01em' }}>
+                                                    {t("pages.roles.accessGroup", "Access & View")}
                                                 </h4>
-                                                <div className="role-perm-grid">
-                                                    {group.perms.map(perm => {
+                                            </div>
+                                            <div className="role-perm-list" style={{
+                                                display: 'flex', flexDirection: 'column', gap: '10px',
+                                                maxHeight: '320px', overflowY: 'auto', paddingRight: '8px'
+                                            }}>
+                                                {permissions.filter(p => p.name.startsWith("access_")).map(perm => {
+                                                    const isChecked = selectedPermissionIds.includes(perm.permissionId);
+                                                    return (
+                                                        <label key={perm.permissionId} className={`role-perm-card compact ${isChecked ? 'active' : ''}`} style={{
+                                                            display: 'flex', alignItems: 'center', gap: '12px',
+                                                            padding: '12px 16px', background: isChecked ? '#eff6ff' : '#f8fafc',
+                                                            border: `1px solid ${isChecked ? '#bfdbfe' : '#e2e8f0'}`, borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                                                            boxShadow: isChecked ? '0 2px 4px rgba(59, 130, 246, 0.05)' : 'none'
+                                                        }}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isChecked}
+                                                                onChange={(e) => {
+                                                                    const checked = e.target.checked;
+                                                                    setSelectedPermissionIds(prev =>
+                                                                        checked ? [...prev, perm.permissionId] : prev.filter(id => id !== perm.permissionId)
+                                                                    );
+                                                                }}
+                                                                style={{ accentColor: '#3b82f6', width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
+                                                            />
+                                                            <span style={{ fontSize: '14px', color: isChecked ? '#1e40af' : '#475569', fontWeight: isChecked ? '600' : '500' }}>
+                                                                {perm.description || perm.name}
+                                                            </span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        {/* Right Column: Management */}
+                                        <div className="role-perm-column">
+                                            <div style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px',
+                                                paddingBottom: '12px', borderBottom: '1px solid #e2e8f0'
+                                            }}>
+                                                <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b', boxShadow: '0 0 0 2px #fef3c7' }}></div>
+                                                <h4 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 'bold', letterSpacing: '-0.01em' }}>
+                                                    {t("pages.roles.manageGroup", "Management")}
+                                                </h4>
+                                            </div>
+                                            <div className="role-perm-list" style={{
+                                                display: 'flex', flexDirection: 'column', gap: '10px',
+                                                maxHeight: '320px', overflowY: 'auto', paddingRight: '8px'
+                                            }}>
+                                                {permissions.filter(p => !p.name.startsWith("access_")).length === 0 ? (
+                                                    <div style={{ fontSize: '14px', color: '#94a3b8', fontStyle: 'italic', padding: '16px', placeSelf: 'center' }}>
+                                                        {t("common.noData", "No management permissions available.")}
+                                                    </div>
+                                                ) : (
+                                                    permissions.filter(p => !p.name.startsWith("access_")).map(perm => {
                                                         const isChecked = selectedPermissionIds.includes(perm.permissionId);
                                                         return (
-                                                            <label key={perm.permissionId} className="role-perm-item">
+                                                            <label key={perm.permissionId} className={`role-perm-card compact ${isChecked ? 'active' : ''}`} style={{
+                                                                display: 'flex', alignItems: 'center', gap: '12px',
+                                                                padding: '12px 16px', background: isChecked ? '#fffbeb' : '#f8fafc',
+                                                                border: `1px solid ${isChecked ? '#fde68a' : '#e2e8f0'}`, borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s',
+                                                                boxShadow: isChecked ? '0 2px 4px rgba(245, 158, 11, 0.05)' : 'none'
+                                                            }}>
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isChecked}
                                                                     onChange={(e) => {
                                                                         const checked = e.target.checked;
                                                                         setSelectedPermissionIds(prev =>
-                                                                            checked
-                                                                                ? [...prev, perm.permissionId]
-                                                                                : prev.filter(id => id !== perm.permissionId)
+                                                                            checked ? [...prev, perm.permissionId] : prev.filter(id => id !== perm.permissionId)
                                                                         );
                                                                     }}
+                                                                    style={{ accentColor: '#f59e0b', width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
                                                                 />
-                                                                <span title={perm.description}>{perm.name}</span>
+                                                                <span style={{ fontSize: '14px', color: isChecked ? '#92400e' : '#475569', fontWeight: isChecked ? '600' : '500' }}>
+                                                                    {perm.description || perm.name}
+                                                                </span>
                                                             </label>
                                                         );
-                                                    })}
-                                                </div>
-                                                {group.perms.length === 0 && <div style={{ fontSize: "12px", color: "#94a3b8", fontStyle: "italic" }}>No items</div>}
+                                                    })
+                                                )}
                                             </div>
-                                        ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

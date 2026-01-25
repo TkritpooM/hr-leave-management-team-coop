@@ -203,7 +203,9 @@
       "addNew": "Add Role",
       "editRole": "Edit Role",
       "newRole": "New Role",
-      "permissions": "Permissions"
+      "permissions": "Permissions",
+      "accessGroup": "Access & View",
+      "manageGroup": "Management"
     },
     "workerLeave": {
       "Duration": "Duration",

@@ -195,7 +195,9 @@
       "addNew": "เพิ่มบทบาท",
       "editRole": "แก้ไขบทบาท",
       "newRole": "บทบาทใหม่",
-      "permissions": "สิทธิ์การใช้งาน"
+      "permissions": "สิทธิ์การใช้งาน",
+      "accessGroup": "การเข้าถึงและดูข้อมูล",
+      "manageGroup": "การจัดการ"
     },
     "workerLeave": {
       "Duration": "ระยะเวลา",
