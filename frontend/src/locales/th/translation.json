@@ -132,7 +132,8 @@
     "sections": {
       "main": "เมนูหลัก",
       "account": "บัญชีผู้ใช้",
-      "hrManagement": "การจัดการ HR"
+      "hrManagement": "การจัดการ HR",
+      "adminManagement": "การจัดการระบบ"
     },
     "items": {
       "dashboard": "แดชบอร์ด",
@@ -146,7 +147,8 @@
       "leaveApprovals": "อนุมัติการลา",
       "employees": "พนักงาน",
       "leaveQuotaSettings": "ตั้งค่าโควต้าการลา",
-      "attendanceSettings": "ตั้งค่าการลงเวลา"
+      "attendanceSettings": "ตั้งค่าการลงเวลา",
+      "rolesManagement": "จัดการบทบาท"
     },
     "toggleSidebar": "เปิด/ปิดแถบเมนู",
     "title": "แถบเมนู"
@@ -177,6 +179,20 @@
     "loginFailedDefault": "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์หรืออีเมล/รหัสผ่านไม่ถูกต้อง"
   },
   "pages": {
+    "roles": {
+      "title": "จัดการบทบาท",
+      "subtitle": "จัดการบทบาทผู้ใช้และสิทธิ์การใช้งาน",
+      "deleteConfirmTitle": "ลบบทบาท?",
+      "deleteConfirmText": "คุณแน่ใจหรือไม่ว่าต้องการลบบทบาท \"{{name}}\"?",
+      "deleted": "ลบบทบาทเรียบร้อยแล้ว",
+      "updated": "อัปเดตบทบาทเรียบร้อยแล้ว",
+      "created": "สร้างบทบาทเรียบร้อยแล้ว",
+      "roleName": "ชื่อบทบาท",
+      "addNew": "เพิ่มบทบาท",
+      "editRole": "แก้ไขบทบาท",
+      "newRole": "บทบาทใหม่",
+      "permissions": "สิทธิ์การใช้งาน"
+    },
     "workerLeave": {
       "Duration": "ระยะเวลา",
       "Cancel Request": "ยกเลิกคำขอนี้",

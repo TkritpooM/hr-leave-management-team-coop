@@ -137,7 +137,8 @@
     "sections": {
       "main": "MAIN MENU",
       "account": "ACCOUNT",
-      "hrManagement": "HR MANAGEMENT"
+      "hrManagement": "HR MANAGEMENT",
+      "adminManagement": "ADMIN MANAGEMENT"
     },
     "items": {
       "dashboard": "Dashboard",
@@ -151,7 +152,8 @@
       "leaveApprovals": "Leave Approvals",
       "employees": "Employees",
       "leaveQuotaSettings": "Leave Quota Settings",
-      "attendanceSettings": "Attendance Settings"
+      "attendanceSettings": "Attendance Settings",
+      "rolesManagement": "Roles Management"
     },
     "toggleSidebar": "Toggle sidebar",
     "title": "Sidebar"
@@ -185,6 +187,20 @@
     "loginFailedDefault": "Unable to connect to server or invalid email/password."
   },
   "pages": {
+    "roles": {
+      "title": "Roles Management",
+      "subtitle": "Manage user roles and permissions.",
+      "deleteConfirmTitle": "Delete Role?",
+      "deleteConfirmText": "Are you sure you want to delete role \"{{name}}\"?",
+      "deleted": "Role deleted.",
+      "updated": "Role updated.",
+      "created": "Role created.",
+      "roleName": "Role Name",
+      "addNew": "Add Role",
+      "editRole": "Edit Role",
+      "newRole": "New Role",
+      "permissions": "Permissions"
+    },
     "workerLeave": {
       "Duration": "Duration",
       "Cancel Request": "Cancel Request",

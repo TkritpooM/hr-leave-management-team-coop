@@ -67,14 +67,14 @@ export default function RoleManagementPage() {
 
     const handleDelete = async (role) => {
         const isConfirmed = await alertConfirm(
-            t("roles.deleteConfirmTitle", "Delete Role?"),
-            t("roles.deleteConfirmText", `Are you sure you want to delete role "${role.roleName}"?`)
+            t("pages.roles.deleteConfirmTitle", "Delete Role?"),
+            t("pages.roles.deleteConfirmText", { name: role.roleName })
         );
         if (!isConfirmed) return;
 
         try {
             await axiosClient.delete(`/admin/roles/${role.roleId}`);
-            alertSuccess(t("common.success"), t("roles.deleted", "Role deleted."));
+            alertSuccess(t("common.success"), t("pages.roles.deleted", "Role deleted."));
             fetchData();
         } catch (err) {
             console.error(err);
@@ -93,11 +93,11 @@ export default function RoleManagementPage() {
             if (editingRole) {
                 // Update
                 await axiosClient.put(`/admin/roles/${editingRole.roleId}`, payload);
-                alertSuccess(t("common.success"), t("roles.updated", "Role updated."));
+                alertSuccess(t("common.success"), t("pages.roles.updated", "Role updated."));
             } else {
                 // Create
                 await axiosClient.post("/admin/roles", payload);
-                alertSuccess(t("common.success"), t("roles.created", "Role created."));
+                alertSuccess(t("common.success"), t("pages.roles.created", "Role created."));
             }
             setModalOpen(false);
             setEditingRole(null);
@@ -120,7 +120,7 @@ export default function RoleManagementPage() {
             width: "80px",
         },
         {
-            name: t("roles.roleName", "Role Name"),
+            name: t("pages.roles.roleName", "Role Name"),
             selector: row => row.roleName,
             sortable: true,
         },
@@ -191,10 +191,10 @@ export default function RoleManagementPage() {
             <div className="role-head">
                 <div>
                     <h1 className="role-title">
-                        {t("sidebar.items.rolesManagement", "Roles Management")}
+                        {t("pages.roles.title", "Roles Management")}
                     </h1>
                     <p className="role-sub">
-                        {t("roles.subtitle", "Manage user roles and permissions.")}
+                        {t("pages.roles.subtitle", "Manage user roles and permissions.")}
                     </p>
                 </div>
             </div>
@@ -222,7 +222,7 @@ export default function RoleManagementPage() {
                     }}
                 >
                     <FiPlus />
-                    {t("roles.addNew", "Add Role")}
+                    {t("pages.roles.addNew", "Add Role")}
                 </button>
             </div>
 
@@ -245,7 +245,7 @@ export default function RoleManagementPage() {
                     <div className="role-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="role-modal-header">
                             <h2 className="role-modal-title">
-                                {editingRole ? t("roles.editRole", "Edit Role") : t("roles.newRole", "New Role")}
+                                {editingRole ? t("pages.roles.editRole", "Edit Role") : t("pages.roles.newRole", "New Role")}
                             </h2>
                         </div>
 
@@ -253,7 +253,7 @@ export default function RoleManagementPage() {
                             <div className="role-modal-body">
                                 <div className="role-form-group">
                                     <span className="role-label">
-                                        {t("roles.roleName", "Role Name")}
+                                        {t("pages.roles.roleName", "Role Name")}
                                     </span>
                                     <input
                                         type="text"
@@ -268,7 +268,7 @@ export default function RoleManagementPage() {
 
                                 <div className="role-form-group">
                                     <span className="role-label">
-                                        {t("roles.permissions", "Permissions")}
+                                        {t("pages.roles.permissions", "Permissions")}
                                     </span>
                                     <div className="role-perm-grid">
                                         {permissions.map(perm => (

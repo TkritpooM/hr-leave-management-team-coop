@@ -40,9 +40,14 @@ const MENU_SECTIONS = [
       { to: "/hr/profile-requests", labelKey: "sidebar.items.profileRequests", icon: <FiUser />, badgeKey: "profile_request_unread", permission: "access_profile_requests" },
       { to: "/hr/leave-approvals", labelKey: "sidebar.items.leaveApprovals", icon: <FiCheckSquare />, permission: "access_leave_approval" },
       { to: "/hr/employees", labelKey: "sidebar.items.employees", icon: <FiUsers />, permission: "access_employee_list" },
-      { to: "/admin/roles", labelKey: "sidebar.items.rolesManagement", icon: <FiSettings />, permission: "access_role_management" },
       { to: "/hr/leave-settings", labelKey: "sidebar.items.leaveQuotaSettings", icon: <FiSettings />, permission: "access_leave_settings" },
       { to: "/hr/attendance-policy", labelKey: "sidebar.items.attendanceSettings", icon: <FiSettings />, permission: "access_attendance_policy" },
+    ],
+  },
+  {
+    sectionKey: "sidebar.sections.adminManagement",
+    items: [
+      { to: "/admin/roles", labelKey: "sidebar.items.rolesManagement", icon: <FiSettings />, permission: "access_role_management" },
     ],
   },
   {

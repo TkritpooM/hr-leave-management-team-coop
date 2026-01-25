@@ -137,7 +137,8 @@
     "sections": {
       "main": "メインメニュー",
       "account": "アカウント",
-      "hrManagement": "労務管理"
+      "hrManagement": "労務管理",
+      "adminManagement": "システム管理"
     },
     "items": {
       "dashboard": "ダッシュボード",
@@ -151,7 +152,8 @@
       "leaveApprovals": "休暇承認",
       "employees": "従業員",
       "leaveQuotaSettings": "休暇クォータ設定",
-      "attendanceSettings": "勤怠設定"
+      "attendanceSettings": "勤怠設定",
+      "rolesManagement": "役割管理"
     },
     "toggleSidebar": "サイドバーを切替",
     "title": "サイドバー"
@@ -185,6 +187,20 @@
     "loginFailedDefault": "サーバーに接続できないか、メール／パスワードが正しくありません。"
   },
   "pages": {
+    "roles": {
+      "title": "役割管理",
+      "subtitle": "ユーザーの役割と権限を管理します。",
+      "deleteConfirmTitle": "役割を削除しますか？",
+      "deleteConfirmText": "役割「{{name}}」を削除してもよろしいですか？",
+      "deleted": "役割を削除しました。",
+      "updated": "役割を更新しました。",
+      "created": "役割を作成しました。",
+      "roleName": "役割名",
+      "addNew": "役割を追加",
+      "editRole": "役割を編集",
+      "newRole": "新しい役割",
+      "permissions": "権限"
+    },
     "workerLeave": {
       "Duration": "期間",
       "Cancel Request": "申請をキャンセル",
