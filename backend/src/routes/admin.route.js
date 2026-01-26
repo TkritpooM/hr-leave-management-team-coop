@@ -32,7 +32,7 @@ router.get('/holiday', authorizePermission('access_leave_settings'), adminContro
 // สำหรับ Frontend Employees.js: เรียก /api/hr/leave-types (Allow employee list viewers too?)
 router.get('/hr/leave-types', authorizePermission('access_employee_list'), adminController.getLeaveTypes);
 
-router.get('/attendance-policy', authorizePermission('access_attendance_policy'), adminController.getAttendancePolicy);
+router.get('/attendance-policy', adminController.getAttendancePolicy);
 
 // --- 🔒 2. HR & Admin Resources (Permissions) ---
 

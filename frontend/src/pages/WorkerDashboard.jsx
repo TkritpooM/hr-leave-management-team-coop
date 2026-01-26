@@ -14,7 +14,7 @@ import { enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
 
 /* ===== Helpers ===== */
-const todayStr = moment().format("YYYY-MM-DD"); // ✅ ประกาศไว้ด้านบนสุดเพื่อให้เข้าถึงได้ทั่วไฟล์
+
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -85,6 +85,20 @@ export default function WorkerDashboard() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
+  // ✅ Locale Login (Match HR Page)
+  const mLocale = useMemo(() => {
+    const lng = (i18n.resolvedLanguage || i18n.language || "en").toLowerCase().trim();
+    return lng.startsWith("th") ? "th" : "en";
+  }, [i18n.resolvedLanguage, i18n.language]);
+
+  const uiLocale = mLocale === "th" ? "th-TH" : "en-GB";
+
+  useEffect(() => {
+    moment.locale(mLocale);
+  }, [mLocale]);
+
+  const todayStr = moment().format("YYYY-MM-DD"); // ✅ Moved inside to prevent stale date
+
   const [now, setNow] = useState(new Date());
   const [checkedInAt, setCheckedInAt] = useState(null);
   const [checkedOutAt, setCheckedOutAt] = useState(null);
@@ -122,55 +136,71 @@ export default function WorkerDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [attRes, policyRes, leaveRes] = await Promise.all([
-        axiosClient.get("/timerecord/my"),
-        axiosClient.get("/admin/attendance-policy"),
-        axiosClient.get("/leave/my"), // ✅ ดึงใบลาของตนเองมาเช็คกะทำงาน
-      ]);
+      // 1. Attendance (Priority) - Fetch independently so it always loads
+      try {
+        const attRes = await axiosClient.get("/timerecord/my");
+        const records = attRes.data.records || [];
+        setHistory(records);
+        const todayRecord = records.find((r) => {
+          if (!r.workDate) return false;
+          return moment(r.workDate).isSame(moment(), "day");
+        });
 
-      if (policyRes.data.policy) {
-        setPolicy(policyRes.data.policy);
-        if (policyRes.data.policy.workingDays !== undefined)
-          setWorkingDays(parseWorkingDays(policyRes.data.policy.workingDays));
-        // Keep raw strings to preserve descriptions
-        setSpecialHolidays(policyRes.data.policy.specialHolidays || []);
+        if (todayRecord) {
+          if (todayRecord.checkInTime)
+            setCheckedInAt(new Date(todayRecord.checkInTime));
+          if (todayRecord.checkOutTime)
+            setCheckedOutAt(new Date(todayRecord.checkOutTime));
+        }
+      } catch (err) {
+        console.error("Attendance fetch error:", err);
       }
 
-      const records = attRes.data.records || [];
-      setHistory(records);
-      const todayRecord = records.find(
-        (r) => r.workDate && r.workDate.startsWith(todayStr)
-      );
-      if (todayRecord) {
-        if (todayRecord.checkInTime)
-          setCheckedInAt(new Date(todayRecord.checkInTime));
-        if (todayRecord.checkOutTime)
-          setCheckedOutAt(new Date(todayRecord.checkOutTime));
+      // 2. Policy (May fail if backend permission is strict)
+      try {
+        const policyRes = await axiosClient.get("/admin/attendance-policy");
+        if (policyRes.data.policy) {
+          setPolicy(policyRes.data.policy);
+          if (policyRes.data.policy.workingDays !== undefined)
+            setWorkingDays(parseWorkingDays(policyRes.data.policy.workingDays));
+          // Keep raw strings to preserve descriptions
+          setSpecialHolidays(policyRes.data.policy.specialHolidays || []);
+        }
+      } catch (err) {
+        console.error("Policy fetch error:", err);
       }
 
-      // ✅ Logic: ตรวจสอบใบลาของวันนี้เพื่อคุมปุ่มกด
-      const requests = leaveRes.data.requests || [];
-      const approvedToday = requests.find(
-        (req) =>
-          req.status === "Approved" &&
-          moment(req.startDate).isSameOrBefore(todayStr, "day") &&
-          moment(req.endDate).isSameOrAfter(todayStr, "day")
-      );
+      // 3. Leaves
+      try {
+        const leaveRes = await axiosClient.get("/leave/my");
+        const requests = leaveRes.data.requests || [];
 
-      if (approvedToday) {
-        const isFull =
-          approvedToday.startDuration === "Full" ||
-          (approvedToday.startDuration === "HalfMorning" &&
-            approvedToday.endDuration === "HalfAfternoon");
-        setIsFullDayLeave(isFull);
-        setIsHalfDayAfternoon(
-          approvedToday.endDuration === "HalfAfternoon" ||
-          (approvedToday.startDate === approvedToday.endDate &&
-            approvedToday.startDuration === "HalfAfternoon")
+        // Logic for buttons
+        const approvedToday = requests.find(
+          (req) =>
+            req.status === "Approved" &&
+            moment(req.startDate).isSameOrBefore(moment(), "day") &&
+            moment(req.endDate).isSameOrAfter(moment(), "day")
         );
+
+        if (approvedToday) {
+          const isFull =
+            approvedToday.startDuration === "Full" ||
+            (approvedToday.startDuration === "HalfMorning" &&
+              approvedToday.endDuration === "HalfAfternoon");
+          setIsFullDayLeave(isFull);
+          setIsHalfDayAfternoon(
+            approvedToday.endDuration === "HalfAfternoon" ||
+            (approvedToday.startDate === approvedToday.endDate &&
+              approvedToday.startDuration === "HalfAfternoon")
+          );
+        }
+      } catch (err) {
+        console.error("Leave fetch error:", err);
       }
+
     } catch (err) {
-      console.error(err);
+      console.error("Dashboard fetch error:", err);
     }
   };
 
@@ -317,9 +347,9 @@ export default function WorkerDashboard() {
   };
 
   const formatTime = (d) =>
-    d ? new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--";
+    d ? new Date(d).toLocaleTimeString(uiLocale, { hour: "2-digit", minute: "2-digit" }) : "--:--";
   const formatDate = (s) =>
-    s ? new Date(s).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    s ? new Date(s).toLocaleDateString(uiLocale, { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
   const isWorkingDate = (date) => {
     const day = date.getDay();
@@ -331,7 +361,7 @@ export default function WorkerDashboard() {
 
   const isTodaySpecialHoliday = useMemo(() =>
     specialHolidays.some(h => h.split("|")[0] === todayStr)
-    , [specialHolidays]);
+    , [specialHolidays, todayStr]);
 
   // ✅ 1. เพิ่มตัวแปรตรวจสอบเงื่อนไขเวลา (เลียนแบบหน้า HR)
   const isAfterWorkHours = useMemo(() => {

@@ -156,51 +156,78 @@ export default function HRAttendancePage() {
   const fetchData = async () => {
     try {
       const header = getAuthHeader();
-      const [pRes, attRes, leaveRes, qRes, lateRes] = await Promise.all([
-        axios.get("http://localhost:8000/api/admin/attendance-policy", header),
-        axios.get("http://localhost:8000/api/timerecord/my", header),
-        axios.get("http://localhost:8000/api/leave/my", header),
-        axios.get("http://localhost:8000/api/leave/quota/my", header),
-        axios.get("http://localhost:8000/api/timerecord/late/summary", header),
-      ]);
 
-      if (pRes.data.policy) {
-        setPolicy(pRes.data.policy);
-        if (pRes.data.policy.workingDays !== undefined) setWorkingDays(parseWorkingDays(pRes.data.policy.workingDays));
-        setSpecialHolidays(pRes.data.policy.specialHolidays || []);
+      // 1. Policy
+      try {
+        const pRes = await axios.get("http://localhost:8000/api/admin/attendance-policy", header);
+        if (pRes.data.policy) {
+          setPolicy(pRes.data.policy);
+          if (pRes.data.policy.workingDays !== undefined)
+            setWorkingDays(parseWorkingDays(pRes.data.policy.workingDays));
+          setSpecialHolidays(pRes.data.policy.specialHolidays || []);
+        }
+      } catch (err) {
+        console.error("Policy fetch error:", err);
       }
 
-      const records = attRes.data.records || [];
-      setHistory(records);
+      // 2. Attendance
+      try {
+        const attRes = await axios.get("http://localhost:8000/api/timerecord/my", header);
+        const records = attRes.data.records || [];
+        setHistory(records);
 
-      const todayRecord = records.find((r) => r.workDate && r.workDate.startsWith(todayStr));
-      if (todayRecord) {
-        if (todayRecord.checkInTime) setCheckedInAt(new Date(todayRecord.checkInTime));
-        if (todayRecord.checkOutTime) setCheckedOutAt(new Date(todayRecord.checkOutTime));
+        const todayRecord = records.find((r) => {
+          if (!r.workDate) return false;
+          return moment(r.workDate).isSame(moment(), "day");
+        });
+
+        if (todayRecord) {
+          if (todayRecord.checkInTime) setCheckedInAt(todayRecord.checkInTime);
+          if (todayRecord.checkOutTime) setCheckedOutAt(todayRecord.checkOutTime);
+        }
+      } catch (err) {
+        console.error("Attendance fetch error:", err);
       }
 
-      const requests = leaveRes.data.requests || [];
-      setLeaveHistory(requests);
+      // 3. Leaves & Quotas
+      try {
+        const [leaveRes, qRes] = await Promise.all([
+          axios.get("http://localhost:8000/api/leave/my", header),
+          axios.get("http://localhost:8000/api/leave/quota/my", header)
+        ]);
 
-      const hasHalfDayAfternoon = requests.some(
-        (req) =>
-          req.status === "Approved" &&
-          moment(req.startDate).isSameOrBefore(todayStr, "day") &&
-          moment(req.endDate).isSameOrAfter(todayStr, "day") &&
-          ((moment(req.endDate).isSame(todayStr, "day") && req.endDuration === "HalfAfternoon") ||
-            (moment(req.startDate).isSame(todayStr, "day") &&
-              req.startDuration === "HalfAfternoon" &&
-              moment(req.startDate).isSame(req.endDate, "day")))
-      );
-      setIsHalfDayAfternoon(hasHalfDayAfternoon);
+        const requests = leaveRes.data.requests || [];
+        setLeaveHistory(requests);
 
-      const qs = qRes.data.quotas || [];
-      setQuotas(qs);
-      if (qs.length > 0 && !leaveForm.leaveTypeId) {
-        setLeaveForm((prev) => ({ ...prev, leaveTypeId: qs[0].leaveTypeId.toString() }));
+        const hasHalfDayAfternoon = requests.some(
+          (req) =>
+            req.status === "Approved" &&
+            moment(req.startDate).isSameOrBefore(moment(), "day") &&
+            moment(req.endDate).isSameOrAfter(moment(), "day") &&
+            ((moment(req.endDate).isSame(moment(), "day") && req.endDuration === "HalfAfternoon") ||
+              (moment(req.startDate).isSame(moment(), "day") &&
+                req.startDuration === "HalfAfternoon" &&
+                moment(req.startDate).isSame(req.endDate, "day")))
+        );
+        setIsHalfDayAfternoon(hasHalfDayAfternoon);
+
+        const qs = qRes.data.quotas || [];
+        setQuotas(qs);
+        if (qs.length > 0 && !leaveForm.leaveTypeId) {
+          setLeaveForm((prev) => ({ ...prev, leaveTypeId: qs[0].leaveTypeId.toString() }));
+        }
+      } catch (err) {
+        console.error("Leave/Quota fetch error:", err);
       }
 
-      setLateSummary({ lateCount: lateRes.data.lateCount, lateLimit: lateRes.data.lateLimit });
+      // 4. Late Summary
+      try {
+        const lateRes = await axios.get("http://localhost:8000/api/timerecord/late/summary", header);
+        setLateSummary({ lateCount: lateRes.data.lateCount, lateLimit: lateRes.data.lateLimit });
+      } catch (err) {
+        console.error("Late summary fetch error:", err);
+      }
+
     } catch (err) {
       console.error(err);
     }
@@ -338,10 +365,14 @@ export default function HRAttendancePage() {
     }
   };
 
-  const formatTime = (d) =>
-    d ? new Date(d).toLocaleTimeString(uiLocale, { hour: "2-digit", minute: "2-digit" }) : "--:--";
+  // ✅ Use moment for robust formatting
+  const formatTime = (d) => {
+    if (!d) return "--:--";
+    const m = moment(d);
+    return m.isValid() ? m.format("HH:mm") : "--:--";
+  };
   const formatDate = (s) =>
-    s ? new Date(s).toLocaleDateString(uiLocale, { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    s ? moment(s).format("DD MMM YYYY") : "-";
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
