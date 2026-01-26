@@ -1,5 +1,6 @@
 // src/pages/WorkerDashboard.jsx
 import React, { useEffect, useState, useMemo } from "react";
+import ReactDOM from "react-dom";
 import axiosClient from "../api/axiosClient";
 import { useNavigate } from "react-router-dom";
 import { FiClock, FiPlusCircle, FiCalendar } from "react-icons/fi";
@@ -505,7 +506,7 @@ export default function WorkerDashboard() {
       </section>
 
       {/* Leave Modal */}
-      {isLeaveModalOpen && (
+      {isLeaveModalOpen && ReactDOM.createPortal(
         <div className="modal-backdrop" onClick={() => setIsLeaveModalOpen(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head-row">
@@ -645,7 +646,8 @@ export default function WorkerDashboard() {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

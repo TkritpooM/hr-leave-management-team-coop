@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import axios from "axios";
 import { FiPlus, FiEdit2, FiTrash2, FiSave, FiRefreshCw, FiCalendar } from "react-icons/fi";
 import "./HRLeaveTypeSettings.css";
@@ -80,6 +81,9 @@ export default function LeaveSettings() {
       inputValidator: (result) => {
         return !result && t("pages.leaveTypeSettings.yearEndPolicyMustAccept");
       },
+      customClass: {
+        validationMessage: 'my-validation-message'
+      }
     });
 
     if (accept) {
@@ -301,7 +305,7 @@ export default function LeaveSettings() {
         </table>
       </div>
 
-      {modalOpen && (
+      {modalOpen && ReactDOM.createPortal(
         <div className="emp-modal-backdrop" onClick={() => setModalOpen(false)}>
           <form className="emp-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSave}>
             <div className="emp-modal-head">
@@ -417,7 +421,8 @@ export default function LeaveSettings() {
               </button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

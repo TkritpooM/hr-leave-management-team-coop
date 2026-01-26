@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import ReactDOM from "react-dom";
 import moment from "moment";
 import {
   FiX,
@@ -174,19 +175,19 @@ const QuickActionModal = ({
       type === "PROFILE"
         ? isApprove
           ? t(
-              "components.quickActionModal.confirmApproveProfileText",
-              "Approve this profile update request?"
-            )
+            "components.quickActionModal.confirmApproveProfileText",
+            "Approve this profile update request?"
+          )
           : t(
-              "components.quickActionModal.confirmRejectProfileText",
-              "Reject this profile update request?"
-            )
+            "components.quickActionModal.confirmRejectProfileText",
+            "Reject this profile update request?"
+          )
         : isApprove
-        ? t(
+          ? t(
             "components.quickActionModal.confirmApproveText",
             "Are you sure you want to approve this leave request?"
           )
-        : t(
+          : t(
             "components.quickActionModal.confirmRejectText",
             "Are you sure you want to reject this leave request?"
           );
@@ -253,8 +254,8 @@ const QuickActionModal = ({
     (type === "PROFILE"
       ? t("components.quickActionModal.profileTitle", "Profile Update Detail")
       : type === "LEAVE"
-      ? t("components.quickActionModal.leaveTitle", "Leave Request Detail")
-      : t("pages.workerNotifications.modal.title", "Notification"));
+        ? t("components.quickActionModal.leaveTitle", "Leave Request Detail")
+        : t("pages.workerNotifications.modal.title", "Notification"));
 
   const attachmentHref =
     attachmentUrl &&
@@ -262,7 +263,7 @@ const QuickActionModal = ({
       ? `${rootURL}/uploads/profiles/${attachmentUrl}`
       : `${rootURL}/uploads/${attachmentUrl}`);
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="qa-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
@@ -286,9 +287,8 @@ const QuickActionModal = ({
         <div className="qa-modal-body">
           <div className="qa-status-wrapper">
             <span
-              className={`qa-badge ${
-                isApproved ? "status-approved" : isRejected ? "status-rejected" : "status-pending"
-              }`}
+              className={`qa-badge ${isApproved ? "status-approved" : isRejected ? "status-rejected" : "status-pending"
+                }`}
             >
               {isApproved ? <FiCheckCircle /> : isRejected ? <FiXCircle /> : <FiClock />}
               {t(`common.status.${String(status).toLowerCase()}`, String(status))}
@@ -414,7 +414,8 @@ const QuickActionModal = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -1,0 +1,56 @@
+/* CSS for Leave Type Settings Year End Process SweetAlert */
+.my-validation-message {
+    font-size: 13px !important;
+    margin-top: 5px !important;
+    color: #ef4444 !important;
+    background: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Fix misalignment between checkbox and label text in SweetAlert2 input */
+div:where(.swal2-container) .swal2-input-label {
+    justify-content: center;
+    align-items: center;
+    gap: 0.5em;
+    /* Space between checkbox and text */
+}
+
+/* Minimal Style for Checkbox */
+.swal2-checkbox {
+    align-items: flex-start !important;
+    /* Align to top in case of multi-line text */
+    justify-content: center !important;
+    gap: 12px !important;
+    background: transparent !important;
+    /* Transparent background */
+    padding: 5px 0 !important;
+    border: none !important;
+    /* Remove border */
+    margin: 1em auto !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+}
+
+.swal2-checkbox input {
+    margin-top: 3px !important;
+    /* Slight offset for alignment */
+    flex-shrink: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+    cursor: pointer !important;
+    accent-color: #3b82f6 !important;
+}
+
+.swal2-checkbox span {
+    font-size: 14px !important;
+    color: #475569 !important;
+    /* Softer slate color */
+    font-weight: 500 !important;
+    text-align: left !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
+}

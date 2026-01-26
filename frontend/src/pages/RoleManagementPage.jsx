@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import ReactDOM from "react-dom";
 import { useTranslation } from "react-i18next";
 import axiosClient from "../api/axiosClient";
 import { alertSuccess, alertError, alertConfirm } from "../utils/sweetAlert";
@@ -240,7 +241,7 @@ export default function RoleManagementPage() {
             </div>
 
             {/* Modal */}
-            {modalOpen && (
+            {modalOpen && ReactDOM.createPortal(
                 <div className="role-modal-overlay" onClick={() => setModalOpen(false)}>
                     <div className="role-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="role-modal-header">
@@ -385,7 +386,8 @@ export default function RoleManagementPage() {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

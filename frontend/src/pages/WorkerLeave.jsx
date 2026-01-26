@@ -1,5 +1,6 @@
 // src/pages/WorkerLeave.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import ReactDOM from "react-dom";
 import moment from "moment";
 import "./WorkerLeave.css";
 import Pagination from "../components/Pagination";
@@ -21,9 +22,9 @@ export default function WorkerLeave() {
 
   // ✅ UI controls
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all"); 
-  const [type, setType] = useState("all"); 
-  const [sort, setSort] = useState("newest"); 
+  const [status, setStatus] = useState("all");
+  const [type, setType] = useState("all");
+  const [sort, setSort] = useState("newest");
 
   // ✅ Pagination
   const [page, setPage] = useState(1);
@@ -56,7 +57,7 @@ export default function WorkerLeave() {
       const res = await axiosClient.patch(`/leave/${requestId}/cancel`, {});
       if (res.data.success) {
         await alertSuccess("Success", "Leave request cancelled successfully.");
-        fetchData(); 
+        fetchData();
       } else {
         await alertError("Unable to cancel", res.data.message);
       }
@@ -198,8 +199,8 @@ export default function WorkerLeave() {
             </select>
             <select className="wl-select" value={type} onChange={(e) => setType(e.target.value)}>
               {typeOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt === "all" ? t("pages.workerLeave.All types") : opt}</option>
-            ))}
+                <option key={opt} value={opt}>{opt === "all" ? t("pages.workerLeave.All types") : opt}</option>
+              ))}
             </select>
             <select className="wl-select" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="newest">{t("pages.workerLeave.Newest first")}</option>
@@ -213,10 +214,10 @@ export default function WorkerLeave() {
 
         <div className="wl-chips">
           {['all', 'pending', 'approved', 'rejected', 'cancelled'].map((st) => (
-            <button 
+            <button
               key={st}
-              type="button" 
-              className={`wl-chip-mini ${status === st ? "active" : ""}`} 
+              type="button"
+              className={`wl-chip-mini ${status === st ? "active" : ""}`}
               onClick={() => setStatus(st)}
             >
               {st.charAt(0).toUpperCase() + st.slice(1)} <span>{counters[st]}</span>
@@ -253,7 +254,7 @@ export default function WorkerLeave() {
                           const start = moment(req.startDate);
                           const end = moment(req.endDate);
                           const isSameDay = start.isSame(end, 'day');
-                          
+
                           // เตรียม Label สำหรับครึ่งวัน
                           let durationLabel = "";
                           if (isSameDay) {
@@ -314,14 +315,14 @@ export default function WorkerLeave() {
         </div>
 
         {/* ✅ Detail Modal (Phase 2.3) */}
-        {active && (
+        {active && ReactDOM.createPortal(
           <div className="wl-modal-backdrop" onClick={() => setActive(null)}>
             <div className="wl-modal" onClick={(e) => e.stopPropagation()}>
               <div className="wl-modal-head">
                 <div>
                   <div className="wl-modal-title">{t("pages.workerLeave.Leave Request Details")}</div>
                   <div className="wl-modal-sub">
-                    {moment(active.startDate).format("DD MMM YYYY")} 
+                    {moment(active.startDate).format("DD MMM YYYY")}
                     {moment(active.startDate).isSame(active.endDate, 'day') ? "" : ` → ${moment(active.endDate).format("DD MMM YYYY")}`}
                   </div>
                 </div>
@@ -340,7 +341,7 @@ export default function WorkerLeave() {
                     <div className="wl-kv">
                       <div className="wl-k">{t("pages.workerLeave.Duration", "Duration")}</div>
                       <div className="wl-v">
-                        {active.startDate === active.endDate 
+                        {active.startDate === active.endDate
                           ? t(`common.${active.startDuration.toLowerCase()}`, active.startDuration)
                           : `${t("common.start", "Start")}: ${active.startDuration}, ${t("common.end", "End")}: ${active.endDuration}`}
                       </div>
@@ -407,7 +408,8 @@ export default function WorkerLeave() {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         <Pagination

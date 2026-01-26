@@ -7,6 +7,7 @@ import "./i18n";
 import App from "./App";
 import "./index.css";
 import "./styles/glass.css";
+import "./swal-custom.css";
 
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";

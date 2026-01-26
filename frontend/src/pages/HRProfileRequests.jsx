@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import ReactDOM from "react-dom";
 import { useLocation } from "react-router-dom";
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
@@ -165,10 +166,10 @@ export default function HRProfileRequests() {
                   </td>
                   <td><span className="badge badge-pending">{t("pages.workerLeave.Pending")}</span></td>
                   <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "inline-flex", gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, whiteSpace: "nowrap" }} onClick={(e) => e.stopPropagation()}>
                       <button className="btn small outline" onClick={() => setActive(r)}>{t("common.details")}</button>
-                      <button className="btn small primary" style={{ background: '#16a34a' }} onClick={() => handleAction(r.requestId, "approve")}><FiCheck /></button>
-                      <button className="btn small outline danger" style={{ borderColor: '#ef4444', color: '#ef4444' }} onClick={() => handleAction(r.requestId, "reject")}><FiX /></button>
+                      <button className="btn small primary" style={{ background: '#16a34a', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleAction(r.requestId, "approve")}><FiCheck /></button>
+                      <button className="btn small outline danger" style={{ borderColor: '#ef4444', color: '#ef4444', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => handleAction(r.requestId, "reject")}><FiX /></button>
                     </div>
                   </td>
                 </tr>
@@ -185,7 +186,7 @@ export default function HRProfileRequests() {
       </div>
 
       {/* ✅ FIXED MODAL OVERLAY (Class-based) */}
-      {active && (
+      {active && ReactDOM.createPortal(
         <div
           className="p-modal-overlay"
           onClick={() => setActive(null)}
@@ -275,7 +276,8 @@ export default function HRProfileRequests() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

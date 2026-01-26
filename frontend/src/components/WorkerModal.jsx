@@ -1,5 +1,6 @@
 // src/components/WorkerModal.jsx
 import React from "react";
+import ReactDOM from "react-dom";
 import moment from "moment";
 import {
   FiX,
@@ -22,14 +23,14 @@ const WorkerDateModal = ({ isOpen, onClose, date, data }) => {
   // ✅ ฟังก์ชันจัดรูปแบบวันที่และช่วงเวลา (Period) ให้แสดง (Morning/Afternoon) หลังวันที่
   const getFormattedPeriod = () => {
     if (!data?.startDate || !data?.endDate) return "-";
-    
+
     const start = moment(data.startDate);
     const end = moment(data.endDate);
-    
+
     // ✅ 1. ตรวจสอบว่า "วันที่เราคลิกดู" คือวันไหนในช่วงการลา
     // และดึง Duration ที่ถูกต้องมาใช้ (HalfMorning / HalfAfternoon)
     let duration = "Full";
-    
+
     if (data.isStartDay) {
       duration = data.startDuration;
     } else if (data.isEndDay) {
@@ -49,7 +50,7 @@ const WorkerDateModal = ({ isOpen, onClose, date, data }) => {
     if (start.isSame(end, 'day')) {
       return `${start.format("DD MMM YYYY")}${durationLabel}`;
     }
-    
+
     // กรณีลาหลายวัน (แสดงช่วงวันที่ + แจ้งเตือนถ้าวันที่กดดูเป็นครึ่งวัน)
     const rangeStr = `${start.format("DD MMM")} - ${end.format("DD MMM YYYY")}`;
     return duration !== "Full" ? `${rangeStr}${durationLabel}` : rangeStr;
@@ -78,8 +79,7 @@ const WorkerDateModal = ({ isOpen, onClose, date, data }) => {
     data?.approvedByName ||
     data?.approvedBy ||
     (data?.approvedByHR
-      ? `${data.approvedByHR.firstName || ""} ${
-          data.approvedByHR.lastName || ""
+      ? `${data.approvedByHR.firstName || ""} ${data.approvedByHR.lastName || ""
         }`.trim()
       : "") ||
     "";
@@ -118,7 +118,7 @@ const WorkerDateModal = ({ isOpen, onClose, date, data }) => {
   const reasonText =
     data?.reason || t("components.workerModal.noSpecificDetails", "No specific details provided for this date.");
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
@@ -212,7 +212,8 @@ const WorkerDateModal = ({ isOpen, onClose, date, data }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

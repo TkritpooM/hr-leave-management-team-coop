@@ -188,7 +188,7 @@ export default function HRAttendancePolicy() {
           <h1 className="hrp-title">{t("pages.attendancePolicy.title")}</h1>
           <p className="hrp-sub">{t("pages.attendancePolicy.subtitle")}</p>
         </div>
-        <div className="hrp-actions">
+        <div className="hrp-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {canManage && (
             <>
               <button className="btn outline" type="button" onClick={reset} disabled={saving}>

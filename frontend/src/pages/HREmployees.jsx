@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import ReactDOM from "react-dom";
 import { FiEdit2, FiSettings, FiRefreshCw, FiUserPlus, FiToggleLeft, FiToggleRight, FiClock, FiDownload, FiLayers, FiTrash2, FiPlus, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./HREmployees.css";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
@@ -566,7 +567,7 @@ export default function Employees() {
 
       {/* History Modal */}
       {
-        historyOpen && (
+        historyOpen && ReactDOM.createPortal(
           <div className="emp-modal-backdrop" onClick={() => setHistoryOpen(false)}>
             <div className="emp-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 800 }}>
               <div className="emp-modal-head">
@@ -655,13 +656,14 @@ export default function Employees() {
                 <button className="emp-btn emp-btn-secondary" onClick={() => setHistoryOpen(false)}>{t("common.close")}</button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
       {/* Employee modal */}
       {
-        empModalOpen && (
+        empModalOpen && ReactDOM.createPortal(
           <div className="emp-modal-backdrop" onClick={() => setEmpModalOpen(false)}>
             <form className="emp-modal" onClick={(e) => e.stopPropagation()} onSubmit={handleSaveEmployee}>
               <div className="emp-modal-head">
@@ -792,13 +794,14 @@ export default function Employees() {
                 </button>
               </div>
             </form>
-          </div>
+          </div>,
+          document.body
         )
       }
 
       {/* Quota modal */}
       {
-        quotaOpen && (
+        quotaOpen && ReactDOM.createPortal(
           <div className="emp-modal-backdrop" onClick={() => setQuotaOpen(false)}>
             <div className="emp-modal" onClick={(e) => e.stopPropagation()}>
               <div className="emp-modal-head">
@@ -906,7 +909,8 @@ export default function Employees() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
       {
@@ -982,7 +986,7 @@ function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh, canMa
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="emp-modal-backdrop" onClick={onClose}>
       <div className="emp-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 600 }}>
         <div className="emp-modal-head">
@@ -1052,6 +1056,7 @@ function DepartmentManagerModal({ isOpen, onClose, departments, onRefresh, canMa
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

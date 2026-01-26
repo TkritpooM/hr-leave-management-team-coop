@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import ReactDOM from "react-dom";
 import Pagination from "../components/Pagination";
 import { alertConfirm, alertError, alertSuccess } from "../utils/sweetAlert";
 import axiosClient from "../api/axiosClient";
@@ -146,8 +147,8 @@ export default function HRLeaveApprovals() {
         {isImage
           ? `🖼️ ${t("pages.hrLeaveApprovals.attachment.kind.image")}`
           : isPDF
-          ? `📄 ${t("pages.hrLeaveApprovals.attachment.kind.pdf")}`
-          : `📁 ${t("pages.hrLeaveApprovals.attachment.kind.file")}`}
+            ? `📄 ${t("pages.hrLeaveApprovals.attachment.kind.pdf")}`
+            : `📁 ${t("pages.hrLeaveApprovals.attachment.kind.file")}`}
       </a>
     );
   };
@@ -181,7 +182,7 @@ export default function HRLeaveApprovals() {
       <p style={{ marginTop: 6, color: "#4b5563" }}>{t("pages.hrLeaveApprovals.subtitle")}</p>
 
       {/* Filters (Phase 2) */}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "10px 0 14px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", margin: "10px 0 14px" }}>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -287,13 +288,13 @@ export default function HRLeaveApprovals() {
                     {(() => {
                       const isSameDay = moment(r.startDate).isSame(r.endDate, 'day');
                       let durText = "";
-                      
+
                       if (isSameDay) {
                         if (r.startDuration === "HalfMorning") durText = ` (${t("common.morning", "Morning")})`;
                         else if (r.startDuration === "HalfAfternoon") durText = ` (${t("common.afternoon", "Afternoon")})`;
                       }
 
-                      return isSameDay 
+                      return isSameDay
                         ? `${formatDate(r.startDate)}${durText}`
                         : `${formatDate(r.startDate)} → ${formatDate(r.endDate)}`;
                     })()}
@@ -317,7 +318,7 @@ export default function HRLeaveApprovals() {
                   </td>
 
                   <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "inline-flex", gap: 8 }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8 }} onClick={(e) => e.stopPropagation()}>
                       <button className="btn small outline" onClick={() => setActive(r)}>
                         {t("pages.hrLeaveApprovals.buttons.details")}
                       </button>
@@ -349,14 +350,14 @@ export default function HRLeaveApprovals() {
       </div>
 
       {/* ✅ Detail Modal (Phase 2.3) */}
-      {active && (
+      {active && ReactDOM.createPortal(
         <div className="hrla-modal-backdrop" onClick={() => setActive(null)}>
           <div className="hrla-modal" onClick={(e) => e.stopPropagation()}>
             <div className="hrla-modal-head">
               <div>
                 <div className="hrla-modal-title">{t("pages.hrLeaveApprovals.modal.title")}</div>
                 <div className="hrla-modal-sub">
-                  {formatDate(active.startDate)} 
+                  {formatDate(active.startDate)}
                   {moment(active.startDate).isSame(active.endDate, 'day') ? "" : ` → ${formatDate(active.endDate)}`}
                 </div>
               </div>
@@ -378,7 +379,7 @@ export default function HRLeaveApprovals() {
                     <div className="hrla-k">{t("pages.workerLeave.Duration", "Duration")}</div>
                     <div className="hrla-v">
                       {moment(active.startDate).isSame(active.endDate, 'day')
-                        ? t(`common.${active.startDuration.toLowerCase().replace('half','')}`, active.startDuration)
+                        ? t(`common.${active.startDuration.toLowerCase().replace('half', '')}`, active.startDuration)
                         : `${t("common.start", "Start")}: ${active.startDuration}, ${t("common.end", "End")}: ${active.endDuration}`}
                     </div>
                   </div>
@@ -456,7 +457,8 @@ export default function HRLeaveApprovals() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
